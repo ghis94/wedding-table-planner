@@ -103,8 +103,23 @@ Lina,Martin,enfant
 ## Sécurité minimale conseillée
 
 - changer `ADMIN_PASS`
+- headers de sécurité activés via `helmet` côté serveur
 - mettre l’admin derrière Nginx Proxy Manager + HTTPS
 - idéalement restreindre `/admin.html` et `/day-of.html` par IP ou auth supplémentaire
+
+### Nginx Proxy Manager (recommandé)
+
+Configuration type du Proxy Host :
+- Domain : `tables.ton-domaine.fr`
+- Forward Host/IP : IP du serveur Docker
+- Forward Port : `8090`
+- Websockets : ON
+- Block Common Exploits : ON
+- SSL : Let's Encrypt + Force SSL + HTTP/2
+
+Recommandation d’accès :
+- soit allowlist IP sur `/admin.html` et `/day-of.html`
+- soit Auth supplémentaire au niveau NPM (en plus du Basic Auth applicatif)
 
 ---
 
