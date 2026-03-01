@@ -62,27 +62,30 @@
   </div>
 
   <div class="card">
-    <h3>Admin</h3>
-    <p class="muted">Accès à l'organisation des tables :</p>
-    <a href="admin.html">Ouvrir l'espace plan de table</a>
+    <h3>Espace organisation</h3>
+    <a href="admin.html">Plan de table (admin)</a><br/>
+    <a href="day-of.html">Vue jour J (admin)</a>
   </div>
 
   <script>
-    const key='wedding_rsvps';
     const form=document.getElementById('rsvpForm');
     const ok=document.getElementById('ok');
 
-    form.addEventListener('submit',e=>{
+    form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const data=Object.fromEntries(new FormData(form).entries());
       data.id=crypto.randomUUID();
       data.createdAt=new Date().toISOString();
-      const all=JSON.parse(localStorage.getItem(key)||'[]');
-      all.push(data);
-      localStorage.setItem(key,JSON.stringify(all));
-      form.reset();
-      ok.style.display='block';
-      setTimeout(()=>ok.style.display='none',3000);
+      const resp = await fetch('/api/rsvp', {
+        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
+      });
+      if(resp.ok){
+        form.reset();
+        ok.style.display='block';
+        setTimeout(()=>ok.style.display='none',3000);
+      } else {
+        alert('Erreur enregistrement RSVP');
+      }
     });
   </script>
 </body>

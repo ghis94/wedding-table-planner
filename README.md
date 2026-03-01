@@ -1,67 +1,76 @@
-# wedding-table-mvp
+# Wedding Table Planner MVP
 
-MVP local pour gérer un site de mariage avec RSVP + plan de table.
+Application web simple mais complète pour organiser un mariage:
+- **RSVP invités**
+- **Plan de table admin** (drag & drop)
+- **Stockage SQLite**
+- **Import CSV invités**
+- **Vue Jour J** imprimable
+- **Déploiement Docker ready**
 
-## Contenu
+Repo: https://github.com/ghis94/wedding-table-planner-mvp
 
-- `index.html` : page RSVP (invités)
-- `admin.html` : page admin pour plan de table (drag & drop)
+---
 
-## Fonctionnalités MVP
+## ✨ Fonctionnalités
 
-- RSVP local (nom/prénom, présence, adultes/enfants, allergies, message)
-- Gestion des invités présents
-- Création de tables avec capacité
-- Placement drag & drop invités -> tables
-- Retrait d'un invité d'une table (clic)
-- Sauvegarde locale du plan (localStorage)
+### 1) Espace invités
+- Formulaire RSVP: nom, prénom, présence, adultes/enfants, régimes, message
+
+### 2) Espace admin (protégé)
+- Auth Basic (`ADMIN_USER` / `ADMIN_PASS`)
+- Chargement des RSVPs confirmés
+- Création de tables + capacité
+- Placement invités par glisser-déposer
+- Sauvegarde du plan en base SQLite
 - Export JSON
-- Export PDF via impression navigateur
 
-## Démarrage rapide
+### 3) Import CSV
+- Import texte CSV avec colonnes `prenom,nom` (ou `first_name,last_name`, ou `name`)
 
-Option simple:
-1. Ouvre `index.html` dans le navigateur
-2. Ouvre `admin.html` pour organiser les tables
+### 4) Vue Jour J
+- Affichage clair par table
+- Bouton imprimer (PDF via navigateur)
 
-Option serveur local (recommandé):
+---
+
+## 🧱 Stack
+
+- Node.js + Express
+- SQLite (`sqlite3`)
+- Front statique HTML/CSS/JS
+
+---
+
+## 🚀 Lancer en Docker
+
 ```bash
-cd /root/.openclaw/workspace/wedding-table-mvp
-python3 -m http.server 8090
-```
-Puis:
-- http://192.168.1.220:8090/index.html
-- http://192.168.1.220:8090/admin.html
-
-## Version Docker
-
-### Build + run (Docker)
-```bash
-cd /root/.openclaw/workspace/wedding-table-mvp
-docker build -t wedding-table-mvp .
-docker run -d --name wedding-table-mvp -p 8090:80 wedding-table-mvp
-```
-
-### Docker Compose
-```bash
-cd /root/.openclaw/workspace/wedding-table-mvp
+cd wedding-table-mvp
 docker compose up -d --build
 ```
 
 Accès:
-- http://<IP_SERVEUR>:8090/index.html
-- http://<IP_SERVEUR>:8090/admin.html
+- Invités (RSVP): `http://<IP>:8090/index.html`
+- Admin plan: `http://<IP>:8090/admin.html`
+- Vue Jour J: `http://<IP>:8090/day-of.html`
 
-## Limites (version MVP)
+> ⚠️ Pense à changer `ADMIN_PASS` dans `docker-compose.yml` avant prod.
 
-- Données stockées localement (navigateur), pas multi-utilisateur natif
-- Pas d'authentification
-- Pas encore de contraintes avancées (groupes incompatibles, optimisation auto)
+---
 
-## Prochaine étape proposée
+## 🗂️ Structure
 
-Passer en V2 (Next.js + Supabase) pour:
-- accès sécurisé admin
-- partage multi-appareils
-- import/export CSV complet
-- contraintes de placement avancées
+- `server.js` : API + auth + SQLite
+- `index.html` : page RSVP
+- `admin.html` : gestion plan de table
+- `day-of.html` : vue opérationnelle jour J
+- `data/wedding.db` : base SQLite (créée automatiquement)
+
+---
+
+## 🔜 Roadmap possible
+
+- Export CSV par table
+- Gestion multi-événements (vin d’honneur, dîner, brunch)
+- Envoi automatique d’emails de confirmation RSVP
+- Login admin par session (au lieu de Basic Auth)

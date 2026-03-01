@@ -5,5 +5,12 @@ services:
     build: .
     container_name: wedding-table-mvp
     ports:
-      - "8090:80"
+      - "8090:8090"
+    environment:
+      - PORT=8090
+      - ADMIN_USER=admin
+      - ADMIN_PASS=change-me-now
+      - DB_PATH=/app/data/wedding.db
+    volumes:
+      - ./data:/app/data
     restart: unless-stopped

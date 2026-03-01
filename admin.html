@@ -8,18 +8,15 @@
     body{font-family:Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
     .wrap{max-width:1200px;margin:0 auto;padding:16px}
     .top{display:flex;gap:10px;flex-wrap:wrap}
-    button,input{padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px}
+    button,input,textarea{padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px}
     button{background:#0f172a;color:#fff;cursor:pointer}
     .grid{display:grid;grid-template-columns:320px 1fr;gap:14px;margin-top:12px}
     .panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px}
     .guest{padding:8px;border:1px solid #cbd5e1;border-radius:8px;margin:8px 0;background:#fff;cursor:grab}
     .table{border:1px dashed #94a3b8;border-radius:10px;padding:8px;min-height:80px;background:#f8fafc}
-    .table h4{margin:2px 0 8px 0}
     .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
     .muted{color:#64748b;font-size:13px}
-    .danger{background:#7f1d1d}
-    .warn{background:#92400e}
-    .ok{background:#065f46}
+    .danger{background:#7f1d1d}.warn{background:#92400e}.ok{background:#065f46}
   </style>
 </head>
 <body>
@@ -33,7 +30,14 @@
       <button class="warn" onclick="exportJson()">Exporter JSON</button>
       <button class="danger" onclick="resetAll()">Reset</button>
     </div>
-    <p class="muted">Drag & drop: glisser un invité vers une table. Gestion locale (localStorage).</p>
+    <p class="muted">Drag & drop: glisser un invité vers une table.</p>
+
+    <div class="panel" style="margin-top:10px">
+      <h3>Import CSV invités</h3>
+      <p class="muted">Colonnes acceptées: `prenom,nom` (ou `first_name,last_name`, ou `name`).</p>
+      <textarea id="csvInput" rows="4" style="width:100%" placeholder="prenom,nom\nAlice,Martin\nBob,Durand"></textarea>
+      <button onclick="importCsv()">Importer CSV</button>
+    </div>
 
     <div class="grid">
       <div class="panel">
@@ -42,7 +46,6 @@
         <button style="margin-top:8px" onclick="quickAddGuest()">Ajouter</button>
         <div id="guests"></div>
       </div>
-
       <div class="panel">
         <h3>Tables</h3>
         <div id="tables" class="tables"></div>
@@ -51,18 +54,20 @@
   </div>
 
   <script>
-    const K_G='wedding_rsvps', K_P='wedding_plan_tables';
     let guests=[], tables=[];
 
-    function normalizeName(g){
-      const p=(g.prenom||'').trim(), n=(g.nom||'').trim();
-      return (p+' '+n).trim() || g.name || 'Invité';
+    async function api(url, opts={}){
+      const r = await fetch(url, opts);
+      if(!r.ok) throw new Error(await r.text());
+      return r.json();
     }
 
-    function loadGuests(){
-      const raw=JSON.parse(localStorage.getItem(K_G)||'[]');
-      const yes=raw.filter(g=>String(g.presence||'').toLowerCase()==='oui');
-      const byName=yes.map(g=>({id:g.id||crypto.randomUUID(),name:normalizeName(g),meta:g}));
+    function normalizeName(g){ return `${(g.prenom||'').trim()} ${(g.nom||'').trim()}`.trim(); }
+
+    async function loadGuests(){
+      const raw = await api('/api/rsvps');
+      const yes = raw.filter(g => String(g.presence||'').toLowerCase()==='oui');
+      const byName = yes.map(g=>({id:g.id||crypto.randomUUID(),name:normalizeName(g)||g.name||'Invité'}));
       guests=[...guests,...byName.filter(n=>!guests.some(g=>g.name===n.name))];
       renderGuests();
     }
@@ -70,103 +75,48 @@
     function quickAddGuest(){
       const i=document.getElementById('quickAdd');
       const v=i.value.trim(); if(!v) return;
-      guests.push({id:crypto.randomUUID(),name:v});
-      i.value='';
+      guests.push({id:crypto.randomUUID(),name:v}); i.value=''; renderGuests();
+    }
+
+    async function importCsv(){
+      const csv=document.getElementById('csvInput').value;
+      const res=await api('/api/import-csv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv})});
+      guests=[...guests,...res.guests.filter(n=>!guests.some(g=>g.name===n.name))];
       renderGuests();
+      alert(`${res.count} invité(s) importé(s)`);
     }
 
-    function addTable(){
-      const num=tables.length+1;
-      tables.push({id:crypto.randomUUID(),name:'Table '+num,capacity:10,guests:[]});
-      renderTables();
-    }
-
-    function removeTable(id){
-      const t=tables.find(x=>x.id===id);
-      if(!t) return;
-      guests.push(...t.guests);
-      tables=tables.filter(x=>x.id!==id);
-      renderAll();
-    }
+    function addTable(){ const n=tables.length+1; tables.push({id:crypto.randomUUID(),name:'Table '+n,capacity:10,guests:[]}); renderTables(); }
+    function removeTable(id){ const t=tables.find(x=>x.id===id); if(!t) return; guests.push(...t.guests); tables=tables.filter(x=>x.id!==id); renderAll(); }
 
     function renderGuests(){
-      const c=document.getElementById('guests');
-      c.innerHTML='';
-      guests.forEach(g=>{
-        const d=document.createElement('div');
-        d.className='guest'; d.draggable=true; d.textContent=g.name; d.dataset.id=g.id;
-        d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id);
-        c.appendChild(d);
-      });
+      const c=document.getElementById('guests'); c.innerHTML='';
+      guests.forEach(g=>{ const d=document.createElement('div'); d.className='guest'; d.draggable=true; d.textContent=g.name; d.dataset.id=g.id; d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id); c.appendChild(d); });
     }
 
     function renderTables(){
-      const c=document.getElementById('tables');
-      c.innerHTML='';
+      const c=document.getElementById('tables'); c.innerHTML='';
       tables.forEach(t=>{
-        const b=document.createElement('div');
-        b.className='table';
+        const b=document.createElement('div'); b.className='table';
         b.ondragover=e=>e.preventDefault();
-        b.ondrop=e=>{e.preventDefault(); assignToTable(e.dataTransfer.getData('text/plain'), t.id)};
-        b.innerHTML=`<h4>${t.name}</h4>
-          <div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div>
-          <div class="muted">Places: ${t.guests.length}/${t.capacity}</div>
-          <button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
-        t.guests.forEach(g=>{
-          const d=document.createElement('div');
-          d.className='guest'; d.textContent=g.name;
-          d.onclick=()=>unassign(g.id,t.id);
-          b.appendChild(d);
-        });
+        b.ondrop=e=>{e.preventDefault(); assignToTable(e.dataTransfer.getData('text/plain'),t.id)};
+        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
+        t.guests.forEach(g=>{ const d=document.createElement('div'); d.className='guest'; d.textContent=g.name; d.onclick=()=>unassign(g.id,t.id); b.appendChild(d); });
         c.appendChild(b);
       });
     }
 
-    function setCap(id,val){
-      const t=tables.find(x=>x.id===id); if(!t) return;
-      t.capacity=Math.max(1,parseInt(val||'1',10));
-      renderTables();
-    }
+    function setCap(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; t.capacity=Math.max(1,parseInt(val||'1',10)); renderTables(); }
+    function assignToTable(guestId,tableId){ const gi=guests.findIndex(g=>g.id===guestId); if(gi===-1) return; const t=tables.find(x=>x.id===tableId); if(!t) return; if(t.guests.length>=t.capacity){alert('Table pleine');return;} t.guests.push(guests[gi]); guests.splice(gi,1); renderAll(); }
+    function unassign(guestId,tableId){ const t=tables.find(x=>x.id===tableId); if(!t) return; const i=t.guests.findIndex(g=>g.id===guestId); if(i===-1) return; guests.push(t.guests[i]); t.guests.splice(i,1); renderAll(); }
 
-    function assignToTable(guestId,tableId){
-      const gi=guests.findIndex(g=>g.id===guestId);
-      if(gi===-1) return;
-      const t=tables.find(x=>x.id===tableId); if(!t) return;
-      if(t.guests.length>=t.capacity){ alert('Table pleine'); return; }
-      t.guests.push(guests[gi]);
-      guests.splice(gi,1);
-      renderAll();
-    }
-
-    function unassign(guestId,tableId){
-      const t=tables.find(x=>x.id===tableId); if(!t) return;
-      const i=t.guests.findIndex(g=>g.id===guestId); if(i===-1) return;
-      guests.push(t.guests[i]);
-      t.guests.splice(i,1);
-      renderAll();
-    }
-
-    function savePlan(){
-      localStorage.setItem(K_P,JSON.stringify({tables,guests,savedAt:new Date().toISOString()}));
-      alert('Plan sauvegardé ✅');
-    }
-
-    function exportJson(){
-      const payload={tables,guests,exportedAt:new Date().toISOString()};
-      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
-      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='plan-de-table.json'; a.click();
-    }
-
-    function resetAll(){
-      if(!confirm('Réinitialiser le plan ?')) return;
-      guests=[]; tables=[]; renderAll();
-    }
-
+    async function savePlan(){ await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tables,guests})}); alert('Plan sauvegardé ✅'); }
+    function exportJson(){ const blob=new Blob([JSON.stringify({tables,guests,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='plan-de-table.json'; a.click(); }
+    function resetAll(){ if(!confirm('Réinitialiser le plan ?')) return; guests=[]; tables=[]; renderAll(); }
     function renderAll(){ renderGuests(); renderTables(); }
 
-    (function boot(){
-      const p=JSON.parse(localStorage.getItem(K_P)||'null');
-      if(p){ guests=p.guests||[]; tables=p.tables||[]; }
+    (async function boot(){
+      try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; } catch(e){}
       renderAll();
     })();
   </script>

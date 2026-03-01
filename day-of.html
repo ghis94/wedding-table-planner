@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vue Jour J — Plan de table</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#fff;color:#111827}
+    .wrap{max-width:1200px;margin:0 auto;padding:16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+    .card{border:1px solid #d1d5db;border-radius:10px;padding:10px}
+    h1,h3{margin:0}
+    ul{margin:8px 0 0 18px}
+    .muted{color:#6b7280}
+    button{padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;background:#111827;color:#fff;cursor:pointer}
+    @media print{button{display:none}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>💍 Plan de table — Jour J</h1>
+        <div class="muted" id="meta"></div>
+      </div>
+      <div>
+        <button onclick="load()">Rafraîchir</button>
+        <button onclick="window.print()">Imprimer</button>
+      </div>
+    </div>
+    <div id="tables" class="tables"></div>
+  </div>
+
+  <script>
+    async function load(){
+      const r=await fetch('/api/plan');
+      const p=await r.json();
+      const tables=p.tables||[];
+      const total=tables.reduce((s,t)=>s+(t.guests?.length||0),0);
+      document.getElementById('meta').textContent=`${tables.length} table(s) • ${total} invité(s)`;
+      const c=document.getElementById('tables');
+      c.innerHTML='';
+      tables.forEach(t=>{
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`<h3>${t.name}</h3><div class='muted'>${(t.guests||[]).length}/${t.capacity||0}</div>`;
+        const ul=document.createElement('ul');
+        (t.guests||[]).forEach(g=>{const li=document.createElement('li'); li.textContent=g.name; ul.appendChild(li);});
+        d.appendChild(ul); c.appendChild(d);
+      });
+    }
+    load();
+  </script>
+</body>
+</html>
