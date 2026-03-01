@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  wedding-table-mvp:
+    build: .
+    container_name: wedding-table-mvp
+    ports:
+      - "8090:80"
+    restart: unless-stopped

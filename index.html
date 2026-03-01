@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mariage — RSVP</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:760px;margin:24px auto;padding:0 14px;color:#1f2937}
+    h1{margin-bottom:6px} .card{border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin:14px 0}
+    label{display:block;margin-top:10px;font-weight:600} input,select,textarea,button{width:100%;padding:10px;margin-top:6px;border:1px solid #d1d5db;border-radius:8px}
+    button{cursor:pointer;background:#111827;color:#fff;font-weight:700} .muted{color:#6b7280;font-size:14px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:640px){.row{grid-template-columns:1fr}}
+    .ok{color:#065f46;font-weight:700;margin-top:10px}
+    a{color:#1d4ed8}
+  </style>
+</head>
+<body>
+  <h1>💍 RSVP Mariage</h1>
+  <p class="muted">Confirme ta présence et tes informations pratiques.</p>
+
+  <div class="card">
+    <form id="rsvpForm">
+      <div class="row">
+        <div>
+          <label>Nom</label>
+          <input name="nom" required />
+        </div>
+        <div>
+          <label>Prénom</label>
+          <input name="prenom" required />
+        </div>
+      </div>
+
+      <label>Présence</label>
+      <select name="presence" required>
+        <option value="">Choisir…</option>
+        <option>Oui</option>
+        <option>Non</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label>Nombre d'adultes</label>
+          <input type="number" min="0" value="1" name="adultes" required />
+        </div>
+        <div>
+          <label>Nombre d'enfants</label>
+          <input type="number" min="0" value="0" name="enfants" required />
+        </div>
+      </div>
+
+      <label>Régime alimentaire / allergies</label>
+      <textarea name="regime" rows="3" placeholder="Ex: végétarien, sans gluten…"></textarea>
+
+      <label>Message</label>
+      <textarea name="message" rows="3" placeholder="Petit mot pour les mariés"></textarea>
+
+      <button type="submit">Envoyer</button>
+      <p id="ok" class="ok" style="display:none">Merci, votre réponse est enregistrée ✅</p>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>Admin</h3>
+    <p class="muted">Accès à l'organisation des tables :</p>
+    <a href="admin.html">Ouvrir l'espace plan de table</a>
+  </div>
+
+  <script>
+    const key='wedding_rsvps';
+    const form=document.getElementById('rsvpForm');
+    const ok=document.getElementById('ok');
+
+    form.addEventListener('submit',e=>{
+      e.preventDefault();
+      const data=Object.fromEntries(new FormData(form).entries());
+      data.id=crypto.randomUUID();
+      data.createdAt=new Date().toISOString();
+      const all=JSON.parse(localStorage.getItem(key)||'[]');
+      all.push(data);
+      localStorage.setItem(key,JSON.stringify(all));
+      form.reset();
+      ok.style.display='block';
+      setTimeout(()=>ok.style.display='none',3000);
+    });
+  </script>
+</body>
+</html>
