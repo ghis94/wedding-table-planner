@@ -8,7 +8,7 @@ Application web simple mais complète pour organiser un mariage:
 - **Vue Jour J** imprimable
 - **Déploiement Docker ready**
 
-Repo: https://github.com/ghis94/wedding-table-planner-mvp
+Repo: https://github.com/ghis94/wedding-table-planner
 
 ---
 
