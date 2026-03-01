@@ -6,12 +6,41 @@
   <title>Plan visuel — Wedding Table Planner</title>
   <style>
     body{font-family:Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
-    .wrap{max-width:1200px;margin:0 auto;padding:14px}
+    .wrap{max-width:1280px;margin:0 auto;padding:14px}
     .top{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
     button{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#0f172a;color:#fff;cursor:pointer}
-    .canvas{position:relative;background:#fff;border:1px solid #cbd5e1;border-radius:14px;height:70vh;margin-top:12px;overflow:hidden}
-    .table{position:absolute;min-width:140px;background:#f1f5f9;border:1px solid #94a3b8;border-radius:12px;padding:8px;cursor:move;user-select:none}
+    .canvas{position:relative;background:#fff;border:1px solid #cbd5e1;border-radius:14px;height:76vh;margin-top:12px;overflow:hidden}
     .muted{color:#64748b;font-size:13px}
+
+    .round-table{
+      position:absolute;
+      width:170px;height:170px;
+      border-radius:999px;
+      border:2px solid #475569;
+      background:radial-gradient(circle at 30% 30%,#f8fafc,#e2e8f0);
+      display:flex;align-items:center;justify-content:center;
+      text-align:center; padding:10px;
+      cursor:move; user-select:none;
+      box-shadow:0 8px 18px #00000014;
+      z-index:10;
+    }
+    .round-table .meta{font-size:12px;color:#475569}
+
+    .guest-chip{
+      position:absolute;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid #94a3b8;
+      background:#ffffff;
+      box-shadow:0 4px 10px #00000012;
+      font-size:12px;
+      cursor:move; user-select:none;
+      white-space:nowrap;
+      z-index:20;
+    }
+    .guest-chip.adulte{background:#eef2ff;color:#3730a3}
+    .guest-chip.enfant{background:#ecfeff;color:#155e75}
+    .guest-chip.bebe{background:#fff7ed;color:#9a3412}
   </style>
 </head>
 <body>
@@ -20,7 +49,7 @@
     <div class="top">
       <button onclick="saveLayout()">Sauvegarder le placement visuel</button>
       <button onclick="resetLayout()">Reset positions</button>
-      <span class="muted">Glisse les cartes de table pour dessiner la salle</span>
+      <span class="muted">Tables rondes + noms déplaçables individuellement</span>
     </div>
     <div id="canvas" class="canvas"></div>
   </div>
@@ -29,40 +58,80 @@
     let plan={tables:[],guests:[],layout:{}};
     const canvas=document.getElementById('canvas');
 
+    function normType(t){
+      const v=String(t||'adulte');
+      if(v==='enfant') return 'enfant';
+      if(v==='bebe') return 'bebe';
+      return 'adulte';
+    }
+
     async function load(){
       const r=await fetch('/api/plan');
       plan=await r.json();
       plan.layout=plan.layout||{};
+      plan.layout.tables=plan.layout.tables||{};
+      plan.layout.guests=plan.layout.guests||{};
       render();
     }
 
     function render(){
       canvas.innerHTML='';
-      const w=canvas.clientWidth;
+      const W=canvas.clientWidth;
+
       (plan.tables||[]).forEach((t,i)=>{
-        const pos=plan.layout[t.id]||{x:20+(i%5)*180,y:20+Math.floor(i/5)*130};
-        const d=document.createElement('div');
-        d.className='table';
-        d.style.left=pos.x+'px'; d.style.top=pos.y+'px';
-        d.innerHTML=`<strong>${t.name}</strong><br><span class="muted">${(t.guests||[]).length}/${t.capacity||0}</span>`;
-        drag(d,t.id,w);
-        canvas.appendChild(d);
+        const pos=plan.layout.tables[t.id]||{x:30+(i%5)*220,y:20+Math.floor(i/5)*220};
+        const table=document.createElement('div');
+        table.className='round-table';
+        table.style.left=pos.x+'px';
+        table.style.top=pos.y+'px';
+        table.innerHTML=`<div><strong>${t.name}</strong><div class="meta">${(t.guests||[]).length}/${t.capacity||0}</div></div>`;
+        drag(table,(nx,ny)=>{plan.layout.tables[t.id]={x:nx,y:ny};});
+        canvas.appendChild(table);
+
+        const guests=t.guests||[];
+        guests.forEach((g,gi)=>{
+          const gid=g.id||`${t.id}-${gi}`;
+          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,85);
+          const chip=document.createElement('div');
+          chip.className=`guest-chip ${normType(g.type)}`;
+          chip.style.left=gp.x+'px';
+          chip.style.top=gp.y+'px';
+          chip.textContent=g.name;
+          drag(chip,(nx,ny)=>{plan.layout.guests[gid]={x:nx,y:ny};});
+          canvas.appendChild(chip);
+        });
       });
     }
 
-    function drag(el,id,maxW){
+    function defaultGuestPos(tablePos,index,total,radius){
+      const cx=tablePos.x+85, cy=tablePos.y+85;
+      const ang=(Math.PI*2)*(index/Math.max(total,1));
+      return {x:Math.round(cx+Math.cos(ang)*radius), y:Math.round(cy+Math.sin(ang)*radius)};
+    }
+
+    function drag(el,onDrop){
       let sx=0,sy=0,ox=0,oy=0,down=false;
-      el.addEventListener('pointerdown',e=>{down=true;sx=e.clientX;sy=e.clientY;ox=parseInt(el.style.left,10)||0;oy=parseInt(el.style.top,10)||0;el.setPointerCapture(e.pointerId);});
+      el.addEventListener('pointerdown',e=>{
+        down=true;
+        sx=e.clientX; sy=e.clientY;
+        ox=parseInt(el.style.left,10)||0;
+        oy=parseInt(el.style.top,10)||0;
+        el.setPointerCapture(e.pointerId);
+      });
       el.addEventListener('pointermove',e=>{
         if(!down) return;
         let nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy);
         nx=Math.max(0,Math.min(nx,canvas.clientWidth-el.offsetWidth));
         ny=Math.max(0,Math.min(ny,canvas.clientHeight-el.offsetHeight));
-        el.style.left=nx+'px'; el.style.top=ny+'px';
+        el.style.left=nx+'px';
+        el.style.top=ny+'px';
       });
       el.addEventListener('pointerup',()=>{
+        if(!down) return;
         down=false;
-        plan.layout[id]={x:parseInt(el.style.left,10)||0,y:parseInt(el.style.top,10)||0};
+        const nx=parseInt(el.style.left,10)||0;
+        const ny=parseInt(el.style.top,10)||0;
+        onDrop(nx,ny);
       });
     }
 
@@ -72,7 +141,7 @@
     }
 
     function resetLayout(){
-      plan.layout={};
+      plan.layout={tables:{},guests:{}};
       render();
     }
 

@@ -42,7 +42,9 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - affiche directement la table assignée + type
 
 ### Plan visuel (`/visual.html`)
-- positionnement visuel des tables (drag & drop)
+- tables rondes (vue salle)
+- noms des invités affichés autour des tables
+- déplacement drag & drop des tables **et** des noms invités
 - sauvegarde des positions dans la configuration
 
 ---
