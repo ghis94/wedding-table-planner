@@ -32,6 +32,9 @@
       <button class="ok" onclick="savePlan()">Sauvegarder plan</button>
       <button onclick="window.print()">Exporter PDF (imprimer)</button>
       <button class="warn" onclick="exportJson()">Exporter JSON</button>
+      <button class="warn" onclick="exportConfig()">Exporter config</button>
+      <button class="warn" onclick="document.getElementById('configFile').click()">Importer config</button>
+      <input id="configFile" type="file" accept="application/json" style="display:none" onchange="importConfig(event)">
       <button class="danger" onclick="resetAll()">Reset</button>
     </div>
     <p class="muted">Drag & drop: glisser un invité vers une table.</p>
@@ -166,6 +169,32 @@
 
     async function savePlan(){ await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tables,guests})}); alert('Plan sauvegardé ✅'); }
     function exportJson(){ const blob=new Blob([JSON.stringify({tables,guests,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='plan-de-table.json'; a.click(); }
+
+    async function exportConfig(){
+      const cfg = await api('/api/config/export');
+      const blob = new Blob([JSON.stringify(cfg, null, 2)], { type:'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `wedding-table-config-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    async function importConfig(event){
+      const f = event.target.files?.[0];
+      if(!f) return;
+      const txt = await f.text();
+      let cfg;
+      try { cfg = JSON.parse(txt); } catch { alert('JSON invalide'); return; }
+      if(!confirm('Importer cette config et remplacer les données actuelles ?')) return;
+      await api('/api/config/import', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(cfg) });
+      const p = await api('/api/plan');
+      guests = p.guests || [];
+      tables = p.tables || [];
+      renderAll();
+      alert('Config importée ✅');
+      event.target.value='';
+    }
+
     function resetAll(){ if(!confirm('Réinitialiser le plan ?')) return; guests=[]; tables=[]; renderAll(); }
     function renderAll(){ renderGuests(); renderTables(); }
 

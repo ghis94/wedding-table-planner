@@ -137,6 +137,63 @@ app.post('/api/import-csv', basicAuth, (req, res) => {
   }
 });
 
+app.get('/api/config/export', basicAuth, (_req, res) => {
+  try {
+    const rsvps = db.prepare('SELECT * FROM rsvps ORDER BY datetime(createdAt) DESC').all();
+    const planRow = db.prepare('SELECT data, updatedAt FROM plan WHERE id=1').get();
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      rsvps,
+      plan: planRow?.data ? JSON.parse(planRow.data) : { tables: [], guests: [] },
+      planUpdatedAt: planRow?.updatedAt || null,
+    };
+    res.json(payload);
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/config/import', basicAuth, (req, res) => {
+  try {
+    const payload = req.body || {};
+    if (!Array.isArray(payload.rsvps) || typeof payload.plan !== 'object' || payload.plan === null) {
+      return res.status(400).json({ ok: false, error: 'Format de config invalide' });
+    }
+
+    const insertRsvp = db.prepare(`INSERT OR REPLACE INTO rsvps
+      (id, nom, prenom, presence, adultes, enfants, regime, message, createdAt)
+      VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @createdAt)`);
+
+    const tx = db.transaction(() => {
+      db.prepare('DELETE FROM rsvps').run();
+      for (const r of payload.rsvps) {
+        insertRsvp.run({
+          id: r.id || crypto.randomUUID(),
+          nom: r.nom || '',
+          prenom: r.prenom || '',
+          presence: r.presence || '',
+          adultes: Number(r.adultes || 0),
+          enfants: Number(r.enfants || 0),
+          regime: r.regime || '',
+          message: r.message || '',
+          createdAt: r.createdAt || new Date().toISOString(),
+        });
+      }
+      db.prepare(
+        `INSERT INTO plan(id, data, updatedAt)
+         VALUES(1, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`
+      ).run(JSON.stringify(payload.plan), new Date().toISOString());
+    });
+
+    tx();
+    res.json({ ok: true, importedRsvps: payload.rsvps.length });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.use('/admin.html', basicAuth);
 app.use('/day-of.html', basicAuth);
 app.use(express.static(__dirname));

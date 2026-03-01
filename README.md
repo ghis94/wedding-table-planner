@@ -26,6 +26,7 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - sauvegarde du plan de table
 - export JSON
 - import CSV (noms invités + type `adulte` / `enfant` / `bebe`)
+- export/import complet de la configuration (RSVP + plan)
 
 ### Vue opérationnelle (`/day-of.html`)
 - affichage clair par table
