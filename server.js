@@ -126,7 +126,6 @@ app.post('/api/import-csv', basicAuth, (req, res) => {
 });
 
 app.use('/admin.html', basicAuth);
-app.use('/admin-dev.html', basicAuth);
 app.use('/day-of.html', basicAuth);
 app.use(express.static(__dirname));
 
