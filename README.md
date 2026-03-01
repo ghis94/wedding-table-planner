@@ -23,7 +23,7 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - chargement des RSVPs `Oui` + `Peut-être` (visuellement distincts)
 - création de tables avec capacité
 - placement par glisser-déposer
-- affectation par liste déroulante (invité → table)
+- affectation par liste déroulante (depuis la liste invités **et** directement dans chaque carte de table)
 - sauvegarde du plan de table
 - suppression d’un invité (pool ou table), avec suppression RSVP associée
 - export JSON

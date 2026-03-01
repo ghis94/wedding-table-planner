@@ -198,6 +198,12 @@
       return opts.join('');
     }
 
+    function guestOptions(){
+      const opts = [`<option value="">Invité…</option>`];
+      (guests||[]).forEach(g=> opts.push(`<option value="${g.id}">${g.name}</option>`));
+      return opts.join('');
+    }
+
     function renderGuests(){
       const c=document.getElementById('guests'); c.innerHTML='';
       guests.forEach(g=>{
@@ -218,7 +224,7 @@
         const adultCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='adulte').length;
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
-        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
+        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><div class="row" style="margin:6px 0"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
         t.guests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
           d.innerHTML=`<span>${g.name}</span><span class="guest-actions">${guestTag(g)} <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
@@ -236,6 +242,13 @@
       const sel=document.getElementById(`assign-${guestId}`);
       const tableId=sel?.value;
       if(!tableId){ alert('Choisis une table'); return; }
+      assignToTable(guestId, tableId);
+    }
+    function addGuestToTableFromSelect(tableId, ev){
+      if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+      const sel=document.getElementById(`table-assign-${tableId}`);
+      const guestId=sel?.value;
+      if(!guestId){ alert('Choisis un invité'); return; }
       assignToTable(guestId, tableId);
     }
     function unassign(guestId,tableId){ const t=tables.find(x=>x.id===tableId); if(!t) return; const i=t.guests.findIndex(g=>g.id===guestId); if(i===-1) return; guests.push(t.guests[i]); t.guests.splice(i,1); renderAll(); }
