@@ -27,7 +27,7 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - export JSON
 - import CSV (noms invités + type `adulte` / `enfant` / `bebe`)
 - export/import complet de la configuration (RSVP + plan)
-- sélecteur de thème UI (Classique, Modern Dark, Romance, Forest)
+- sélecteur de thème UI (Classique, Modern Dark, Romance, Forest, Mariage Luxe)
 
 ### Vue opérationnelle (`/day-of.html`)
 - affichage clair par table

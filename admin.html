@@ -31,6 +31,7 @@
     body.theme-modern{--bg:#070b17;--text:#e6eefc;--panel:#0f172acc;--line:#334155;--line-2:#243042;--btn:#4f46e5;--btn-text:#fff;--muted:#9fb0c9;--badge-ad:#312e81;--badge-ad-text:#c7d2fe;--badge-en:#083344;--badge-en-text:#a5f3fc;--badge-bb:#422006;--badge-bb-text:#fed7aa}
     body.theme-romance{--bg:#fff7fb;--text:#4a044e;--panel:#ffffff;--line:#f5d0fe;--line-2:#fbcfe8;--btn:#be185d;--btn-text:#fff;--muted:#9d174d;--badge-ad:#fce7f3;--badge-ad-text:#9d174d;--badge-en:#ede9fe;--badge-en-text:#5b21b6;--badge-bb:#fff1f2;--badge-bb-text:#be123c}
     body.theme-forest{--bg:#f0fdf4;--text:#052e16;--panel:#ffffff;--line:#bbf7d0;--line-2:#86efac;--btn:#166534;--btn-text:#fff;--muted:#166534;--badge-ad:#dcfce7;--badge-ad-text:#166534;--badge-en:#ccfbf1;--badge-en-text:#0f766e;--badge-bb:#fef9c3;--badge-bb-text:#854d0e}
+    body.theme-luxe{--bg:#fffdf7;--text:#3b2f17;--panel:#fffaf0;--line:#ead9b3;--line-2:#e4cfa2;--btn:#8a6a2f;--btn-text:#fff9eb;--muted:#8b7355;--badge-ad:#f8edd5;--badge-ad-text:#6b4f1f;--badge-en:#efe7ff;--badge-en-text:#5b21b6;--badge-bb:#ffe9e2;--badge-bb-text:#9a3412}
   </style>
 </head>
 <body>
@@ -44,6 +45,7 @@
           <option value="modern">Modern Dark</option>
           <option value="romance">Romance</option>
           <option value="forest">Forest</option>
+          <option value="luxe">Mariage Luxe</option>
         </select>
       </div>
     </div>
@@ -93,10 +95,11 @@
 
     function applyTheme(theme){
       const body=document.body;
-      body.classList.remove('theme-modern','theme-romance','theme-forest');
+      body.classList.remove('theme-modern','theme-romance','theme-forest','theme-luxe');
       if(theme==='modern') body.classList.add('theme-modern');
       if(theme==='romance') body.classList.add('theme-romance');
       if(theme==='forest') body.classList.add('theme-forest');
+      if(theme==='luxe') body.classList.add('theme-luxe');
       localStorage.setItem('wtp_theme', theme);
       const sel=document.getElementById('themeSelect');
       if(sel && sel.value!==theme) sel.value=theme;
