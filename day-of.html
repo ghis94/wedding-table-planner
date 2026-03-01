@@ -16,6 +16,7 @@
     button{padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;background:#111827;color:#fff;cursor:pointer}
     .type{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid #cbd5e1;margin-left:6px}
     .enfant{background:#ecfeff;color:#155e75}
+    .bebe{background:#fff7ed;color:#9a3412}
     .adulte{background:#eef2ff;color:#3730a3}
     @media print{button{display:none}}
   </style>
@@ -38,7 +39,9 @@
   <script>
     function typeOf(g){
       const t=String(g?.type||'').toLowerCase();
-      return ['enfant','child','kids','kid'].includes(t)?'enfant':'adulte';
+      if(['bebe','bébé','baby','infant','toddlers','toddler'].includes(t)) return 'bebe';
+      if(['enfant','child','kids','kid'].includes(t)) return 'enfant';
+      return 'adulte';
     }
 
     async function load(){
@@ -49,20 +52,22 @@
       const total=allGuests.length;
       const adults=allGuests.filter(g=>typeOf(g)==='adulte').length;
       const kids=allGuests.filter(g=>typeOf(g)==='enfant').length;
-      document.getElementById('meta').textContent=`${tables.length} table(s) • ${total} invité(s) • Adultes: ${adults} • Enfants: ${kids}`;
+      const babies=allGuests.filter(g=>typeOf(g)==='bebe').length;
+      document.getElementById('meta').textContent=`${tables.length} table(s) • ${total} invité(s) • Adultes: ${adults} • Enfants: ${kids} • Bébés: ${babies}`;
       const c=document.getElementById('tables');
       c.innerHTML='';
       tables.forEach(t=>{
         const tg=t.guests||[];
         const ta=tg.filter(g=>typeOf(g)==='adulte').length;
         const te=tg.filter(g=>typeOf(g)==='enfant').length;
+        const tb=tg.filter(g=>typeOf(g)==='bebe').length;
         const d=document.createElement('div'); d.className='card';
-        d.innerHTML=`<h3>${t.name}</h3><div class='muted'>${tg.length}/${t.capacity||0} • Adultes: ${ta} • Enfants: ${te}</div>`;
+        d.innerHTML=`<h3>${t.name}</h3><div class='muted'>${tg.length}/${t.capacity||0} • Adultes: ${ta} • Enfants: ${te} • Bébés: ${tb}</div>`;
         const ul=document.createElement('ul');
         tg.forEach(g=>{
           const li=document.createElement('li');
           const typ=typeOf(g);
-          li.innerHTML=`${g.name} <span class="type ${typ}">${typ==='enfant'?'Enfant':'Adulte'}</span>`;
+          li.innerHTML=`${g.name} <span class="type ${typ}">${typ==='enfant'?'Enfant':(typ==='bebe'?'Bébé':'Adulte')}</span>`;
           ul.appendChild(li);
         });
         d.appendChild(ul); c.appendChild(d);

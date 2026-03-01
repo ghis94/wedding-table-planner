@@ -20,6 +20,7 @@
     .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
     .type{font-size:12px;padding:2px 8px;border-radius:999px;font-weight:700;border:1px solid #cbd5e1;background:#eef2ff;color:#3730a3}
     .type.enfant{background:#ecfeff;color:#155e75}
+    .type.bebe{background:#fff7ed;color:#9a3412}
   </style>
 </head>
 <body>
@@ -37,7 +38,7 @@
 
     <div class="panel" style="margin-top:10px">
       <h3>Import CSV invités</h3>
-      <p class="muted">Colonnes acceptées: `prenom,nom,type` (ou `first_name,last_name,type`, ou `name,type`). `type`: `adulte` ou `enfant`.</p>
+      <p class="muted">Colonnes acceptées: `prenom,nom,type` (ou `first_name,last_name,type`, ou `name,type`). `type`: `adulte`, `enfant` ou `bebe`.</p>
       <textarea id="csvInput" rows="4" style="width:100%" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
       <button onclick="importCsv()">Importer CSV</button>
     </div>
@@ -50,6 +51,7 @@
           <select id="quickType">
             <option value="adulte">Adulte</option>
             <option value="enfant">Enfant</option>
+            <option value="bebe">Bébé</option>
           </select>
         </div>
         <button style="margin-top:8px" onclick="quickAddGuest()">Ajouter</button>
@@ -74,13 +76,14 @@
     function normalizeName(g){ return `${(g.prenom||'').trim()} ${(g.nom||'').trim()}`.trim(); }
     function normalizeType(v){
       const t=String(v||'').toLowerCase();
+      if(['bebe','bébé','baby','infant','toddlers','toddler'].includes(t)) return 'bebe';
       if(['enfant','child','kids','kid'].includes(t)) return 'enfant';
       return 'adulte';
     }
 
     function guestTag(g){
       const t=normalizeType(g.type);
-      return `<span class="type ${t==='enfant'?'enfant':''}">${t==='enfant'?'Enfant':'Adulte'}</span>`;
+      return `<span class="type ${t==='enfant'?'enfant':(t==='bebe'?'bebe':'')}">${t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte')}</span>`;
     }
 
     function expandRsvp(r){
@@ -145,7 +148,8 @@
         b.ondrop=e=>{e.preventDefault(); assignToTable(e.dataTransfer.getData('text/plain'),t.id)};
         const adultCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='adulte').length;
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
-        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount}</div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
+        const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
+        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
         t.guests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
           d.innerHTML=`<span>${g.name}</span>${guestTag(g)}`;
