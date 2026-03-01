@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const helmet = require('helmet');
 const { parse } = require('csv-parse/sync');
 
@@ -12,33 +12,32 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'changeme';
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'wedding.db');
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-const db = new sqlite3.Database(DB_PATH);
+const db = new Database(DB_PATH);
 
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS rsvps (
-    id TEXT PRIMARY KEY,
-    nom TEXT,
-    prenom TEXT,
-    presence TEXT,
-    adultes INTEGER,
-    enfants INTEGER,
-    regime TEXT,
-    message TEXT,
-    createdAt TEXT
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS plan (
-    id INTEGER PRIMARY KEY CHECK(id=1),
-    data TEXT,
-    updatedAt TEXT
-  )`);
-});
+db.exec(`CREATE TABLE IF NOT EXISTS rsvps (
+  id TEXT PRIMARY KEY,
+  nom TEXT,
+  prenom TEXT,
+  presence TEXT,
+  adultes INTEGER,
+  enfants INTEGER,
+  regime TEXT,
+  message TEXT,
+  createdAt TEXT
+);
+CREATE TABLE IF NOT EXISTS plan (
+  id INTEGER PRIMARY KEY CHECK(id=1),
+  data TEXT,
+  updatedAt TEXT
+);`);
 
 app.set('trust proxy', 1);
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false,
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -58,55 +57,60 @@ function basicAuth(req, res, next) {
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.get('/api/rsvps', basicAuth, (_req, res) => {
-  db.all('SELECT * FROM rsvps ORDER BY datetime(createdAt) DESC', (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const rows = db.prepare('SELECT * FROM rsvps ORDER BY datetime(createdAt) DESC').all();
     res.json(rows || []);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/rsvp', (req, res) => {
-  const b = req.body || {};
-  const id = b.id || crypto.randomUUID();
-  const stmt = db.prepare(`INSERT OR REPLACE INTO rsvps
-    (id, nom, prenom, presence, adultes, enfants, regime, message, createdAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`);
-  stmt.run(
-    id,
-    b.nom || '',
-    b.prenom || '',
-    b.presence || '',
-    Number(b.adultes || 0),
-    Number(b.enfants || 0),
-    b.regime || '',
-    b.message || '',
-    b.createdAt || new Date().toISOString(),
-    (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ ok: true, id });
-    }
-  );
+  try {
+    const b = req.body || {};
+    const id = b.id || crypto.randomUUID();
+    const stmt = db.prepare(`INSERT OR REPLACE INTO rsvps
+      (id, nom, prenom, presence, adultes, enfants, regime, message, createdAt)
+      VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @createdAt)`);
+    stmt.run({
+      id,
+      nom: b.nom || '',
+      prenom: b.prenom || '',
+      presence: b.presence || '',
+      adultes: Number(b.adultes || 0),
+      enfants: Number(b.enfants || 0),
+      regime: b.regime || '',
+      message: b.message || '',
+      createdAt: b.createdAt || new Date().toISOString(),
+    });
+    res.json({ ok: true, id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.get('/api/plan', basicAuth, (_req, res) => {
-  db.get('SELECT data FROM plan WHERE id=1', (err, row) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const row = db.prepare('SELECT data FROM plan WHERE id=1').get();
     const data = row?.data ? JSON.parse(row.data) : { tables: [], guests: [] };
     res.json(data);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/plan', basicAuth, (req, res) => {
-  const data = JSON.stringify(req.body || { tables: [], guests: [] });
-  db.run(
-    `INSERT INTO plan(id, data, updatedAt)
-     VALUES(1, ?, ?)
-     ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`,
-    [data, new Date().toISOString()],
-    (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ ok: true });
-    }
-  );
+  try {
+    const data = JSON.stringify(req.body || { tables: [], guests: [] });
+    db.prepare(
+      `INSERT INTO plan(id, data, updatedAt)
+       VALUES(1, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`
+    ).run(data, new Date().toISOString());
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/import-csv', basicAuth, (req, res) => {
@@ -126,7 +130,7 @@ app.post('/api/import-csv', basicAuth, (req, res) => {
     }));
 
     res.json({ ok: true, guests, count: guests.length });
-  } catch (e) {
+  } catch (_e) {
     res.status(400).json({ ok: false, error: 'CSV invalide' });
   }
 });

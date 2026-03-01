@@ -37,7 +37,7 @@ Repo : https://github.com/ghis94/wedding-table-planner
 ## Stack technique
 
 - Node.js + Express
-- SQLite (`sqlite3`)
+- SQLite (`better-sqlite3`)
 - Frontend statique HTML/CSS/JS
 
 ---
