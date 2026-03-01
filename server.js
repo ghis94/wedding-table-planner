@@ -89,6 +89,16 @@ app.post('/api/rsvp', (req, res) => {
   }
 });
 
+app.delete('/api/rsvp/:id', basicAuth, (req, res) => {
+  try {
+    const id = req.params.id;
+    const info = db.prepare('DELETE FROM rsvps WHERE id = ?').run(id);
+    res.json({ ok: true, deleted: info.changes || 0 });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.get('/api/plan', basicAuth, (_req, res) => {
   try {
     const row = db.prepare('SELECT data FROM plan WHERE id=1').get();

@@ -20,10 +20,11 @@ Repo : https://github.com/ghis94/wedding-table-planner
 
 ### Côté admin (`/admin.html`)
 - accès protégé par Basic Auth
-- chargement des RSVPs confirmés
+- chargement des RSVPs `Oui` + `Peut-être` (visuellement distincts)
 - création de tables avec capacité
 - placement par glisser-déposer
 - sauvegarde du plan de table
+- suppression d’un invité (pool ou table), avec suppression RSVP associée
 - export JSON
 - import CSV (noms invités + type `adulte` / `enfant` / `bebe`)
 - export/import complet de la configuration (RSVP + plan)
