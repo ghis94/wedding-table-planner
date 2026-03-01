@@ -52,6 +52,7 @@ docker compose up -d --build
 Accès :
 - RSVP invités : `http://<IP_SERVEUR>:8090/index.html`
 - Admin plan : `http://<IP_SERVEUR>:8090/admin.html`
+- Admin design dev : `http://<IP_SERVEUR>:8090/admin-dev.html`
 - Vue jour J : `http://<IP_SERVEUR>:8090/day-of.html`
 
 ### Variables importantes (`docker-compose.yml`)
