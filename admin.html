@@ -5,27 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Plan de table</title>
   <style>
-    body{font-family:Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
+    :root{
+      --bg:#f8fafc;--text:#0f172a;--panel:#ffffff;--line:#cbd5e1;--line-2:#e2e8f0;
+      --btn:#0f172a;--btn-text:#ffffff;--muted:#64748b;
+      --badge-ad:#eef2ff;--badge-ad-text:#3730a3;--badge-en:#ecfeff;--badge-en-text:#155e75;--badge-bb:#fff7ed;--badge-bb-text:#9a3412;
+    }
+    body{font-family:Arial,sans-serif;margin:0;background:var(--bg);color:var(--text)}
     .wrap{max-width:1200px;margin:0 auto;padding:16px}
+    .header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
     .top{display:flex;gap:10px;flex-wrap:wrap}
-    button,input,textarea,select{padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px}
-    button{background:#0f172a;color:#fff;cursor:pointer}
+    button,input,textarea,select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text)}
+    button{background:var(--btn);color:var(--btn-text);cursor:pointer}
     .grid{display:grid;grid-template-columns:340px 1fr;gap:14px;margin-top:12px}
-    .panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px}
-    .guest{padding:8px;border:1px solid #cbd5e1;border-radius:8px;margin:8px 0;background:#fff;cursor:grab;display:flex;justify-content:space-between;align-items:center;gap:8px}
-    .table{border:1px dashed #94a3b8;border-radius:10px;padding:8px;min-height:80px;background:#f8fafc}
+    .panel{background:var(--panel);border:1px solid var(--line-2);border-radius:12px;padding:12px}
+    .guest{padding:8px;border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--panel);cursor:grab;display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .table{border:1px dashed #94a3b8;border-radius:10px;padding:8px;min-height:80px;background:var(--bg)}
     .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-    .muted{color:#64748b;font-size:13px}
+    .muted{color:var(--muted);font-size:13px}
     .danger{background:#7f1d1d}.warn{background:#92400e}.ok{background:#065f46}
     .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .type{font-size:12px;padding:2px 8px;border-radius:999px;font-weight:700;border:1px solid #cbd5e1;background:#eef2ff;color:#3730a3}
-    .type.enfant{background:#ecfeff;color:#155e75}
-    .type.bebe{background:#fff7ed;color:#9a3412}
+    .type{font-size:12px;padding:2px 8px;border-radius:999px;font-weight:700;border:1px solid var(--line);background:var(--badge-ad);color:var(--badge-ad-text)}
+    .type.enfant{background:var(--badge-en);color:var(--badge-en-text)}
+    .type.bebe{background:var(--badge-bb);color:var(--badge-bb-text)}
+
+    body.theme-modern{--bg:#070b17;--text:#e6eefc;--panel:#0f172acc;--line:#334155;--line-2:#243042;--btn:#4f46e5;--btn-text:#fff;--muted:#9fb0c9;--badge-ad:#312e81;--badge-ad-text:#c7d2fe;--badge-en:#083344;--badge-en-text:#a5f3fc;--badge-bb:#422006;--badge-bb-text:#fed7aa}
+    body.theme-romance{--bg:#fff7fb;--text:#4a044e;--panel:#ffffff;--line:#f5d0fe;--line-2:#fbcfe8;--btn:#be185d;--btn-text:#fff;--muted:#9d174d;--badge-ad:#fce7f3;--badge-ad-text:#9d174d;--badge-en:#ede9fe;--badge-en-text:#5b21b6;--badge-bb:#fff1f2;--badge-bb-text:#be123c}
+    body.theme-forest{--bg:#f0fdf4;--text:#052e16;--panel:#ffffff;--line:#bbf7d0;--line-2:#86efac;--btn:#166534;--btn-text:#fff;--muted:#166534;--badge-ad:#dcfce7;--badge-ad-text:#166534;--badge-en:#ccfbf1;--badge-en-text:#0f766e;--badge-bb:#fef9c3;--badge-bb-text:#854d0e}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>💍 Admin — Plan de table</h1>
+    <div class="header">
+      <h1>💍 Admin — Plan de table</h1>
+      <div class="row" style="min-width:280px;justify-content:flex-end">
+        <label for="themeSelect" class="muted">Thème</label>
+        <select id="themeSelect" onchange="applyTheme(this.value)" style="max-width:180px">
+          <option value="classic">Classique</option>
+          <option value="modern">Modern Dark</option>
+          <option value="romance">Romance</option>
+          <option value="forest">Forest</option>
+        </select>
+      </div>
+    </div>
     <div class="top">
       <button onclick="loadGuests()">Charger RSVPs</button>
       <button onclick="addTable()">+ Table</button>
@@ -69,6 +90,17 @@
 
   <script>
     let guests=[], tables=[];
+
+    function applyTheme(theme){
+      const body=document.body;
+      body.classList.remove('theme-modern','theme-romance','theme-forest');
+      if(theme==='modern') body.classList.add('theme-modern');
+      if(theme==='romance') body.classList.add('theme-romance');
+      if(theme==='forest') body.classList.add('theme-forest');
+      localStorage.setItem('wtp_theme', theme);
+      const sel=document.getElementById('themeSelect');
+      if(sel && sel.value!==theme) sel.value=theme;
+    }
 
     async function api(url, opts={}){
       const r = await fetch(url, opts);
@@ -199,6 +231,8 @@
     function renderAll(){ renderGuests(); renderTables(); }
 
     (async function boot(){
+      const savedTheme = localStorage.getItem('wtp_theme') || 'classic';
+      applyTheme(savedTheme);
       try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; } catch(e){}
       renderAll();
     })();
