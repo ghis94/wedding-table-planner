@@ -1,76 +1,113 @@
-# Wedding Table Planner MVP
+# Wedding Table Planner
 
-Application web simple mais complète pour organiser un mariage:
-- **RSVP invités**
-- **Plan de table admin** (drag & drop)
-- **Stockage SQLite**
-- **Import CSV invités**
-- **Vue Jour J** imprimable
-- **Déploiement Docker ready**
+Application web **simple, rapide et complète** pour organiser ton mariage :
+- RSVP invités
+- plan de table admin (drag & drop)
+- persistance SQLite
+- import CSV invités
+- vue “jour J” imprimable
+- déploiement Docker
 
-Repo: https://github.com/ghis94/wedding-table-planner
-
----
-
-## ✨ Fonctionnalités
-
-### 1) Espace invités
-- Formulaire RSVP: nom, prénom, présence, adultes/enfants, régimes, message
-
-### 2) Espace admin (protégé)
-- Auth Basic (`ADMIN_USER` / `ADMIN_PASS`)
-- Chargement des RSVPs confirmés
-- Création de tables + capacité
-- Placement invités par glisser-déposer
-- Sauvegarde du plan en base SQLite
-- Export JSON
-
-### 3) Import CSV
-- Import texte CSV avec colonnes `prenom,nom` (ou `first_name,last_name`, ou `name`)
-
-### 4) Vue Jour J
-- Affichage clair par table
-- Bouton imprimer (PDF via navigateur)
+Repo : https://github.com/ghis94/wedding-table-planner
 
 ---
 
-## 🧱 Stack
+## Fonctionnalités
+
+### Côté invités (`/index.html`)
+- formulaire RSVP : nom, prénom, présence, adultes/enfants, régimes, message
+- enregistrement en base SQLite via API
+
+### Côté admin (`/admin.html`)
+- accès protégé par Basic Auth
+- chargement des RSVPs confirmés
+- création de tables avec capacité
+- placement par glisser-déposer
+- sauvegarde du plan de table
+- export JSON
+- import CSV (noms invités)
+
+### Vue opérationnelle (`/day-of.html`)
+- affichage clair par table
+- format propre pour impression PDF le jour J
+
+---
+
+## Stack technique
 
 - Node.js + Express
 - SQLite (`sqlite3`)
-- Front statique HTML/CSS/JS
+- Frontend statique HTML/CSS/JS
 
 ---
 
-## 🚀 Lancer en Docker
+## Lancer avec Docker (recommandé)
 
 ```bash
 cd wedding-table-mvp
 docker compose up -d --build
 ```
 
-Accès:
-- Invités (RSVP): `http://<IP>:8090/index.html`
-- Admin plan: `http://<IP>:8090/admin.html`
-- Vue Jour J: `http://<IP>:8090/day-of.html`
+Accès :
+- RSVP invités : `http://<IP_SERVEUR>:8090/index.html`
+- Admin plan : `http://<IP_SERVEUR>:8090/admin.html`
+- Vue jour J : `http://<IP_SERVEUR>:8090/day-of.html`
 
-> ⚠️ Pense à changer `ADMIN_PASS` dans `docker-compose.yml` avant prod.
+### Variables importantes (`docker-compose.yml`)
+
+- `ADMIN_USER` : login admin
+- `ADMIN_PASS` : mot de passe admin (**à changer impérativement**)
+- `DB_PATH` : chemin SQLite (volume persistant)
 
 ---
 
-## 🗂️ Structure
+## Lancer sans Docker
+
+```bash
+cd wedding-table-mvp
+npm install
+ADMIN_USER=admin ADMIN_PASS=change-me PORT=8090 npm start
+```
+
+---
+
+## Format CSV d’import
+
+Colonnes supportées :
+- `prenom,nom`
+- ou `first_name,last_name`
+- ou `name`
+
+Exemple :
+```csv
+prenom,nom
+Alice,Martin
+Bob,Durand
+```
+
+---
+
+## Structure du projet
 
 - `server.js` : API + auth + SQLite
 - `index.html` : page RSVP
 - `admin.html` : gestion plan de table
-- `day-of.html` : vue opérationnelle jour J
+- `day-of.html` : vue jour J
 - `data/wedding.db` : base SQLite (créée automatiquement)
 
 ---
 
-## 🔜 Roadmap possible
+## Sécurité minimale conseillée
 
-- Export CSV par table
-- Gestion multi-événements (vin d’honneur, dîner, brunch)
-- Envoi automatique d’emails de confirmation RSVP
-- Login admin par session (au lieu de Basic Auth)
+- changer `ADMIN_PASS`
+- mettre l’admin derrière Nginx Proxy Manager + HTTPS
+- idéalement restreindre `/admin.html` et `/day-of.html` par IP ou auth supplémentaire
+
+---
+
+## Roadmap
+
+- export CSV par table
+- multi-événements (vin d’honneur / dîner / brunch)
+- login admin par session (remplacer Basic Auth)
+- confirmations RSVP par email (optionnel)
