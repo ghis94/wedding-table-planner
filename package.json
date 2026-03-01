@@ -1,5 +1,5 @@
 {
-  "name": "wedding-table-planner-mvp",
+  "name": "wedding-table-planner",
   "version": "2.0.0",
   "private": true,
   "description": "Site mariage: RSVP + plan de table avec SQLite, auth admin et import CSV",

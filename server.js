@@ -129,5 +129,5 @@ app.use('/day-of.html', basicAuth);
 app.use(express.static(__dirname));
 
 app.listen(PORT, () => {
-  console.log(`wedding-table-mvp listening on :${PORT}`);
+  console.log(`wedding-table-planner listening on :${PORT}`);
 });

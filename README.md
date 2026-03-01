@@ -44,7 +44,7 @@ Repo : https://github.com/ghis94/wedding-table-planner
 ## Lancer avec Docker (recommandé)
 
 ```bash
-cd wedding-table-mvp
+cd wedding-table-planner
 docker compose up -d --build
 ```
 
@@ -64,7 +64,7 @@ Accès :
 ## Lancer sans Docker
 
 ```bash
-cd wedding-table-mvp
+cd wedding-table-planner
 npm install
 ADMIN_USER=admin ADMIN_PASS=change-me PORT=8090 npm start
 ```
