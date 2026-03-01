@@ -8,15 +8,18 @@
     body{font-family:Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
     .wrap{max-width:1200px;margin:0 auto;padding:16px}
     .top{display:flex;gap:10px;flex-wrap:wrap}
-    button,input,textarea{padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px}
+    button,input,textarea,select{padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px}
     button{background:#0f172a;color:#fff;cursor:pointer}
-    .grid{display:grid;grid-template-columns:320px 1fr;gap:14px;margin-top:12px}
+    .grid{display:grid;grid-template-columns:340px 1fr;gap:14px;margin-top:12px}
     .panel{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:12px}
-    .guest{padding:8px;border:1px solid #cbd5e1;border-radius:8px;margin:8px 0;background:#fff;cursor:grab}
+    .guest{padding:8px;border:1px solid #cbd5e1;border-radius:8px;margin:8px 0;background:#fff;cursor:grab;display:flex;justify-content:space-between;align-items:center;gap:8px}
     .table{border:1px dashed #94a3b8;border-radius:10px;padding:8px;min-height:80px;background:#f8fafc}
     .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
     .muted{color:#64748b;font-size:13px}
     .danger{background:#7f1d1d}.warn{background:#92400e}.ok{background:#065f46}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .type{font-size:12px;padding:2px 8px;border-radius:999px;font-weight:700;border:1px solid #cbd5e1;background:#eef2ff;color:#3730a3}
+    .type.enfant{background:#ecfeff;color:#155e75}
   </style>
 </head>
 <body>
@@ -34,15 +37,21 @@
 
     <div class="panel" style="margin-top:10px">
       <h3>Import CSV invités</h3>
-      <p class="muted">Colonnes acceptées: `prenom,nom` (ou `first_name,last_name`, ou `name`).</p>
-      <textarea id="csvInput" rows="4" style="width:100%" placeholder="prenom,nom\nAlice,Martin\nBob,Durand"></textarea>
+      <p class="muted">Colonnes acceptées: `prenom,nom,type` (ou `first_name,last_name,type`, ou `name,type`). `type`: `adulte` ou `enfant`.</p>
+      <textarea id="csvInput" rows="4" style="width:100%" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
       <button onclick="importCsv()">Importer CSV</button>
     </div>
 
     <div class="grid">
       <div class="panel">
         <h3>Invités</h3>
-        <input id="quickAdd" placeholder="Ajouter un invité rapide" onkeydown="if(event.key==='Enter')quickAddGuest()" />
+        <div class="row">
+          <input id="quickAdd" placeholder="Ajouter un invité rapide" onkeydown="if(event.key==='Enter')quickAddGuest()" style="flex:1" />
+          <select id="quickType">
+            <option value="adulte">Adulte</option>
+            <option value="enfant">Enfant</option>
+          </select>
+        </div>
         <button style="margin-top:8px" onclick="quickAddGuest()">Ajouter</button>
         <div id="guests"></div>
       </div>
@@ -63,25 +72,53 @@
     }
 
     function normalizeName(g){ return `${(g.prenom||'').trim()} ${(g.nom||'').trim()}`.trim(); }
+    function normalizeType(v){
+      const t=String(v||'').toLowerCase();
+      if(['enfant','child','kids','kid'].includes(t)) return 'enfant';
+      return 'adulte';
+    }
+
+    function guestTag(g){
+      const t=normalizeType(g.type);
+      return `<span class="type ${t==='enfant'?'enfant':''}">${t==='enfant'?'Enfant':'Adulte'}</span>`;
+    }
+
+    function expandRsvp(r){
+      const base = normalizeName(r) || r.name || 'Invité';
+      const out = [];
+      const a = Math.max(0, Number(r.adultes||0));
+      const e = Math.max(0, Number(r.enfants||0));
+
+      if(a===0 && e===0){
+        out.push({ id: crypto.randomUUID(), name: base, type: 'adulte' });
+        return out;
+      }
+      for(let i=1;i<=a;i++) out.push({ id: crypto.randomUUID(), name: a===1?base:`${base} (Adulte ${i})`, type:'adulte' });
+      for(let i=1;i<=e;i++) out.push({ id: crypto.randomUUID(), name: `${base} (Enfant ${i})`, type:'enfant' });
+      return out;
+    }
 
     async function loadGuests(){
       const raw = await api('/api/rsvps');
       const yes = raw.filter(g => String(g.presence||'').toLowerCase()==='oui');
-      const byName = yes.map(g=>({id:g.id||crypto.randomUUID(),name:normalizeName(g)||g.name||'Invité'}));
-      guests=[...guests,...byName.filter(n=>!guests.some(g=>g.name===n.name))];
+      const expanded = yes.flatMap(expandRsvp);
+      guests=[...guests,...expanded.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type)))];
       renderGuests();
     }
 
     function quickAddGuest(){
       const i=document.getElementById('quickAdd');
+      const t=document.getElementById('quickType');
       const v=i.value.trim(); if(!v) return;
-      guests.push({id:crypto.randomUUID(),name:v}); i.value=''; renderGuests();
+      guests.push({id:crypto.randomUUID(),name:v,type:normalizeType(t.value)});
+      i.value='';
+      renderGuests();
     }
 
     async function importCsv(){
       const csv=document.getElementById('csvInput').value;
       const res=await api('/api/import-csv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv})});
-      guests=[...guests,...res.guests.filter(n=>!guests.some(g=>g.name===n.name))];
+      guests=[...guests,...res.guests.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type)))];
       renderGuests();
       alert(`${res.count} invité(s) importé(s)`);
     }
@@ -91,7 +128,13 @@
 
     function renderGuests(){
       const c=document.getElementById('guests'); c.innerHTML='';
-      guests.forEach(g=>{ const d=document.createElement('div'); d.className='guest'; d.draggable=true; d.textContent=g.name; d.dataset.id=g.id; d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id); c.appendChild(d); });
+      guests.forEach(g=>{
+        const d=document.createElement('div');
+        d.className='guest'; d.draggable=true; d.dataset.id=g.id;
+        d.innerHTML=`<span>${g.name}</span>${guestTag(g)}`;
+        d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id);
+        c.appendChild(d);
+      });
     }
 
     function renderTables(){
@@ -100,8 +143,15 @@
         const b=document.createElement('div'); b.className='table';
         b.ondragover=e=>e.preventDefault();
         b.ondrop=e=>{e.preventDefault(); assignToTable(e.dataTransfer.getData('text/plain'),t.id)};
-        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
-        t.guests.forEach(g=>{ const d=document.createElement('div'); d.className='guest'; d.textContent=g.name; d.onclick=()=>unassign(g.id,t.id); b.appendChild(d); });
+        const adultCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='adulte').length;
+        const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
+        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount}</div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
+        t.guests.forEach(g=>{
+          const d=document.createElement('div'); d.className='guest';
+          d.innerHTML=`<span>${g.name}</span>${guestTag(g)}`;
+          d.onclick=()=>unassign(g.id,t.id);
+          b.appendChild(d);
+        });
         c.appendChild(b);
       });
     }

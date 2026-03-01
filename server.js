@@ -115,6 +115,7 @@ app.post('/api/import-csv', basicAuth, (req, res) => {
     const guests = records.map((r) => ({
       id: crypto.randomUUID(),
       name: [r.prenom || r.first_name || '', r.nom || r.last_name || ''].join(' ').trim() || r.name || 'Invité',
+      type: ['enfant', 'child', 'kids', 'kid'].includes(String(r.type || '').toLowerCase()) ? 'enfant' : 'adulte',
       group: r.groupe || r.group || '',
     }));
 

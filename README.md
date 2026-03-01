@@ -4,8 +4,8 @@ Application web **simple, rapide et complète** pour organiser ton mariage :
 - RSVP invités
 - plan de table admin (drag & drop)
 - persistance SQLite
-- import CSV invités
-- vue “jour J” imprimable
+- import CSV invités (avec type adulte/enfant)
+- vue “jour J” imprimable (avec distinction adultes/enfants)
 - déploiement Docker
 
 Repo : https://github.com/ghis94/wedding-table-planner
@@ -25,10 +25,11 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - placement par glisser-déposer
 - sauvegarde du plan de table
 - export JSON
-- import CSV (noms invités)
+- import CSV (noms invités + type `adulte` / `enfant`)
 
 ### Vue opérationnelle (`/day-of.html`)
 - affichage clair par table
+- compteurs adultes/enfants
 - format propre pour impression PDF le jour J
 
 ---
@@ -74,15 +75,17 @@ ADMIN_USER=admin ADMIN_PASS=change-me PORT=8090 npm start
 ## Format CSV d’import
 
 Colonnes supportées :
-- `prenom,nom`
-- ou `first_name,last_name`
-- ou `name`
+- `prenom,nom,type`
+- ou `first_name,last_name,type`
+- ou `name,type`
+
+`type` attendu : `adulte` ou `enfant`.
 
 Exemple :
 ```csv
-prenom,nom
-Alice,Martin
-Bob,Durand
+prenom,nom,type
+Alice,Martin,adulte
+Lina,Martin,enfant
 ```
 
 ---
