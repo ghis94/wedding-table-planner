@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff mobile — Wedding Table Planner</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
+    .wrap{max-width:760px;margin:0 auto;padding:14px}
+    h1{margin:0 0 8px 0;font-size:22px}
+    .muted{color:#64748b;font-size:13px}
+    input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;margin:10px 0}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:10px;margin:10px 0}
+    .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700}
+    .adulte{background:#eef2ff;color:#3730a3}.enfant{background:#ecfeff;color:#155e75}.bebe{background:#fff7ed;color:#9a3412}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>📱 Staff mobile</h1>
+    <div class="muted">Recherche rapide d’un invité → table assignée</div>
+    <input id="q" placeholder="Rechercher un nom (ex: Martin)" />
+    <div id="results"></div>
+  </div>
+
+  <script>
+    let index=[];
+    const q=document.getElementById('q');
+    const out=document.getElementById('results');
+
+    function tLabel(t){return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte')}
+
+    async function load(){
+      const r=await fetch('/api/plan');
+      const p=await r.json();
+      index=[];
+      (p.tables||[]).forEach(t=>{
+        (t.guests||[]).forEach(g=>index.push({name:g.name,type:g.type||'adulte',table:t.name||'Table ?'}));
+      });
+      render('');
+    }
+
+    function render(term){
+      const s=term.trim().toLowerCase();
+      const rows=(s?index.filter(x=>x.name.toLowerCase().includes(s)):index).slice(0,80);
+      out.innerHTML='';
+      if(rows.length===0){ out.innerHTML='<div class="muted">Aucun résultat</div>'; return; }
+      rows.forEach(r=>{
+        const d=document.createElement('div'); d.className='card';
+        d.innerHTML=`<strong>${r.name}</strong><br><span class="muted">${r.table}</span> <span class="badge ${r.type}">${tLabel(r.type)}</span>`;
+        out.appendChild(d);
+      });
+    }
+
+    q.addEventListener('input',()=>render(q.value));
+    load();
+  </script>
+</body>
+</html>

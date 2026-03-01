@@ -154,6 +154,53 @@ app.get('/api/config/export', basicAuth, (_req, res) => {
   }
 });
 
+app.get('/api/export/caterer.csv', basicAuth, (_req, res) => {
+  try {
+    const rsvps = db.prepare('SELECT * FROM rsvps').all();
+    const planRow = db.prepare('SELECT data FROM plan WHERE id=1').get();
+    const plan = planRow?.data ? JSON.parse(planRow.data) : { tables: [], guests: [] };
+    const tables = plan.tables || [];
+
+    const cleanName = (n) => String(n || '').replace(/\s*\((Adulte|Enfant|Bébé)\s*\d+\)$/i, '').trim();
+    const escapeCsv = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const findRsvp = (guestName) => {
+      const base = cleanName(guestName).toLowerCase();
+      return rsvps.find(r => `${(r.prenom||'').trim()} ${(r.nom||'').trim()}`.trim().toLowerCase() === base);
+    };
+
+    const lines = [];
+    lines.push(['table', 'invité', 'type', 'allergies/régime'].map(escapeCsv).join(','));
+
+    for (const t of tables) {
+      for (const g of (t.guests || [])) {
+        const r = findRsvp(g.name);
+        lines.push([
+          t.name || '',
+          g.name || '',
+          g.type || 'adulte',
+          r?.regime || ''
+        ].map(escapeCsv).join(','));
+      }
+    }
+
+    lines.push('');
+    lines.push(['table', 'total', 'adultes', 'enfants', 'bébés'].map(escapeCsv).join(','));
+    for (const t of tables) {
+      const gs = t.guests || [];
+      const ad = gs.filter(g => String(g.type||'adulte') === 'adulte').length;
+      const en = gs.filter(g => String(g.type||'') === 'enfant').length;
+      const bb = gs.filter(g => String(g.type||'') === 'bebe').length;
+      lines.push([t.name || '', gs.length, ad, en, bb].map(escapeCsv).join(','));
+    }
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="traiteur-${new Date().toISOString().slice(0,10)}.csv"`);
+    res.send(lines.join('\n'));
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.post('/api/config/import', basicAuth, (req, res) => {
   try {
     const payload = req.body || {};
@@ -195,6 +242,8 @@ app.post('/api/config/import', basicAuth, (req, res) => {
 });
 
 app.use('/admin.html', basicAuth);
+app.use('/staff.html', basicAuth);
+app.use('/visual.html', basicAuth);
 app.use('/day-of.html', basicAuth);
 app.use(express.static(__dirname));
 

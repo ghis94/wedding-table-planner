@@ -27,12 +27,21 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - export JSON
 - import CSV (noms invités + type `adulte` / `enfant` / `bebe`)
 - export/import complet de la configuration (RSVP + plan)
+- export traiteur CSV (tables, invités, types, allergies)
 - sélecteur de thème UI (Classique, Modern Dark, Romance, Forest, Mariage Luxe)
 
 ### Vue opérationnelle (`/day-of.html`)
 - affichage clair par table
 - compteurs adultes/enfants/bébés
 - format propre pour impression PDF le jour J
+
+### Staff mobile (`/staff.html`)
+- recherche instantanée d’invités
+- affiche directement la table assignée + type
+
+### Plan visuel (`/visual.html`)
+- positionnement visuel des tables (drag & drop)
+- sauvegarde des positions dans la configuration
 
 ---
 
@@ -54,6 +63,8 @@ docker compose up -d --build
 Accès :
 - RSVP invités : `http://<IP_SERVEUR>:8090/index.html`
 - Admin plan : `http://<IP_SERVEUR>:8090/admin.html`
+- Staff mobile : `http://<IP_SERVEUR>:8090/staff.html`
+- Plan visuel : `http://<IP_SERVEUR>:8090/visual.html`
 - Vue jour J : `http://<IP_SERVEUR>:8090/day-of.html`
 
 ### Variables importantes (`docker-compose.yml`)
@@ -97,6 +108,8 @@ Lina,Martin,enfant
 - `server.js` : API + auth + SQLite
 - `index.html` : page RSVP
 - `admin.html` : gestion plan de table
+- `staff.html` : recherche mobile staff
+- `visual.html` : plan visuel de la salle
 - `day-of.html` : vue jour J
 - `data/wedding.db` : base SQLite (créée automatiquement)
 

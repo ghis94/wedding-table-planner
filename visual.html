@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan visuel — Wedding Table Planner</title>
+  <style>
+    body{font-family:Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
+    .wrap{max-width:1200px;margin:0 auto;padding:14px}
+    .top{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#0f172a;color:#fff;cursor:pointer}
+    .canvas{position:relative;background:#fff;border:1px solid #cbd5e1;border-radius:14px;height:70vh;margin-top:12px;overflow:hidden}
+    .table{position:absolute;min-width:140px;background:#f1f5f9;border:1px solid #94a3b8;border-radius:12px;padding:8px;cursor:move;user-select:none}
+    .muted{color:#64748b;font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🪑 Plan de table visuel</h1>
+    <div class="top">
+      <button onclick="saveLayout()">Sauvegarder le placement visuel</button>
+      <button onclick="resetLayout()">Reset positions</button>
+      <span class="muted">Glisse les cartes de table pour dessiner la salle</span>
+    </div>
+    <div id="canvas" class="canvas"></div>
+  </div>
+
+  <script>
+    let plan={tables:[],guests:[],layout:{}};
+    const canvas=document.getElementById('canvas');
+
+    async function load(){
+      const r=await fetch('/api/plan');
+      plan=await r.json();
+      plan.layout=plan.layout||{};
+      render();
+    }
+
+    function render(){
+      canvas.innerHTML='';
+      const w=canvas.clientWidth;
+      (plan.tables||[]).forEach((t,i)=>{
+        const pos=plan.layout[t.id]||{x:20+(i%5)*180,y:20+Math.floor(i/5)*130};
+        const d=document.createElement('div');
+        d.className='table';
+        d.style.left=pos.x+'px'; d.style.top=pos.y+'px';
+        d.innerHTML=`<strong>${t.name}</strong><br><span class="muted">${(t.guests||[]).length}/${t.capacity||0}</span>`;
+        drag(d,t.id,w);
+        canvas.appendChild(d);
+      });
+    }
+
+    function drag(el,id,maxW){
+      let sx=0,sy=0,ox=0,oy=0,down=false;
+      el.addEventListener('pointerdown',e=>{down=true;sx=e.clientX;sy=e.clientY;ox=parseInt(el.style.left,10)||0;oy=parseInt(el.style.top,10)||0;el.setPointerCapture(e.pointerId);});
+      el.addEventListener('pointermove',e=>{
+        if(!down) return;
+        let nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy);
+        nx=Math.max(0,Math.min(nx,canvas.clientWidth-el.offsetWidth));
+        ny=Math.max(0,Math.min(ny,canvas.clientHeight-el.offsetHeight));
+        el.style.left=nx+'px'; el.style.top=ny+'px';
+      });
+      el.addEventListener('pointerup',()=>{
+        down=false;
+        plan.layout[id]={x:parseInt(el.style.left,10)||0,y:parseInt(el.style.top,10)||0};
+      });
+    }
+
+    async function saveLayout(){
+      await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)});
+      alert('Placement visuel sauvegardé ✅');
+    }
+
+    function resetLayout(){
+      plan.layout={};
+      render();
+    }
+
+    load();
+  </script>
+</body>
+</html>

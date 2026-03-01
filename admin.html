@@ -57,6 +57,9 @@
       <button class="warn" onclick="exportJson()">Exporter JSON</button>
       <button class="warn" onclick="exportConfig()">Exporter config</button>
       <button class="warn" onclick="document.getElementById('configFile').click()">Importer config</button>
+      <button onclick="window.location.href='staff.html'">Staff mobile</button>
+      <button onclick="window.location.href='visual.html'">Plan visuel</button>
+      <button onclick="exportCatererCsv()">Export traiteur CSV</button>
       <input id="configFile" type="file" accept="application/json" style="display:none" onchange="importConfig(event)">
       <button class="danger" onclick="resetAll()">Reset</button>
     </div>
@@ -212,6 +215,10 @@
       a.href = URL.createObjectURL(blob);
       a.download = `wedding-table-config-${new Date().toISOString().slice(0,10)}.json`;
       a.click();
+    }
+
+    function exportCatererCsv(){
+      window.location.href = '/api/export/caterer.csv';
     }
 
     async function importConfig(event){
