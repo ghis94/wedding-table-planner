@@ -47,6 +47,9 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - déplacement drag & drop des tables **et** des noms invités
 - sauvegarde des positions dans la configuration
 
+### Navigation
+- barre de navigation ajoutée sur toutes les pages (`index`, `admin`, `staff`, `visual`, `day-of`) pour switch rapide
+
 ---
 
 ## Stack technique
@@ -70,6 +73,8 @@ Accès :
 - Staff mobile : `http://<IP_SERVEUR>:8090/staff.html`
 - Plan visuel : `http://<IP_SERVEUR>:8090/visual.html`
 - Vue jour J : `http://<IP_SERVEUR>:8090/day-of.html`
+
+> Astuce: si les changements ne s'affichent pas après update, faire un hard refresh (`Ctrl+F5`).
 
 ### Variables importantes (`docker-compose.yml`)
 
