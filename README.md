@@ -1,159 +1,93 @@
-# Wedding Table Planner
+# 💍 Wedding Table Planner
 
-Application web **simple, rapide et complète** pour organiser ton mariage :
-- RSVP invités
-- plan de table admin (drag & drop)
-- persistance SQLite
-- import CSV invités (avec type adulte/enfant/bébé)
-- vue “jour J” imprimable (avec distinction adultes/enfants/bébés)
-- déploiement Docker
+Un outil simple, visuel et efficace pour organiser ton plan de table de mariage.
 
-Repo : https://github.com/ghis94/wedding-table-planner
+## Ce que fait l’application
 
----
-
-## Fonctionnalités
-
-### Côté invités (`/index.html`)
-- formulaire RSVP : nom, prénom, présence, adultes/enfants, régimes, message
-- enregistrement en base SQLite via API
-
-### Côté admin (`/admin.html`)
-- accès protégé par Basic Auth
-- chargement des RSVPs `Oui` + `Peut-être` (visuellement distincts)
-- création de tables avec capacité
-- placement par glisser-déposer
-- affectation par liste déroulante (depuis la liste invités **et** directement dans chaque carte de table)
-- sauvegarde du plan de table
-- suppression d’un invité (pool ou table), avec suppression RSVP associée
-- fiche invité admin (allergies/régime, notes staff, téléphone, statut)
-- export JSON
-- import CSV (noms invités + type `adulte` / `enfant` / `bebe`)
-- export/import complet de la configuration (RSVP + plan)
-- export traiteur CSV (tables, invités, types, allergies)
-- sélecteur de thème UI (Classique, Modern Dark, Romance, Forest, Mariage Luxe)
-
-### Vue opérationnelle (`/day-of.html`)
-- affichage clair par table
-- compteurs adultes/enfants/bébés
-- format propre pour impression PDF le jour J
-
-### Staff mobile (`/staff.html`)
-- recherche instantanée d’invités
-- affiche directement la table assignée + type
-
-### Plan visuel (`/visual.html`)
-- tables rondes (vue salle)
-- noms des invités affichés autour des tables
-- déplacement drag & drop des tables **et** des noms invités
-- sauvegarde des positions dans la configuration
-
-### Navigation
-- barre de navigation ajoutée sur toutes les pages (`index`, `admin`, `staff`, `visual`, `day-of`) pour switch rapide
+- Gestion des RSVP invités
+- Plan de table admin (drag & drop + affectation rapide)
+- Plan visuel avec tables rondes et invités déplaçables
+- Vue staff mobile (recherche invité → table)
+- Vue Jour J imprimable
+- Export traiteur CSV
+- Import / export complet de la configuration
+- Fiche invité admin (allergies, notes staff, contact, statut)
 
 ---
 
-## Stack technique
+## Pages disponibles
 
-- Node.js + Express
-- SQLite (`better-sqlite3`)
-- Frontend statique HTML/CSS/JS
+- `/index.html` → RSVP invités
+- `/login.html` → connexion admin
+- `/admin.html` → gestion principale
+- `/visual.html` → plan visuel de salle
+- `/staff.html` → recherche mobile staff
+- `/day-of.html` → vue opérationnelle/impression
 
 ---
 
-## Lancer avec Docker (recommandé)
+## Lancement rapide (Docker)
 
 ```bash
+git pull
 cd wedding-table-planner
 docker compose up -d --build
 ```
 
 Accès :
-- RSVP invités : `http://<IP_SERVEUR>:8090/index.html`
-- Admin plan : `http://<IP_SERVEUR>:8090/admin.html`
-- Staff mobile : `http://<IP_SERVEUR>:8090/staff.html`
-- Plan visuel : `http://<IP_SERVEUR>:8090/visual.html`
-- Vue jour J : `http://<IP_SERVEUR>:8090/day-of.html`
-
-> Astuce: si les changements ne s'affichent pas après update, faire un hard refresh (`Ctrl+F5`).
-
-### Variables importantes (`docker-compose.yml`)
-
-- `ADMIN_USER` : login admin
-- `ADMIN_PASS` : mot de passe admin (**à changer impérativement**)
-- `SESSION_SECRET` : secret de session (**obligatoire en prod**)
-- `DB_PATH` : chemin SQLite (volume persistant)
+- `http://<IP_SERVEUR>:8090/index.html`
+- `http://<IP_SERVEUR>:8090/login.html`
 
 ---
 
-## Lancer sans Docker
+## Configuration minimale
 
-```bash
-cd wedding-table-planner
-npm install
-ADMIN_USER=admin ADMIN_PASS=change-me PORT=8090 npm start
-```
+Dans `docker-compose.yml` (déjà présent) :
+
+- `ADMIN_USER`
+- `ADMIN_PASS`
+- `SESSION_SECRET`
+
+> Garde un mot de passe admin fort et un `SESSION_SECRET` unique.
 
 ---
 
-## Format CSV d’import
+## Import / Export
 
+### Import CSV invités
 Colonnes supportées :
 - `prenom,nom,type`
 - ou `first_name,last_name,type`
 - ou `name,type`
 
-`type` attendu : `adulte`, `enfant` ou `bebe`.
+Type : `adulte`, `enfant`, `bebe`.
 
-Exemple :
-```csv
-prenom,nom,type
-Alice,Martin,adulte
-Lina,Martin,enfant
-```
+### Export traiteur
+Depuis l’admin : **Export traiteur CSV**
+- tables
+- invités
+- types (adulte/enfant/bebe)
+- allergies/régimes
+- totaux par table
 
----
+### Export / Import complet
+Depuis l’admin :
+- **Exporter config**
+- **Importer config**
 
-## Structure du projet
-
-- `server.js` : API + auth + SQLite
-- `index.html` : page RSVP
-- `admin.html` : gestion plan de table
-- `staff.html` : recherche mobile staff
-- `visual.html` : plan visuel de la salle
-- `day-of.html` : vue jour J
-- `data/wedding.db` : base SQLite (créée automatiquement)
+Inclut RSVP + plan + placement visuel.
 
 ---
 
-## Sécurité minimale conseillée
+## Stack
 
-- changer `ADMIN_PASS`
-- définir un `SESSION_SECRET` fort
-- headers de sécurité activés via `helmet` côté serveur
-- auth admin par session (`/login.html`) + rate-limit login
-- mettre l’admin derrière Nginx Proxy Manager + HTTPS
-- idéalement restreindre `/admin.html` et `/day-of.html` par IP ou auth supplémentaire
-
-### Nginx Proxy Manager (recommandé)
-
-Configuration type du Proxy Host :
-- Domain : `tables.ton-domaine.fr`
-- Forward Host/IP : IP du serveur Docker
-- Forward Port : `8090`
-- Websockets : ON
-- Block Common Exploits : ON
-- SSL : Let's Encrypt + Force SSL + HTTP/2
-
-Recommandation d’accès :
-- soit allowlist IP sur `/admin.html` et `/day-of.html`
-- soit Auth supplémentaire au niveau NPM (en plus du Basic Auth applicatif)
+- Node.js + Express
+- SQLite (`better-sqlite3`)
+- Front HTML/CSS/JS
+- Docker Compose
 
 ---
 
-## Roadmap
+## Statut
 
-- export CSV par table
-- multi-événements (vin d’honneur / dîner / brunch)
-- login admin par session (remplacer Basic Auth)
-- confirmations RSVP par email (optionnel)
+Projet actif, orienté usage terrain (simple, rapide, fiable).
