@@ -94,6 +94,24 @@
         </div>
         <button style="margin-top:8px" onclick="quickAddGuest()">Ajouter</button>
         <div id="guests"></div>
+
+        <hr style="border-color:#223047;margin:14px 0" />
+        <h3>Fiche invité (admin)</h3>
+        <div class="muted" id="sheetHint">Clique un invité pour ouvrir sa fiche.</div>
+        <input id="sheetName" placeholder="Nom" disabled />
+        <select id="sheetPresence">
+          <option value="oui">Oui</option>
+          <option value="peut-etre">Peut-être</option>
+          <option value="non">Non</option>
+        </select>
+        <div class="row">
+          <input id="sheetAdults" type="number" min="0" placeholder="Adultes" style="flex:1" />
+          <input id="sheetKids" type="number" min="0" placeholder="Enfants" style="flex:1" />
+        </div>
+        <input id="sheetPhone" placeholder="Téléphone" />
+        <textarea id="sheetRegime" rows="2" placeholder="Allergies / régime"></textarea>
+        <textarea id="sheetNotes" rows="3" placeholder="Notes staff (PMR, poussette, etc.)"></textarea>
+        <button class="ok" onclick="saveGuestSheet()">Enregistrer fiche</button>
       </div>
       <div class="panel">
         <h3>Tables</h3>
@@ -104,6 +122,7 @@
 
   <script>
     let guests=[], tables=[];
+    let selectedRsvpId = null;
 
     function applyTheme(theme){
       const body=document.body;
@@ -145,6 +164,50 @@
       const p=normalizePresence(g.rsvpStatus);
       const rsvp = p ? `<span class="rsvp ${p}">${p==='peutetre'?'Peut-être':(p==='oui'?'Oui':'Non')}</span>` : '';
       return `<span class="guest-actions">${type}${rsvp}</span>`;
+    }
+
+    function openGuestSheetByGuestId(guestId, ev){
+      if(ev){ ev.stopPropagation(); ev.preventDefault(); }
+      const g = guests.find(x=>x.id===guestId) || tables.flatMap(t=>t.guests||[]).find(x=>x.id===guestId);
+      if(!g || !g.sourceRsvpId){
+        document.getElementById('sheetHint').textContent = 'Invité non lié à un RSVP source (ajout manuel/import CSV).';
+        return;
+      }
+      openGuestSheet(g.sourceRsvpId, g.name);
+    }
+
+    async function openGuestSheet(rsvpId, displayName=''){
+      try{
+        const res = await api(`/api/rsvp/${rsvpId}`);
+        const r = res.rsvp;
+        selectedRsvpId = rsvpId;
+        document.getElementById('sheetHint').textContent = `Fiche liée à RSVP ${rsvpId}`;
+        document.getElementById('sheetName').value = displayName || `${r.prenom||''} ${r.nom||''}`.trim();
+        document.getElementById('sheetPresence').value = (String(r.presence||'').toLowerCase().replace('peut-être','peut-etre') || 'oui');
+        document.getElementById('sheetAdults').value = Number(r.adultes||0);
+        document.getElementById('sheetKids').value = Number(r.enfants||0);
+        document.getElementById('sheetPhone').value = r.phone || '';
+        document.getElementById('sheetRegime').value = r.regime || '';
+        document.getElementById('sheetNotes').value = r.adminNotes || '';
+      }catch(e){
+        alert('Impossible de charger la fiche invité');
+      }
+    }
+
+    async function saveGuestSheet(){
+      if(!selectedRsvpId){ alert('Sélectionne un invité lié à un RSVP.'); return; }
+      const payload = {
+        presence: document.getElementById('sheetPresence').value,
+        adultes: Number(document.getElementById('sheetAdults').value || 0),
+        enfants: Number(document.getElementById('sheetKids').value || 0),
+        phone: document.getElementById('sheetPhone').value,
+        regime: document.getElementById('sheetRegime').value,
+        adminNotes: document.getElementById('sheetNotes').value,
+        message: ''
+      };
+      await api(`/api/rsvp/${selectedRsvpId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      alert('Fiche invité enregistrée ✅');
+      await loadGuests();
     }
 
     function expandRsvp(r){
@@ -210,7 +273,7 @@
       guests.forEach(g=>{
         const d=document.createElement('div');
         d.className='guest'; d.draggable=true; d.dataset.id=g.id;
-        d.innerHTML=`<span>${g.name}</span><span class="guest-actions">${guestTag(g)} <select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+        d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${g.name}</span><span class="guest-actions">${guestTag(g)} <select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
         d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id);
         c.appendChild(d);
       });
@@ -228,7 +291,7 @@
         b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><div class="row" style="margin:6px 0"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
         t.guests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
-          d.innerHTML=`<span>${g.name}</span><span class="guest-actions">${guestTag(g)} <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+          d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${g.name}</span><span class="guest-actions">${guestTag(g)} <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
           d.onclick=()=>unassign(g.id,t.id);
           b.appendChild(d);
         });

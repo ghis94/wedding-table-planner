@@ -29,6 +29,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS rsvps (
   enfants INTEGER,
   regime TEXT,
   message TEXT,
+  phone TEXT,
+  adminNotes TEXT,
   createdAt TEXT
 );
 CREATE TABLE IF NOT EXISTS plan (
@@ -36,6 +38,10 @@ CREATE TABLE IF NOT EXISTS plan (
   data TEXT,
   updatedAt TEXT
 );`);
+
+const cols = db.prepare(`PRAGMA table_info(rsvps)`).all().map(c => c.name);
+if (!cols.includes('phone')) db.exec(`ALTER TABLE rsvps ADD COLUMN phone TEXT`);
+if (!cols.includes('adminNotes')) db.exec(`ALTER TABLE rsvps ADD COLUMN adminNotes TEXT`);
 
 app.set('trust proxy', 1);
 app.use(
@@ -108,8 +114,8 @@ app.post('/api/rsvp', (req, res) => {
     const b = req.body || {};
     const id = b.id || crypto.randomUUID();
     const stmt = db.prepare(`INSERT OR REPLACE INTO rsvps
-      (id, nom, prenom, presence, adultes, enfants, regime, message, createdAt)
-      VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @createdAt)`);
+      (id, nom, prenom, presence, adultes, enfants, regime, message, phone, adminNotes, createdAt)
+      VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @phone, @adminNotes, @createdAt)`);
     stmt.run({
       id,
       nom: b.nom || '',
@@ -119,11 +125,51 @@ app.post('/api/rsvp', (req, res) => {
       enfants: Number(b.enfants || 0),
       regime: b.regime || '',
       message: b.message || '',
+      phone: b.phone || '',
+      adminNotes: b.adminNotes || '',
       createdAt: b.createdAt || new Date().toISOString(),
     });
     res.json({ ok: true, id });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/rsvp/:id', requireAdmin, (req, res) => {
+  try {
+    const row = db.prepare('SELECT * FROM rsvps WHERE id = ?').get(req.params.id);
+    if (!row) return res.status(404).json({ ok: false, error: 'Not found' });
+    res.json({ ok: true, rsvp: row });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.put('/api/rsvp/:id', requireAdmin, (req, res) => {
+  try {
+    const id = req.params.id;
+    const b = req.body || {};
+    const info = db.prepare(`UPDATE rsvps SET
+      presence=@presence,
+      adultes=@adultes,
+      enfants=@enfants,
+      regime=@regime,
+      message=@message,
+      phone=@phone,
+      adminNotes=@adminNotes
+      WHERE id=@id`).run({
+      id,
+      presence: b.presence || '',
+      adultes: Number(b.adultes || 0),
+      enfants: Number(b.enfants || 0),
+      regime: b.regime || '',
+      message: b.message || '',
+      phone: b.phone || '',
+      adminNotes: b.adminNotes || '',
+    });
+    res.json({ ok: true, updated: info.changes || 0 });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
   }
 });
 
@@ -257,8 +303,8 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
     }
 
     const insertRsvp = db.prepare(`INSERT OR REPLACE INTO rsvps
-      (id, nom, prenom, presence, adultes, enfants, regime, message, createdAt)
-      VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @createdAt)`);
+      (id, nom, prenom, presence, adultes, enfants, regime, message, phone, adminNotes, createdAt)
+      VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @phone, @adminNotes, @createdAt)`);
 
     const tx = db.transaction(() => {
       db.prepare('DELETE FROM rsvps').run();
@@ -272,6 +318,8 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
           enfants: Number(r.enfants || 0),
           regime: r.regime || '',
           message: r.message || '',
+          phone: r.phone || '',
+          adminNotes: r.adminNotes || '',
           createdAt: r.createdAt || new Date().toISOString(),
         });
       }

@@ -26,6 +26,7 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - affectation par liste déroulante (depuis la liste invités **et** directement dans chaque carte de table)
 - sauvegarde du plan de table
 - suppression d’un invité (pool ou table), avec suppression RSVP associée
+- fiche invité admin (allergies/régime, notes staff, téléphone, statut)
 - export JSON
 - import CSV (noms invités + type `adulte` / `enfant` / `bebe`)
 - export/import complet de la configuration (RSVP + plan)
