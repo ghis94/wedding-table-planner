@@ -122,7 +122,7 @@
 
   <script>
     let guests=[], tables=[];
-    let selectedRsvpId = null;
+    let selectedGuestRef = { guestId:null, sourceRsvpId:null };
 
     function applyTheme(theme){
       const body=document.body;
@@ -166,21 +166,39 @@
       return `<span class="guest-actions">${type}${rsvp}</span>`;
     }
 
+    function allGuestsList(){
+      return [...guests, ...tables.flatMap(t=>t.guests||[])];
+    }
+
+    function updateGuestEverywhere(guestId, patch){
+      guests = guests.map(g => g.id===guestId ? {...g, ...patch} : g);
+      tables = tables.map(t => ({...t, guests:(t.guests||[]).map(g => g.id===guestId ? {...g, ...patch} : g)}));
+    }
+
+    function openGuestSheetLocal(g){
+      selectedGuestRef = { guestId:g.id, sourceRsvpId:g.sourceRsvpId || null };
+      document.getElementById('sheetHint').textContent = g.sourceRsvpId ? `Fiche liée à RSVP ${g.sourceRsvpId}` : 'Fiche locale (invité manuel/import CSV)';
+      document.getElementById('sheetName').value = g.name || '';
+      document.getElementById('sheetPresence').value = (String(g.rsvpStatus||'oui').toLowerCase().replace('peut-être','peut-etre') || 'oui');
+      document.getElementById('sheetAdults').value = Number(g.adultes ?? (g.type==='adulte'?1:0));
+      document.getElementById('sheetKids').value = Number(g.enfants ?? ((g.type==='enfant'||g.type==='bebe')?1:0));
+      document.getElementById('sheetPhone').value = g.phone || '';
+      document.getElementById('sheetRegime').value = g.regime || '';
+      document.getElementById('sheetNotes').value = g.adminNotes || '';
+    }
+
     function openGuestSheetByGuestId(guestId, ev){
       if(ev){ ev.stopPropagation(); ev.preventDefault(); }
-      const g = guests.find(x=>x.id===guestId) || tables.flatMap(t=>t.guests||[]).find(x=>x.id===guestId);
-      if(!g || !g.sourceRsvpId){
-        document.getElementById('sheetHint').textContent = 'Invité non lié à un RSVP source (ajout manuel/import CSV).';
-        return;
-      }
-      openGuestSheet(g.sourceRsvpId, g.name);
+      const g = allGuestsList().find(x=>x.id===guestId);
+      if(!g){ alert('Invité introuvable'); return; }
+      openGuestSheetLocal(g);
     }
 
     async function openGuestSheet(rsvpId, displayName=''){
       try{
         const res = await api(`/api/rsvp/${rsvpId}`);
         const r = res.rsvp;
-        selectedRsvpId = rsvpId;
+        selectedGuestRef = { guestId:null, sourceRsvpId:rsvpId };
         document.getElementById('sheetHint').textContent = `Fiche liée à RSVP ${rsvpId}`;
         document.getElementById('sheetName').value = displayName || `${r.prenom||''} ${r.nom||''}`.trim();
         document.getElementById('sheetPresence').value = (String(r.presence||'').toLowerCase().replace('peut-être','peut-etre') || 'oui');
@@ -195,7 +213,6 @@
     }
 
     async function saveGuestSheet(){
-      if(!selectedRsvpId){ alert('Sélectionne un invité lié à un RSVP.'); return; }
       const payload = {
         presence: document.getElementById('sheetPresence').value,
         adultes: Number(document.getElementById('sheetAdults').value || 0),
@@ -205,7 +222,24 @@
         adminNotes: document.getElementById('sheetNotes').value,
         message: ''
       };
-      await api(`/api/rsvp/${selectedRsvpId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+
+      if(selectedGuestRef.sourceRsvpId){
+        await api(`/api/rsvp/${selectedGuestRef.sourceRsvpId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      }
+
+      if(selectedGuestRef.guestId){
+        updateGuestEverywhere(selectedGuestRef.guestId, {
+          rsvpStatus: payload.presence,
+          adultes: payload.adultes,
+          enfants: payload.enfants,
+          phone: payload.phone,
+          regime: payload.regime,
+          adminNotes: payload.adminNotes,
+        });
+        await savePlan();
+        renderAll();
+      }
+
       alert('Fiche invité enregistrée ✅');
       await loadGuests();
     }
@@ -217,13 +251,16 @@
       const e = Math.max(0, Number(r.enfants||0));
       const rsvpStatus = normalizePresence(r.presence);
       const sourceRsvpId = r.id || null;
+      const phone = r.phone || '';
+      const regime = r.regime || '';
+      const adminNotes = r.adminNotes || '';
 
       if(a===0 && e===0){
-        out.push({ id: crypto.randomUUID(), name: base, type: 'adulte', rsvpStatus, sourceRsvpId });
+        out.push({ id: crypto.randomUUID(), name: base, type: 'adulte', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
         return out;
       }
-      for(let i=1;i<=a;i++) out.push({ id: crypto.randomUUID(), name: a===1?base:`${base} (Adulte ${i})`, type:'adulte', rsvpStatus, sourceRsvpId });
-      for(let i=1;i<=e;i++) out.push({ id: crypto.randomUUID(), name: `${base} (Enfant ${i})`, type:'enfant', rsvpStatus, sourceRsvpId });
+      for(let i=1;i<=a;i++) out.push({ id: crypto.randomUUID(), name: a===1?base:`${base} (Adulte ${i})`, type:'adulte', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
+      for(let i=1;i<=e;i++) out.push({ id: crypto.randomUUID(), name: `${base} (Enfant ${i})`, type:'enfant', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
       return out;
     }
 
