@@ -26,6 +26,7 @@ Repo : https://github.com/ghis94/wedding-table-planner
 - affectation par liste déroulante (depuis la liste invités **et** directement dans chaque carte de table)
 - sauvegarde du plan de table
 - suppression d’un invité (pool ou table), avec suppression RSVP associée
+- fiche invité admin (allergies/régime, notes staff, téléphone, statut)
 - export JSON
 - import CSV (noms invités + type `adulte` / `enfant` / `bebe`)
 - export/import complet de la configuration (RSVP + plan)
@@ -80,6 +81,7 @@ Accès :
 
 - `ADMIN_USER` : login admin
 - `ADMIN_PASS` : mot de passe admin (**à changer impérativement**)
+- `SESSION_SECRET` : secret de session (**obligatoire en prod**)
 - `DB_PATH` : chemin SQLite (volume persistant)
 
 ---
@@ -127,7 +129,9 @@ Lina,Martin,enfant
 ## Sécurité minimale conseillée
 
 - changer `ADMIN_PASS`
+- définir un `SESSION_SECRET` fort
 - headers de sécurité activés via `helmet` côté serveur
+- auth admin par session (`/login.html`) + rate-limit login
 - mettre l’admin derrière Nginx Proxy Manager + HTTPS
 - idéalement restreindre `/admin.html` et `/day-of.html` par IP ou auth supplémentaire
 

@@ -10,6 +10,7 @@ services:
       - PORT=8090
       - ADMIN_USER=admin
       - ADMIN_PASS=change-me-now
+      - SESSION_SECRET=change-this-super-secret-session-key
       - DB_PATH=/app/data/wedding.db
     volumes:
       - ./data:/app/data
