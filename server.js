@@ -3,16 +3,22 @@ const path = require('path');
 const fs = require('fs');
 const Database = require('better-sqlite3');
 const helmet = require('helmet');
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 const { parse } = require('csv-parse/sync');
 
 const app = express();
 const PORT = process.env.PORT || 8090;
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'changeme';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'change-this-session-secret';
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'wedding.db');
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 const db = new Database(DB_PATH);
+
+const adminPasswordHash = bcrypt.hashSync(ADMIN_PASS, 10);
 
 db.exec(`CREATE TABLE IF NOT EXISTS rsvps (
   id TEXT PRIMARY KEY,
@@ -40,23 +46,55 @@ app.use(
 );
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  session({
+    name: 'wtp.sid',
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 1000 * 60 * 60 * 8,
+    },
+  })
+);
 
-function basicAuth(req, res, next) {
-  const hdr = req.headers.authorization || '';
-  if (!hdr.startsWith('Basic ')) {
-    res.set('WWW-Authenticate', 'Basic realm="Admin"');
-    return res.status(401).send('Auth required');
-  }
-  const decoded = Buffer.from(hdr.slice(6), 'base64').toString('utf8');
-  const [u, p] = decoded.split(':');
-  if (u === ADMIN_USER && p === ADMIN_PASS) return next();
-  res.set('WWW-Authenticate', 'Basic realm="Admin"');
-  return res.status(401).send('Invalid credentials');
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+function requireAdmin(req, res, next) {
+  if (req.session?.isAdmin) return next();
+  if (req.path.startsWith('/api/')) return res.status(401).json({ ok: false, error: 'Unauthorized' });
+  return res.redirect('/login.html');
 }
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
-app.get('/api/rsvps', basicAuth, (_req, res) => {
+app.post('/auth/login', loginLimiter, (req, res) => {
+  const { username, password } = req.body || {};
+  if (username !== ADMIN_USER) return res.status(401).json({ ok: false, error: 'Invalid credentials' });
+  const ok = bcrypt.compareSync(String(password || ''), adminPasswordHash);
+  if (!ok) return res.status(401).json({ ok: false, error: 'Invalid credentials' });
+  req.session.isAdmin = true;
+  req.session.user = ADMIN_USER;
+  return res.json({ ok: true });
+});
+
+app.post('/auth/logout', (req, res) => {
+  req.session.destroy(() => res.json({ ok: true }));
+});
+
+app.get('/auth/me', (req, res) => {
+  res.json({ ok: !!req.session?.isAdmin, user: req.session?.user || null });
+});
+
+app.get('/api/rsvps', requireAdmin, (_req, res) => {
   try {
     const rows = db.prepare('SELECT * FROM rsvps ORDER BY datetime(createdAt) DESC').all();
     res.json(rows || []);
@@ -89,7 +127,7 @@ app.post('/api/rsvp', (req, res) => {
   }
 });
 
-app.delete('/api/rsvp/:id', basicAuth, (req, res) => {
+app.delete('/api/rsvp/:id', requireAdmin, (req, res) => {
   try {
     const id = req.params.id;
     const info = db.prepare('DELETE FROM rsvps WHERE id = ?').run(id);
@@ -99,7 +137,7 @@ app.delete('/api/rsvp/:id', basicAuth, (req, res) => {
   }
 });
 
-app.get('/api/plan', basicAuth, (_req, res) => {
+app.get('/api/plan', requireAdmin, (_req, res) => {
   try {
     const row = db.prepare('SELECT data FROM plan WHERE id=1').get();
     const data = row?.data ? JSON.parse(row.data) : { tables: [], guests: [] };
@@ -109,7 +147,7 @@ app.get('/api/plan', basicAuth, (_req, res) => {
   }
 });
 
-app.post('/api/plan', basicAuth, (req, res) => {
+app.post('/api/plan', requireAdmin, (req, res) => {
   try {
     const data = JSON.stringify(req.body || { tables: [], guests: [] });
     db.prepare(
@@ -123,7 +161,7 @@ app.post('/api/plan', basicAuth, (req, res) => {
   }
 });
 
-app.post('/api/import-csv', basicAuth, (req, res) => {
+app.post('/api/import-csv', requireAdmin, (req, res) => {
   try {
     const csvText = req.body.csv || '';
     const records = parse(csvText, {
@@ -147,7 +185,7 @@ app.post('/api/import-csv', basicAuth, (req, res) => {
   }
 });
 
-app.get('/api/config/export', basicAuth, (_req, res) => {
+app.get('/api/config/export', requireAdmin, (_req, res) => {
   try {
     const rsvps = db.prepare('SELECT * FROM rsvps ORDER BY datetime(createdAt) DESC').all();
     const planRow = db.prepare('SELECT data, updatedAt FROM plan WHERE id=1').get();
@@ -164,7 +202,7 @@ app.get('/api/config/export', basicAuth, (_req, res) => {
   }
 });
 
-app.get('/api/export/caterer.csv', basicAuth, (_req, res) => {
+app.get('/api/export/caterer.csv', requireAdmin, (_req, res) => {
   try {
     const rsvps = db.prepare('SELECT * FROM rsvps').all();
     const planRow = db.prepare('SELECT data FROM plan WHERE id=1').get();
@@ -211,7 +249,7 @@ app.get('/api/export/caterer.csv', basicAuth, (_req, res) => {
   }
 });
 
-app.post('/api/config/import', basicAuth, (req, res) => {
+app.post('/api/config/import', requireAdmin, (req, res) => {
   try {
     const payload = req.body || {};
     if (!Array.isArray(payload.rsvps) || typeof payload.plan !== 'object' || payload.plan === null) {
@@ -251,10 +289,8 @@ app.post('/api/config/import', basicAuth, (req, res) => {
   }
 });
 
-app.use('/admin.html', basicAuth);
-app.use('/staff.html', basicAuth);
-app.use('/visual.html', basicAuth);
-app.use('/day-of.html', basicAuth);
+app.get(['/admin.html', '/staff.html', '/visual.html', '/day-of.html'], requireAdmin);
+app.get('/login.html', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.use(express.static(__dirname));
 
 app.listen(PORT, () => {

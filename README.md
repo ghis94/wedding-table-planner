@@ -80,6 +80,7 @@ Accès :
 
 - `ADMIN_USER` : login admin
 - `ADMIN_PASS` : mot de passe admin (**à changer impérativement**)
+- `SESSION_SECRET` : secret de session (**obligatoire en prod**)
 - `DB_PATH` : chemin SQLite (volume persistant)
 
 ---
@@ -127,7 +128,9 @@ Lina,Martin,enfant
 ## Sécurité minimale conseillée
 
 - changer `ADMIN_PASS`
+- définir un `SESSION_SECRET` fort
 - headers de sécurité activés via `helmet` côté serveur
+- auth admin par session (`/login.html`) + rate-limit login
 - mettre l’admin derrière Nginx Proxy Manager + HTTPS
 - idéalement restreindre `/admin.html` et `/day-of.html` par IP ou auth supplémentaire
 
