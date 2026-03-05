@@ -42,15 +42,28 @@
       line-height:1.2;
     }
     .guest-chip .name{font-weight:700}
-    .guest-chip .regime{display:block;margin-top:4px;font-size:11px;font-weight:700}
-    .guest-chip .regime-default{color:#7c3aed}
-    .guest-chip .regime-vege{color:#16a34a}
-    .guest-chip .regime-vegan{color:#15803d}
-    .guest-chip .regime-sans-porc{color:#ea580c}
-    .guest-chip .regime-halal{color:#0f766e}
-    .guest-chip .regime-kasher{color:#2563eb}
-    .guest-chip .regime-sans-gluten{color:#dc2626}
-    .guest-chip .regime-sans-lactose{color:#c2410c}
+    .guest-chip .regime{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      margin-top:4px;
+      padding:2px 7px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:600;
+      color:#0f172a;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+    }
+    .guest-chip .regime::before{content:'';width:7px;height:7px;border-radius:999px;background:#64748b;display:inline-block}
+    .guest-chip .regime-default::before{background:#64748b}
+    .guest-chip .regime-vege::before{background:#16a34a}
+    .guest-chip .regime-vegan::before{background:#15803d}
+    .guest-chip .regime-sans-porc::before{background:#ea580c}
+    .guest-chip .regime-halal::before{background:#0f766e}
+    .guest-chip .regime-kasher::before{background:#2563eb}
+    .guest-chip .regime-sans-gluten::before{background:#dc2626}
+    .guest-chip .regime-sans-lactose::before{background:#c2410c}
     .guest-chip.adulte{background:#eef2ff;color:#3730a3}
     .guest-chip.enfant{background:#ecfeff;color:#155e75}
     .guest-chip.bebe{background:#fff7ed;color:#9a3412}
