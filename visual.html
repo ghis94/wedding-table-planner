@@ -29,15 +29,28 @@
     .guest-chip{
       position:absolute;
       padding:6px 10px;
-      border-radius:999px;
+      border-radius:14px;
       border:1px solid #94a3b8;
       background:#ffffff;
       box-shadow:0 4px 10px #00000012;
       font-size:12px;
       cursor:move; user-select:none;
-      white-space:nowrap;
+      white-space:normal;
       z-index:20;
+      min-width:110px;
+      text-align:center;
+      line-height:1.2;
     }
+    .guest-chip .name{font-weight:700}
+    .guest-chip .regime{display:block;margin-top:4px;font-size:11px;font-weight:700}
+    .guest-chip .regime-default{color:#7c3aed}
+    .guest-chip .regime-vege{color:#16a34a}
+    .guest-chip .regime-vegan{color:#15803d}
+    .guest-chip .regime-sans-porc{color:#ea580c}
+    .guest-chip .regime-halal{color:#0f766e}
+    .guest-chip .regime-kasher{color:#2563eb}
+    .guest-chip .regime-sans-gluten{color:#dc2626}
+    .guest-chip .regime-sans-lactose{color:#c2410c}
     .guest-chip.adulte{background:#eef2ff;color:#3730a3}
     .guest-chip.enfant{background:#ecfeff;color:#155e75}
     .guest-chip.bebe{background:#fff7ed;color:#9a3412}
@@ -64,6 +77,28 @@
       if(v==='enfant') return 'enfant';
       if(v==='bebe') return 'bebe';
       return 'adulte';
+    }
+
+    function escapeHtml(v){
+      return String(v||'')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
+    function regimeClass(regime){
+      const r=String(regime||'').toLowerCase();
+      if(!r) return '';
+      if(r.includes('vegan')) return 'regime-vegan';
+      if(r.includes('végé')||r.includes('vege')||r.includes('végétar')) return 'regime-vege';
+      if(r.includes('sans porc')) return 'regime-sans-porc';
+      if(r.includes('halal')) return 'regime-halal';
+      if(r.includes('kasher')||r.includes('casher')) return 'regime-kasher';
+      if(r.includes('sans gluten')||r.includes('gluten')) return 'regime-sans-gluten';
+      if(r.includes('sans lactose')||r.includes('lactose')) return 'regime-sans-lactose';
+      return 'regime-default';
     }
 
     async function load(){
@@ -97,7 +132,8 @@
           chip.className=`guest-chip ${normType(g.type)}`;
           chip.style.left=gp.x+'px';
           chip.style.top=gp.y+'px';
-          chip.textContent=g.name;
+          const regime=(g.regime||'').trim();
+          chip.innerHTML=`<span class="name">${escapeHtml(g.name||'')}</span>${regime?`<span class="regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}`;
           drag(chip,(nx,ny)=>{plan.layout.guests[gid]={x:nx,y:ny};});
           canvas.appendChild(chip);
         });
