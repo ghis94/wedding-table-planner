@@ -158,6 +158,15 @@
       return '';
     }
 
+    function escapeHtml(v){
+      return String(v||'')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
     function guestTag(g){
       const t=normalizeType(g.type);
       const type = `<span class="type ${t==='enfant'?'enfant':(t==='bebe'?'bebe':'')}">${t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte')}</span>`;
@@ -295,13 +304,13 @@
 
     function tableOptions(selected=''){
       const opts = [`<option value="">Table…</option>`];
-      (tables||[]).forEach(t=> opts.push(`<option value="${t.id}" ${selected===t.id?'selected':''}>${t.name}</option>`));
+      (tables||[]).forEach(t=> opts.push(`<option value="${t.id}" ${selected===t.id?'selected':''}>${escapeHtml(t.name)}</option>`));
       return opts.join('');
     }
 
     function guestOptions(){
       const opts = [`<option value="">Invité…</option>`];
-      (guests||[]).forEach(g=> opts.push(`<option value="${g.id}">${g.name}</option>`));
+      (guests||[]).forEach(g=> opts.push(`<option value="${g.id}">${escapeHtml(g.name)}</option>`));
       return opts.join('');
     }
 
@@ -310,7 +319,7 @@
       guests.forEach(g=>{
         const d=document.createElement('div');
         d.className='guest'; d.draggable=true; d.dataset.id=g.id;
-        d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${g.name}</span><span class="guest-actions">${guestTag(g)} <select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+        d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}</span><span class="guest-actions">${guestTag(g)} <select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
         d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id);
         c.appendChild(d);
       });
@@ -325,10 +334,10 @@
         const adultCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='adulte').length;
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
-        b.innerHTML=`<h4>${t.name}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><div class="row" style="margin:6px 0"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
+        b.innerHTML=`<h4>${escapeHtml(t.name)}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><div class="row" style="margin:6px 0"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
         t.guests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
-          d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${g.name}</span><span class="guest-actions">${guestTag(g)} <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+          d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}</span><span class="guest-actions">${guestTag(g)} <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
           b.appendChild(d);
         });
         c.appendChild(b);

@@ -30,6 +30,14 @@
     const out=document.getElementById('results');
 
     function tLabel(t){return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte')}
+    function escapeHtml(v){
+      return String(v||'')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
 
     async function load(){
       const r=await fetch('/api/plan');
@@ -48,7 +56,7 @@
       if(rows.length===0){ out.innerHTML='<div class="muted">Aucun résultat</div>'; return; }
       rows.forEach(r=>{
         const d=document.createElement('div'); d.className='card';
-        d.innerHTML=`<strong>${r.name}</strong><br><span class="muted">${r.table}</span> <span class="badge ${r.type}">${tLabel(r.type)}</span>`;
+        d.innerHTML=`<strong>${escapeHtml(r.name)}</strong><br><span class="muted">${escapeHtml(r.table)}</span> <span class="badge ${r.type}">${tLabel(r.type)}</span>`;
         out.appendChild(d);
       });
     }

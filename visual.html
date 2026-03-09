@@ -126,10 +126,12 @@
 
     function render(){
       canvas.innerHTML='';
-      const W=canvas.clientWidth;
+      const tablePosById={};
 
       (plan.tables||[]).forEach((t,i)=>{
         const pos=plan.layout.tables[t.id]||{x:30+(i%5)*220,y:20+Math.floor(i/5)*220};
+        tablePosById[t.id]=pos;
+
         const table=document.createElement('div');
         table.className='round-table';
         table.style.left=pos.x+'px';
@@ -148,7 +150,12 @@
           chip.style.top=gp.y+'px';
           const regime=(g.regime||'').trim();
           chip.innerHTML=`<span class="name">${escapeHtml(g.name||'')}</span>${regime?`<span class="regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}`;
-          drag(chip,(nx,ny)=>{plan.layout.guests[gid]={x:nx,y:ny};});
+          drag(chip,(nx,ny)=>{
+            const moved=reassignGuestByDrop({guestId:gid, fromTableId:t.id, guest:g, x:nx, y:ny, tablePosById});
+            if(!moved){
+              plan.layout.guests[gid]={x:nx,y:ny};
+            }
+          });
           canvas.appendChild(chip);
         });
       });
@@ -158,6 +165,49 @@
       const cx=tablePos.x+85, cy=tablePos.y+85;
       const ang=(Math.PI*2)*(index/Math.max(total,1));
       return {x:Math.round(cx+Math.cos(ang)*radius), y:Math.round(cy+Math.sin(ang)*radius)};
+    }
+
+    function findTargetTableByPoint(x,y,tablePosById){
+      const px=x+50; // centre approximatif d'un chip
+      const py=y+18;
+      const tableRadius=95;
+      let best=null;
+      let bestDist=Infinity;
+      (plan.tables||[]).forEach(t=>{
+        const p=tablePosById[t.id]||plan.layout.tables?.[t.id];
+        if(!p) return;
+        const cx=p.x+85;
+        const cy=p.y+85;
+        const d=Math.hypot(px-cx, py-cy);
+        if(d<=tableRadius && d<bestDist){
+          best=t;
+          bestDist=d;
+        }
+      });
+      return best;
+    }
+
+    function reassignGuestByDrop({guestId,fromTableId,guest,x,y,tablePosById}){
+      const target=findTargetTableByPoint(x,y,tablePosById);
+      if(!target || target.id===fromTableId) return false;
+
+      const from=(plan.tables||[]).find(t=>t.id===fromTableId);
+      if(!from) return false;
+      const to=target;
+      to.guests=to.guests||[];
+      if((to.guests.length||0) >= (to.capacity||0)){
+        alert(`Table ${to.name} pleine`);
+        return false;
+      }
+
+      from.guests=(from.guests||[]).filter(g=>g.id!==guestId);
+      to.guests.push(guest);
+
+      const toPos=tablePosById[to.id]||plan.layout.tables?.[to.id]||{x:0,y:0};
+      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,85);
+
+      render();
+      return true;
     }
 
     function drag(el,onDrop){

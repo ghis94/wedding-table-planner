@@ -45,6 +45,15 @@
       return 'adulte';
     }
 
+    function escapeHtml(v){
+      return String(v||'')
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
     async function load(){
       const r=await fetch('/api/plan');
       const p=await r.json();
@@ -63,12 +72,12 @@
         const te=tg.filter(g=>typeOf(g)==='enfant').length;
         const tb=tg.filter(g=>typeOf(g)==='bebe').length;
         const d=document.createElement('div'); d.className='card';
-        d.innerHTML=`<h3>${t.name}</h3><div class='muted'>${tg.length}/${t.capacity||0} • Adultes: ${ta} • Enfants: ${te} • Bébés: ${tb}</div>`;
+        d.innerHTML=`<h3>${escapeHtml(t.name)}</h3><div class='muted'>${tg.length}/${t.capacity||0} • Adultes: ${ta} • Enfants: ${te} • Bébés: ${tb}</div>`;
         const ul=document.createElement('ul');
         tg.forEach(g=>{
           const li=document.createElement('li');
           const typ=typeOf(g);
-          li.innerHTML=`${g.name} <span class="type ${typ}">${typ==='enfant'?'Enfant':(typ==='bebe'?'Bébé':'Adulte')}</span>`;
+          li.innerHTML=`${escapeHtml(g.name)} <span class="type ${typ}">${typ==='enfant'?'Enfant':(typ==='bebe'?'Bébé':'Adulte')}</span>`;
           ul.appendChild(li);
         });
         d.appendChild(ul); c.appendChild(d);

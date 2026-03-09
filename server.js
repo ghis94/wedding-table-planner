@@ -14,11 +14,93 @@ const ADMIN_USER = process.env.ADMIN_USER || 'admin';
 const ADMIN_PASS = process.env.ADMIN_PASS || 'changeme';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change-this-session-secret';
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'wedding.db');
+const DEFAULT_ADMIN_PASS = 'changeme';
+const DEFAULT_SESSION_SECRET = 'change-this-session-secret';
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 const db = new Database(DB_PATH);
 
 const adminPasswordHash = bcrypt.hashSync(ADMIN_PASS, 10);
+
+function clampInt(value, { min = 0, max = 1000, fallback = 0 } = {}) {
+  const n = Number.parseInt(value, 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, n));
+}
+
+function normalizePresence(value) {
+  const p = String(value || '').trim().toLowerCase();
+  if (['oui', 'yes', 'present'].includes(p)) return 'oui';
+  if (['peut-être', 'peut-etre', 'maybe', 'maybe?'].includes(p)) return 'peut-etre';
+  if (['non', 'no'].includes(p)) return 'non';
+  return '';
+}
+
+function normalizeGuestType(value) {
+  const t = String(value || '').trim().toLowerCase();
+  if (['bebe', 'bébé', 'baby', 'infant', 'toddlers', 'toddler'].includes(t)) return 'bebe';
+  if (['enfant', 'child', 'kids', 'kid'].includes(t)) return 'enfant';
+  return 'adulte';
+}
+
+function cleanText(value, maxLen = 500) {
+  return String(value ?? '').trim().slice(0, maxLen);
+}
+
+function sanitizeRsvp(input = {}, { keepCreatedAt = true } = {}) {
+  return {
+    id: cleanText(input.id || crypto.randomUUID(), 80),
+    nom: cleanText(input.nom, 120),
+    prenom: cleanText(input.prenom, 120),
+    presence: normalizePresence(input.presence),
+    adultes: clampInt(input.adultes, { min: 0, max: 20, fallback: 0 }),
+    enfants: clampInt(input.enfants, { min: 0, max: 20, fallback: 0 }),
+    regime: cleanText(input.regime, 500),
+    message: cleanText(input.message, 3000),
+    phone: cleanText(input.phone, 80),
+    adminNotes: cleanText(input.adminNotes, 2000),
+    createdAt: keepCreatedAt && cleanText(input.createdAt, 80) ? cleanText(input.createdAt, 80) : new Date().toISOString(),
+  };
+}
+
+function sanitizeGuest(input = {}) {
+  return {
+    id: cleanText(input.id || crypto.randomUUID(), 80),
+    name: cleanText(input.name || 'Invité', 160) || 'Invité',
+    type: normalizeGuestType(input.type),
+    rsvpStatus: normalizePresence(input.rsvpStatus),
+    sourceRsvpId: cleanText(input.sourceRsvpId, 80),
+    phone: cleanText(input.phone, 80),
+    regime: cleanText(input.regime, 500),
+    adminNotes: cleanText(input.adminNotes, 2000),
+    adultes: clampInt(input.adultes, { min: 0, max: 20, fallback: 0 }),
+    enfants: clampInt(input.enfants, { min: 0, max: 20, fallback: 0 }),
+  };
+}
+
+function sanitizeTable(input = {}) {
+  const guests = Array.isArray(input.guests) ? input.guests.map(sanitizeGuest) : [];
+  return {
+    id: cleanText(input.id || crypto.randomUUID(), 80),
+    name: cleanText(input.name || 'Table', 120) || 'Table',
+    capacity: clampInt(input.capacity, { min: 1, max: 50, fallback: 10 }),
+    guests,
+  };
+}
+
+function sanitizePlan(input = {}) {
+  const tables = Array.isArray(input.tables) ? input.tables.map(sanitizeTable) : [];
+  const guests = Array.isArray(input.guests) ? input.guests.map(sanitizeGuest) : [];
+  const layout = input.layout && typeof input.layout === 'object' ? input.layout : {};
+  return {
+    tables,
+    guests,
+    layout: {
+      tables: layout.tables && typeof layout.tables === 'object' ? layout.tables : {},
+      guests: layout.guests && typeof layout.guests === 'object' ? layout.guests : {},
+    },
+  };
+}
 
 db.exec(`CREATE TABLE IF NOT EXISTS rsvps (
   id TEXT PRIMARY KEY,
@@ -80,6 +162,13 @@ function requireAdmin(req, res, next) {
   return res.redirect('/login.html');
 }
 
+if (ADMIN_PASS === DEFAULT_ADMIN_PASS) {
+  console.warn('[wedding-table-planner] WARNING: ADMIN_PASS uses the default value. Change it before exposing the app.');
+}
+if (SESSION_SECRET === DEFAULT_SESSION_SECRET) {
+  console.warn('[wedding-table-planner] WARNING: SESSION_SECRET uses the default value. Change it before exposing the app.');
+}
+
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.post('/auth/login', loginLimiter, (req, res) => {
@@ -111,25 +200,19 @@ app.get('/api/rsvps', requireAdmin, (_req, res) => {
 
 app.post('/api/rsvp', (req, res) => {
   try {
-    const b = req.body || {};
-    const id = b.id || crypto.randomUUID();
+    const rsvp = sanitizeRsvp(req.body || {});
+    if (!rsvp.nom || !rsvp.prenom) {
+      return res.status(400).json({ ok: false, error: 'Nom et prénom requis' });
+    }
+    if (!rsvp.presence) {
+      return res.status(400).json({ ok: false, error: 'Présence invalide' });
+    }
+
     const stmt = db.prepare(`INSERT OR REPLACE INTO rsvps
       (id, nom, prenom, presence, adultes, enfants, regime, message, phone, adminNotes, createdAt)
       VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @phone, @adminNotes, @createdAt)`);
-    stmt.run({
-      id,
-      nom: b.nom || '',
-      prenom: b.prenom || '',
-      presence: b.presence || '',
-      adultes: Number(b.adultes || 0),
-      enfants: Number(b.enfants || 0),
-      regime: b.regime || '',
-      message: b.message || '',
-      phone: b.phone || '',
-      adminNotes: b.adminNotes || '',
-      createdAt: b.createdAt || new Date().toISOString(),
-    });
-    res.json({ ok: true, id });
+    stmt.run(rsvp);
+    res.json({ ok: true, id: rsvp.id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -147,8 +230,11 @@ app.get('/api/rsvp/:id', requireAdmin, (req, res) => {
 
 app.put('/api/rsvp/:id', requireAdmin, (req, res) => {
   try {
-    const id = req.params.id;
-    const b = req.body || {};
+    const id = cleanText(req.params.id, 80);
+    const existing = db.prepare('SELECT * FROM rsvps WHERE id = ?').get(id);
+    if (!existing) return res.status(404).json({ ok: false, error: 'Not found' });
+
+    const next = sanitizeRsvp({ ...existing, ...req.body, id, createdAt: existing.createdAt });
     const info = db.prepare(`UPDATE rsvps SET
       presence=@presence,
       adultes=@adultes,
@@ -157,16 +243,7 @@ app.put('/api/rsvp/:id', requireAdmin, (req, res) => {
       message=@message,
       phone=@phone,
       adminNotes=@adminNotes
-      WHERE id=@id`).run({
-      id,
-      presence: b.presence || '',
-      adultes: Number(b.adultes || 0),
-      enfants: Number(b.enfants || 0),
-      regime: b.regime || '',
-      message: b.message || '',
-      phone: b.phone || '',
-      adminNotes: b.adminNotes || '',
-    });
+      WHERE id=@id`).run(next);
     res.json({ ok: true, updated: info.changes || 0 });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
@@ -186,7 +263,7 @@ app.delete('/api/rsvp/:id', requireAdmin, (req, res) => {
 app.get('/api/plan', requireAdmin, (_req, res) => {
   try {
     const row = db.prepare('SELECT data FROM plan WHERE id=1').get();
-    const data = row?.data ? JSON.parse(row.data) : { tables: [], guests: [] };
+    const data = row?.data ? sanitizePlan(JSON.parse(row.data)) : { tables: [], guests: [], layout: { tables: {}, guests: {} } };
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -195,7 +272,8 @@ app.get('/api/plan', requireAdmin, (_req, res) => {
 
 app.post('/api/plan', requireAdmin, (req, res) => {
   try {
-    const data = JSON.stringify(req.body || { tables: [], guests: [] });
+    const sanitizedPlan = sanitizePlan(req.body || {});
+    const data = JSON.stringify(sanitizedPlan);
     db.prepare(
       `INSERT INTO plan(id, data, updatedAt)
        VALUES(1, ?, ?)
@@ -218,11 +296,9 @@ app.post('/api/import-csv', requireAdmin, (req, res) => {
 
     const guests = records.map((r) => ({
       id: crypto.randomUUID(),
-      name: [r.prenom || r.first_name || '', r.nom || r.last_name || ''].join(' ').trim() || r.name || 'Invité',
-      type: ['bebe','bébé','baby','infant','toddlers','toddler'].includes(String(r.type || '').toLowerCase())
-        ? 'bebe'
-        : (['enfant', 'child', 'kids', 'kid'].includes(String(r.type || '').toLowerCase()) ? 'enfant' : 'adulte'),
-      group: r.groupe || r.group || '',
+      name: cleanText([r.prenom || r.first_name || '', r.nom || r.last_name || ''].join(' ').trim() || r.name || 'Invité', 160) || 'Invité',
+      type: normalizeGuestType(r.type),
+      group: cleanText(r.groupe || r.group || '', 120),
     }));
 
     res.json({ ok: true, guests, count: guests.length });
@@ -302,36 +378,27 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
       return res.status(400).json({ ok: false, error: 'Format de config invalide' });
     }
 
+    const sanitizedRsvps = payload.rsvps.map((r) => sanitizeRsvp(r));
+    const sanitizedPlan = sanitizePlan(payload.plan);
+
     const insertRsvp = db.prepare(`INSERT OR REPLACE INTO rsvps
       (id, nom, prenom, presence, adultes, enfants, regime, message, phone, adminNotes, createdAt)
       VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @phone, @adminNotes, @createdAt)`);
 
     const tx = db.transaction(() => {
       db.prepare('DELETE FROM rsvps').run();
-      for (const r of payload.rsvps) {
-        insertRsvp.run({
-          id: r.id || crypto.randomUUID(),
-          nom: r.nom || '',
-          prenom: r.prenom || '',
-          presence: r.presence || '',
-          adultes: Number(r.adultes || 0),
-          enfants: Number(r.enfants || 0),
-          regime: r.regime || '',
-          message: r.message || '',
-          phone: r.phone || '',
-          adminNotes: r.adminNotes || '',
-          createdAt: r.createdAt || new Date().toISOString(),
-        });
+      for (const r of sanitizedRsvps) {
+        insertRsvp.run(r);
       }
       db.prepare(
         `INSERT INTO plan(id, data, updatedAt)
          VALUES(1, ?, ?)
          ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`
-      ).run(JSON.stringify(payload.plan), new Date().toISOString());
+      ).run(JSON.stringify(sanitizedPlan), new Date().toISOString());
     });
 
     tx();
-    res.json({ ok: true, importedRsvps: payload.rsvps.length });
+    res.json({ ok: true, importedRsvps: sanitizedRsvps.length });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
