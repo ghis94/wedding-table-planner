@@ -140,7 +140,7 @@
       const ring=Math.floor(seatIndex / perRing);
       const indexInRing=seatIndex % perRing;
       const countInRing=Math.min(perRing, Math.max(1, capacity - ring*perRing));
-      const radius=108 + ring*24;
+      const radius=106 + ring*24;
       const angle=(Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2);
       const cx=CLUSTER_PADDING + TABLE_RADIUS;
       const cy=CLUSTER_PADDING + TABLE_RADIUS;
@@ -154,27 +154,34 @@
 
     function clusterBounds(capacity){
       const total=Math.max(1, capacity||1);
-      let maxRight=TABLE_SIZE, maxBottom=TABLE_SIZE;
+      let minLeft=CLUSTER_PADDING, minTop=CLUSTER_PADDING, maxRight=CLUSTER_PADDING + TABLE_SIZE, maxBottom=CLUSTER_PADDING + TABLE_SIZE;
       for(let i=0;i<total;i++){
         const seat=seatLayout(i,total,{name:'Placeholder long', regime:'sans gluten'});
-        maxRight=Math.max(maxRight, seat.left + seat.width - CLUSTER_PADDING);
-        maxBottom=Math.max(maxBottom, seat.top + seat.height - CLUSTER_PADDING);
+        minLeft=Math.min(minLeft, seat.left);
+        minTop=Math.min(minTop, seat.top);
+        maxRight=Math.max(maxRight, seat.left + seat.width);
+        maxBottom=Math.max(maxBottom, seat.top + seat.height);
       }
+      const pad=26;
       return {
-        width: Math.max(TABLE_SIZE, maxRight + CLUSTER_PADDING),
-        height: Math.max(TABLE_SIZE, maxBottom + CLUSTER_PADDING),
+        minLeft,
+        minTop,
+        width: Math.max(TABLE_SIZE, maxRight - minLeft + pad*2),
+        height: Math.max(TABLE_SIZE, maxBottom - minTop + pad*2),
+        offsetX: pad - minLeft,
+        offsetY: pad - minTop,
       };
     }
 
     function defaultTablePos(i, bounds){
-      const gapX=72, gapY=72;
-      const usableWidth=Math.max(420, canvas.clientWidth || 1200);
+      const gapX=140, gapY=120;
+      const usableWidth=Math.max(520, canvas.clientWidth || 1200);
       const cols=Math.max(1, Math.floor((usableWidth - gapX) / (bounds.width + gapX)));
       const col=i % cols;
       const row=Math.floor(i / cols);
       return {
-        x: 20 + col*(bounds.width + gapX),
-        y: 20 + row*(bounds.height + gapY),
+        x: 24 + col*(bounds.width + gapX),
+        y: 24 + row*(bounds.height + gapY),
       };
     }
 
@@ -203,8 +210,8 @@
 
         const table=document.createElement('div');
         table.className='round-table';
-        table.style.left=CLUSTER_PADDING+'px';
-        table.style.top=CLUSTER_PADDING+'px';
+        table.style.left=(CLUSTER_PADDING + bounds.offsetX)+'px';
+        table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px';
         const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,capacity))*100));
         table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${capacity}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
         drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]={x:nx,y:ny}; render(); });
@@ -215,8 +222,8 @@
           const seat=seatLayout(seatIndex, capacity, guest||{name:'',regime:''});
           const slot=document.createElement('div');
           slot.className='seat-slot';
-          slot.style.left=seat.left+'px';
-          slot.style.top=seat.top+'px';
+          slot.style.left=(seat.left + bounds.offsetX)+'px';
+          slot.style.top=(seat.top + bounds.offsetY)+'px';
           slot.style.width=seat.width+'px';
           slot.style.height=seat.height+'px';
           cluster.appendChild(slot);
@@ -224,8 +231,8 @@
 
           const chip=document.createElement('div');
           chip.className=`guest-chip ${normType(guest.type)}`;
-          chip.style.left=seat.left+'px';
-          chip.style.top=seat.top+'px';
+          chip.style.left=(seat.left + bounds.offsetX)+'px';
+          chip.style.top=(seat.top + bounds.offsetY)+'px';
           chip.style.width=seat.width+'px';
           const regime=(guest.regime||'').trim();
           const type=normType(guest.type);
