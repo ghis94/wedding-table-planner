@@ -37,7 +37,8 @@
     .progress{width:94px;height:6px;background:#efe7dc;border-radius:999px;overflow:hidden}
     .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
 
-    .seat-slot{border:1px dashed #cdb89d;background:rgba(255,255,255,.28);border-radius:14px;z-index:12}
+    .seat-slot{border:1px dashed #cdb89d;background:rgba(255,255,255,.28);border-radius:14px;z-index:12;transition:transform .12s ease, border-color .12s ease, background .12s ease}
+    .seat-slot.drop-target{border-color:#a67c52;background:rgba(166,124,82,.12);transform:scale(1.04)}
     .guest-chip{padding:5px 8px;border-radius:13px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 14px rgba(0,0,0,.07);font-size:10px;cursor:move;user-select:none;z-index:20;text-align:center;line-height:1.15;overflow:hidden}
     .guest-chip .name{font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
@@ -74,6 +75,7 @@
 
   <script>
     let plan={tables:[],guests:[],layout:{}};
+    let activeDropTarget=null;
     const canvas=document.getElementById('canvas');
     const TABLE_SIZE=180;
     const TABLE_RADIUS=90;
@@ -222,6 +224,8 @@
           const seat=seatLayout(seatIndex, capacity, guest||{name:'',regime:''});
           const slot=document.createElement('div');
           slot.className='seat-slot';
+          slot.dataset.tableId=t.id;
+          slot.dataset.seatIndex=String(seatIndex);
           slot.style.left=(seat.left + bounds.offsetX)+'px';
           slot.style.top=(seat.top + bounds.offsetY)+'px';
           slot.style.width=seat.width+'px';
@@ -238,7 +242,7 @@
           const type=normType(guest.type);
           const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
           chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
-          dragGuest(chip, cluster, pos, (dropX, dropY)=>reassignGuestByDrop(t.id, seatIndex, dropX, dropY));
+          dragGuest(chip, cluster, pos, (target)=>swapOrMoveGuest(t.id, seatIndex, target));
           cluster.appendChild(chip);
         }
         canvas.appendChild(cluster);
@@ -252,34 +256,40 @@
       render();
     }
 
-    function findNearestTable(globalX, globalY){
-      let best=null, bestDist=Infinity;
-      (plan.tables||[]).forEach(t=>{
-        const p=plan.layout.tables?.[t.id];
-        if(!p) return;
-        const cx=p.x + CLUSTER_PADDING + TABLE_RADIUS;
-        const cy=p.y + CLUSTER_PADDING + TABLE_RADIUS;
-        const d=Math.hypot(globalX-cx, globalY-cy);
-        if(d < bestDist){ best=t; bestDist=d; }
-      });
-      return bestDist <= 220 ? best : null;
+    function clearDropTarget(){
+      if(activeDropTarget){ activeDropTarget.classList.remove('drop-target'); activeDropTarget=null; }
     }
 
-    function reassignGuestByDrop(fromTableId, seatIndex, globalX, globalY){
-      const from=(plan.tables||[]).find(t=>t.id===fromTableId);
-      if(!from) return render();
-      const guest=(from.guests||[])[seatIndex];
-      if(!guest) return render();
-      const target=findNearestTable(globalX, globalY);
+    function findSeatTarget(globalX, globalY){
+      let best=null, bestDist=Infinity;
+      document.querySelectorAll('.seat-slot').forEach(slot=>{
+        const left=parseInt(slot.parentElement.style.left||'0',10)+parseInt(slot.style.left||'0',10);
+        const top=parseInt(slot.parentElement.style.top||'0',10)+parseInt(slot.style.top||'0',10);
+        const width=parseInt(slot.style.width||'0',10);
+        const height=parseInt(slot.style.height||'0',10);
+        const cx=left + width/2;
+        const cy=top + height/2;
+        const d=Math.hypot(globalX-cx, globalY-cy);
+        if(d<bestDist){ best={slot,left,top,width,height,tableId:slot.dataset.tableId,seatIndex:Number(slot.dataset.seatIndex)}; bestDist=d; }
+      });
+      return bestDist <= 90 ? best : null;
+    }
+
+    function swapOrMoveGuest(fromTableId, fromSeatIndex, target){
       if(!target) return render();
-      if(target.id===fromTableId) return render();
-      target.guests=target.guests||[];
-      if((target.guests.length||0) >= Number(target.capacity||0)){
-        alert(`Table ${target.name} pleine`);
-        return render();
-      }
-      from.guests.splice(seatIndex,1);
-      target.guests.push(guest);
+      const from=(plan.tables||[]).find(t=>t.id===fromTableId);
+      const to=(plan.tables||[]).find(t=>t.id===target.tableId);
+      if(!from || !to) return render();
+      from.guests=from.guests||[];
+      to.guests=to.guests||[];
+      const moving=from.guests[fromSeatIndex];
+      if(!moving) return render();
+      const targetGuest=to.guests[target.seatIndex] || null;
+      if(from.id===to.id && fromSeatIndex===target.seatIndex) return render();
+      from.guests[fromSeatIndex]=targetGuest;
+      to.guests[target.seatIndex]=moving;
+      while(from.guests.length && !from.guests[from.guests.length-1]) from.guests.pop();
+      while(to.guests.length && !to.guests[to.guests.length-1]) to.guests.pop();
       render();
     }
 
@@ -308,15 +318,24 @@
       chip.addEventListener('pointerdown', e=>{ down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(chip.style.left,10)||0; oy=parseInt(chip.style.top,10)||0; chip.setPointerCapture(e.pointerId); });
       chip.addEventListener('pointermove', e=>{
         if(!down) return;
-        chip.style.left=(ox+(e.clientX-sx))+'px';
-        chip.style.top=(oy+(e.clientY-sy))+'px';
+        const localLeft=ox+(e.clientX-sx);
+        const localTop=oy+(e.clientY-sy);
+        chip.style.left=localLeft+'px';
+        chip.style.top=localTop+'px';
+        const target=findSeatTarget(clusterPos.x + localLeft + chip.offsetWidth/2, clusterPos.y + localTop + chip.offsetHeight/2);
+        if(target?.slot !== activeDropTarget){
+          clearDropTarget();
+          if(target?.slot){ activeDropTarget=target.slot; activeDropTarget.classList.add('drop-target'); }
+        }
       });
       chip.addEventListener('pointerup', ()=>{
         if(!down) return;
         down=false;
         const localLeft=parseInt(chip.style.left,10)||0;
         const localTop=parseInt(chip.style.top,10)||0;
-        onDrop(clusterPos.x + localLeft + 40, clusterPos.y + localTop + 16);
+        const target=findSeatTarget(clusterPos.x + localLeft + chip.offsetWidth/2, clusterPos.y + localTop + chip.offsetHeight/2);
+        clearDropTarget();
+        onDrop(target);
       });
     }
 
