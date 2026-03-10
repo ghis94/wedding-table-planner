@@ -127,7 +127,14 @@
         table.style.top=pos.y+'px';
         const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,Number(t.capacity||1)))*100));
         table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${t.capacity||0}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
-        drag(table,(nx,ny)=>{plan.layout.tables[t.id]={x:nx,y:ny};});
+        drag(table,(nx,ny,dx,dy)=>{
+          plan.layout.tables[t.id]={x:nx,y:ny};
+          (t.guests||[]).forEach((g,gi)=>{
+            const gid=g.id||`${t.id}-${gi}`;
+            const prev=plan.layout.guests[gid] || defaultGuestPos(pos,gi,(t.guests||[]).length,g);
+            plan.layout.guests[gid]={x:prev.x+dx,y:prev.y+dy};
+          });
+        });
         canvas.appendChild(table);
         const guests=t.guests||[];
         guests.forEach((g,gi)=>{
@@ -167,10 +174,10 @@
 
     function defaultGuestPos(tablePos,index,total,guest){
       const cx=tablePos.x+86, cy=tablePos.y+86;
-      const ring=index<6 ? 0 : (index<12 ? 1 : 2);
-      const angleIndex=ring===0 ? index : (ring===1 ? index-6 : index-12);
-      const angleCount=ring===0 ? Math.min(total,6) : (ring===1 ? Math.min(Math.max(total-6,1),6) : Math.max(total-12,1));
-      const baseRadius=102 + (ring*16);
+      const ring=index<5 ? 0 : (index<10 ? 1 : 2);
+      const angleIndex=ring===0 ? index : (ring===1 ? index-5 : index-10);
+      const angleCount=ring===0 ? Math.min(total,5) : (ring===1 ? Math.min(Math.max(total-5,1),5) : Math.max(total-10,1));
+      const baseRadius=94 + (ring*12);
       const ang=(Math.PI*2)*(angleIndex/Math.max(angleCount,1)) - (Math.PI/2);
       const size=estimateChipSize(guest);
       const x=Math.round(cx+Math.cos(ang)*baseRadius - size.width/2);
@@ -217,7 +224,13 @@
         ny=Math.max(0,Math.min(ny,canvas.clientHeight-el.offsetHeight));
         el.style.left=nx+'px'; el.style.top=ny+'px';
       });
-      el.addEventListener('pointerup',()=>{ if(!down) return; down=false; onDrop(parseInt(el.style.left,10)||0, parseInt(el.style.top,10)||0); });
+      el.addEventListener('pointerup',()=>{
+        if(!down) return;
+        down=false;
+        const nx=parseInt(el.style.left,10)||0;
+        const ny=parseInt(el.style.top,10)||0;
+        onDrop(nx,ny,nx-ox,ny-oy);
+      });
     }
 
     async function saveLayout(){
