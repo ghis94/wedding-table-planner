@@ -3,37 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vue Jour J — Plan de table</title>
+  <title>Jour J — Wedding Table Planner</title>
   <style>
-    body{font-family:Arial,sans-serif;margin:0;background:#fff;color:#111827}
-    .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-    .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
-    .card{border:1px solid #d1d5db;border-radius:10px;padding:10px}
-    h1,h3{margin:0}
-    ul{margin:8px 0 0 18px}
-    .muted{color:#6b7280}
-    button{padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;background:#111827;color:#fff;cursor:pointer}
-    .type{font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid #cbd5e1;margin-left:6px}
-    .enfant{background:#ecfeff;color:#155e75}
-    .bebe{background:#fff7ed;color:#9a3412}
-    .adulte{background:#eef2ff;color:#3730a3}
+    :root{--bg:#f6f3ee;--bg-soft:#fbf8f4;--text:#221b15;--panel:#fffdf9;--panel-2:#f8f3ec;--line:#e8ddd0;--muted:#7c6a5a;--accent:#a67c52;--shadow:0 18px 38px rgba(76,55,35,.08);--badge-ad:#f1ebff;--badge-ad-text:#5b21b6;--badge-en:#e0f2fe;--badge-en-text:#155e75;--badge-bb:#ffedd5;--badge-bb-text:#9a3412}
+    *{box-sizing:border-box}
+    body{font-family:Inter,Arial,sans-serif;margin:0;background:linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
+    .wrap{max-width:1400px;margin:0 auto;padding:24px}
+    .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;color:var(--muted);font-size:13px}
+    .hero,.card{background:rgba(255,253,249,.96);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .hero{border-radius:24px;padding:22px}
+    .hero h1{margin:0 0 6px;font-size:32px}.hero p{margin:0;color:var(--muted)}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:16px}
+    .card{border-radius:22px;padding:16px;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
+    h3{margin:0 0 8px}.muted{color:var(--muted)}
+    button{padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#2f251d;color:#fffdf8;cursor:pointer;font:inherit}
+    ul{margin:10px 0 0 18px;padding:0;display:grid;gap:6px}
+    .type{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);margin-left:6px;font-weight:700}
+    .enfant{background:var(--badge-en);color:var(--badge-en-text)} .bebe{background:var(--badge-bb);color:var(--badge-bb-text)} .adulte{background:var(--badge-ad);color:var(--badge-ad-text)}
     @media print{button{display:none}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div style="margin-bottom:10px" class="muted"><a href="index.html">Accueil</a> · <a href="admin.html">Admin</a> · <a href="staff.html">Staff</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
-    <div class="top">
-      <div>
-        <h1>💍 Plan de table — Jour J</h1>
+    <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
+    <section class="hero">
+      <h1>💍 Jour J</h1>
+      <p>Vue opérationnelle propre et lisible pour suivre les tables, les volumes et les invités placés.</p>
+      <div class="top">
         <div class="muted" id="meta"></div>
+        <div>
+          <button onclick="load()">Rafraîchir</button>
+          <button onclick="window.print()">Imprimer</button>
+        </div>
       </div>
-      <div>
-        <button onclick="load()">Rafraîchir</button>
-        <button onclick="window.print()">Imprimer</button>
-      </div>
-    </div>
+    </section>
     <div id="tables" class="tables"></div>
   </div>
 

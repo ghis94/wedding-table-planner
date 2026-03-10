@@ -83,7 +83,7 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="crumbs"><a href="index.html">Accueil</a> · <a href="admin.html">Admin</a> · <a href="staff.html">Staff</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
+    <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
     <div class="shell">
       <section class="hero">
         <div class="header">
@@ -111,17 +111,12 @@
       </section>
 
       <div class="toolbar">
-        <button onclick="loadGuests()">Charger RSVPs</button>
+        <button onclick="loadGuests()">Charger les invités</button>
         <button class="ghost" onclick="addTable()">+ Table</button>
         <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder plan</button>
         <span id="saveState" class="save-state">Synchronisé</span>
-        <button class="ghost" onclick="window.print()">Exporter PDF</button>
-        <button class="ghost" onclick="exportJson()">JSON</button>
-        <button class="ghost" onclick="exportConfig()">Exporter config</button>
-        <button class="ghost" onclick="document.getElementById('configFile').click()">Importer config</button>
-        <button class="ghost" onclick="window.location.href='staff.html'">Staff</button>
         <button class="ghost" onclick="window.location.href='visual.html'">Plan visuel</button>
-        <button class="ghost" onclick="exportCatererCsv()">Traiteur CSV</button>
+        <button class="ghost" onclick="window.location.href='day-of.html'">Jour J</button>
         <input id="configFile" type="file" accept="application/json" style="display:none" onchange="importConfig(event)">
         <button class="danger" onclick="resetAll()">Reset</button>
       </div>
@@ -148,10 +143,16 @@
           </div>
 
           <div>
-            <div class="section-label">Import CSV</div>
+            <div class="section-label">Imports & exports</div>
             <textarea id="csvInput" rows="4" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
             <div class="muted" style="margin-top:8px">Colonnes acceptées : `prenom,nom,type`, `first_name,last_name,type` ou `name,type`.</div>
-            <button style="margin-top:10px;width:100%" onclick="importCsv()">Importer CSV</button>
+            <div class="stack" style="margin-top:10px">
+              <button onclick="importCsv()">Importer CSV invités</button>
+              <button class="ghost" onclick="exportJson()">Exporter plan JSON</button>
+              <button class="ghost" onclick="exportConfig()">Exporter config complète</button>
+              <button class="ghost" onclick="document.getElementById('configFile').click()">Importer config complète</button>
+              <button class="ghost" onclick="exportCatererCsv()">Exporter traiteur CSV</button>
+            </div>
           </div>
 
           <div>
