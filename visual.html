@@ -27,16 +27,16 @@
     .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
     .muted{color:var(--muted);font-size:13px}
     .canvas{position:relative;border-radius:24px;height:76vh;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
-    .round-table{position:absolute;width:190px;height:190px;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;cursor:move;user-select:none;box-shadow:0 18px 34px rgba(76,55,35,.12);z-index:10}
-    .round-table .inner{display:grid;gap:10px;justify-items:center;width:100%}
-    .round-table input{max-width:120px;text-align:center;font-weight:700;background:#fff;border-color:#ead9b3}
-    .round-table .meta{font-size:12px;color:var(--muted)}
-    .progress{width:110px;height:8px;background:#efe7dc;border-radius:999px;overflow:hidden}
+    .round-table{position:absolute;width:172px;height:172px;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 14px 26px rgba(76,55,35,.10);z-index:10}
+    .round-table .inner{display:grid;gap:8px;justify-items:center;width:100%}
+    .round-table input{max-width:108px;text-align:center;font-weight:700;background:#fff;border-color:#ead9b3;padding:8px 10px;font-size:13px}
+    .round-table .meta{font-size:11px;color:var(--muted)}
+    .progress{width:94px;height:6px;background:#efe7dc;border-radius:999px;overflow:hidden}
     .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
-    .guest-chip{position:absolute;padding:8px 12px;border-radius:16px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 8px 20px rgba(0,0,0,.08);font-size:12px;cursor:move;user-select:none;white-space:normal;z-index:20;width:max-content;max-width:240px;text-align:center;line-height:1.25}
-    .guest-chip .name{font-weight:700}
-    .guest-chip .meta{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px}
-    .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid #e2e8f0}
+    .guest-chip{position:absolute;padding:6px 9px;border-radius:14px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 16px rgba(0,0,0,.07);font-size:11px;cursor:move;user-select:none;white-space:normal;z-index:20;width:max-content;max-width:168px;text-align:center;line-height:1.2;overflow-wrap:anywhere}
+    .guest-chip .name{font-weight:700;display:block}
+    .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+    .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid #e2e8f0}
     .pill.regime::before{content:'';width:7px;height:7px;border-radius:999px;background:#64748b;display:inline-block}
     .regime-default::before{background:#64748b}.regime-vege::before{background:#16a34a}.regime-vegan::before{background:#15803d}.regime-sans-porc::before{background:#ea580c}.regime-halal::before{background:#0f766e}.regime-kasher::before{background:#2563eb}.regime-sans-gluten::before{background:#dc2626}.regime-sans-lactose::before{background:#c2410c}
     .guest-chip.adulte .pill.type{background:var(--badge-ad);color:var(--badge-ad-text)}
@@ -77,7 +77,7 @@
       if(v==='bebe') return 'bebe';
       return 'adulte';
     }
-    function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte'); }
+    function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':''); }
     function escapeHtml(v){
       return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
     }
@@ -119,26 +119,28 @@
       updateStats();
       const tablePosById={};
       (plan.tables||[]).forEach((t,i)=>{
-        const pos=plan.layout.tables[t.id]||{x:40+(i%5)*250,y:30+Math.floor(i/5)*250};
+        const pos=plan.layout.tables[t.id]||{x:28+(i%5)*214,y:22+Math.floor(i/5)*214};
         tablePosById[t.id]=pos;
         const table=document.createElement('div');
         table.className='round-table';
         table.style.left=pos.x+'px';
         table.style.top=pos.y+'px';
         const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,Number(t.capacity||1)))*100));
-        table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${t.capacity||0} • glisse pour déplacer</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
+        table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${t.capacity||0}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
         drag(table,(nx,ny)=>{plan.layout.tables[t.id]={x:nx,y:ny};});
         canvas.appendChild(table);
         const guests=t.guests||[];
         guests.forEach((g,gi)=>{
           const gid=g.id||`${t.id}-${gi}`;
-          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,102);
+          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,96);
           const chip=document.createElement('div');
           chip.className=`guest-chip ${normType(g.type)}`;
           chip.style.left=gp.x+'px';
           chip.style.top=gp.y+'px';
           const regime=(g.regime||'').trim();
-          chip.innerHTML=`<span class="name">${escapeHtml(g.name||'')}</span><div class="meta"><span class="pill type">${typeLabel(normType(g.type))}</span>${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
+          const type=normType(g.type);
+          const typePill = type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
+          chip.innerHTML=`<span class="name">${escapeHtml(g.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
           drag(chip,(nx,ny)=>{
             const moved=reassignGuestByDrop({guestId:gid, fromTableId:t.id, guest:g, x:nx, y:ny, tablePosById});
             if(!moved) plan.layout.guests[gid]={x:nx,y:ny};
@@ -156,18 +158,18 @@
     }
 
     function defaultGuestPos(tablePos,index,total,radius){
-      const cx=tablePos.x+95, cy=tablePos.y+95;
+      const cx=tablePos.x+86, cy=tablePos.y+86;
       const ang=(Math.PI*2)*(index/Math.max(total,1));
       return {x:Math.round(cx+Math.cos(ang)*radius), y:Math.round(cy+Math.sin(ang)*radius)};
     }
 
     function findTargetTableByPoint(x,y,tablePosById){
-      const px=x+70; const py=y+24; const tableRadius=108;
+      const px=x+56; const py=y+18; const tableRadius=98;
       let best=null; let bestDist=Infinity;
       (plan.tables||[]).forEach(t=>{
         const p=tablePosById[t.id]||plan.layout.tables?.[t.id];
         if(!p) return;
-        const cx=p.x+95, cy=p.y+95;
+        const cx=p.x+86, cy=p.y+86;
         const d=Math.hypot(px-cx, py-cy);
         if(d<=tableRadius && d<bestDist){ best=t; bestDist=d; }
       });
@@ -185,7 +187,7 @@
       from.guests=(from.guests||[]).filter(g=>g.id!==guestId);
       to.guests.push(guest);
       const toPos=tablePosById[to.id]||plan.layout.tables?.[to.id]||{x:0,y:0};
-      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,102);
+      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,96);
       render();
       return true;
     }
