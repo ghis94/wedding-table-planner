@@ -7,7 +7,7 @@
   <style>
     :root{
       --bg:#f6f3ee;--bg-soft:#fbf8f4;--text:#221b15;--panel:#fffdf9;--panel-2:#f8f3ec;--line:#e8ddd0;--muted:#7c6a5a;--accent:#a67c52;--shadow:0 18px 38px rgba(76,55,35,.08);
-      --badge-ad:#f1ebff;--badge-ad-text:#5b21b6;--badge-en:#e0f2fe;--badge-en-text:#155e75;--badge-bb:#ffedd5;--badge-bb-text:#9a3412;
+      --badge-en:#e0f2fe;--badge-en-text:#155e75;--badge-bb:#ffedd5;--badge-bb-text:#9a3412;
     }
     *{box-sizing:border-box}
     body{font-family:Inter,Arial,sans-serif;margin:0;background:linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
@@ -26,23 +26,27 @@
     button{background:#2f251d;color:#fffdf8;border-color:transparent;cursor:pointer;font-weight:600}
     .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
     .muted{color:var(--muted);font-size:13px}
-    .canvas{position:relative;border-radius:24px;height:76vh;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
-    .round-table{position:absolute;width:184px;height:184px;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 14px 26px rgba(76,55,35,.10);z-index:10}
+    .canvas{position:relative;border-radius:24px;height:78vh;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
+
+    .table-cluster{position:absolute}
+    .seat-slot,.guest-chip,.round-table{position:absolute}
+    .round-table{width:180px;height:180px;left:0;top:0;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 14px 26px rgba(76,55,35,.10);z-index:10}
     .round-table .inner{display:grid;gap:8px;justify-items:center;width:100%}
     .round-table input{max-width:116px;text-align:center;font-weight:700;background:#fff;border-color:#ead9b3;padding:8px 10px;font-size:13px}
     .round-table .meta{font-size:11px;color:var(--muted)}
     .progress{width:94px;height:6px;background:#efe7dc;border-radius:999px;overflow:hidden}
     .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
-    .seat-slot{position:absolute;border:1px dashed #cdb89d;background:rgba(255,255,255,.28);border-radius:14px;z-index:12}
-    .guest-chip{position:absolute;padding:5px 8px;border-radius:13px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 14px rgba(0,0,0,.07);font-size:10px;cursor:move;user-select:none;white-space:normal;z-index:20;width:max-content;max-width:138px;text-align:center;line-height:1.15;overflow-wrap:anywhere}
-    .guest-chip .name{font-weight:700;display:block}
+
+    .seat-slot{border:1px dashed #cdb89d;background:rgba(255,255,255,.28);border-radius:14px;z-index:12}
+    .guest-chip{padding:5px 8px;border-radius:13px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 14px rgba(0,0,0,.07);font-size:10px;cursor:move;user-select:none;z-index:20;text-align:center;line-height:1.15;overflow:hidden}
+    .guest-chip .name{font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
-    .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid #e2e8f0}
+    .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid #e2e8f0;white-space:nowrap}
     .pill.regime::before{content:'';width:7px;height:7px;border-radius:999px;background:#64748b;display:inline-block}
     .regime-default::before{background:#64748b}.regime-vege::before{background:#16a34a}.regime-vegan::before{background:#15803d}.regime-sans-porc::before{background:#ea580c}.regime-halal::before{background:#0f766e}.regime-kasher::before{background:#2563eb}.regime-sans-gluten::before{background:#dc2626}.regime-sans-lactose::before{background:#c2410c}
-    .guest-chip.adulte .pill.type{background:var(--badge-ad);color:var(--badge-ad-text)}
     .guest-chip.enfant .pill.type{background:var(--badge-en);color:var(--badge-en-text)}
     .guest-chip.bebe .pill.type{background:var(--badge-bb);color:var(--badge-bb-text)}
+
     @media (max-width:900px){.wrap{padding:14px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{position:static}.canvas{height:70vh}}
   </style>
 </head>
@@ -51,7 +55,7 @@
     <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
     <section class="hero">
       <h1>🪑 Plan visuel</h1>
-      <p>Déplace les tables et les invités, renomme les tables directement ici, puis sauvegarde. Les noms de tables sont persistés dans le plan et repris dans les autres vues.</p>
+      <p>Chaque table est un groupe stable avec des sièges fixes. Déplacer une table déplace tout son groupe. Déplacer un invité le réassigne à une autre table puis le replace dans un siège fixe.</p>
       <div class="stats">
         <div class="stat"><span>Tables</span><strong id="statTables">0</strong></div>
         <div class="stat"><span>Invités placés</span><strong id="statGuests">0</strong></div>
@@ -63,7 +67,7 @@
       <button onclick="saveLayout()">Sauvegarder le plan</button>
       <button class="ghost" onclick="resetLayout()">Reset positions</button>
       <button class="ghost" onclick="reloadPlan()">Recharger</button>
-      <span class="muted">Renomme une table ici ou dans l’admin, puis sauvegarde : le nom est réutilisé partout.</span>
+      <span class="muted">Les sièges vides restent visibles en pointillé jusqu’au remplissage complet.</span>
     </div>
     <div id="canvas" class="canvas"></div>
   </div>
@@ -71,6 +75,9 @@
   <script>
     let plan={tables:[],guests:[],layout:{}};
     const canvas=document.getElementById('canvas');
+    const TABLE_SIZE=180;
+    const TABLE_RADIUS=90;
+    const CLUSTER_PADDING=150;
 
     function normType(t){
       const v=String(t||'adulte');
@@ -79,9 +86,7 @@
       return 'adulte';
     }
     function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':''); }
-    function escapeHtml(v){
-      return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
-    }
+    function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     function regimeClass(regime){
       const r=String(regime||'').toLowerCase();
       if(!r) return '';
@@ -100,7 +105,6 @@
       plan=await r.json();
       plan.layout=plan.layout||{};
       plan.layout.tables=plan.layout.tables||{};
-      plan.layout.guests=plan.layout.guests||{};
       render();
     }
     async function reloadPlan(){ await load(); }
@@ -115,57 +119,121 @@
       document.getElementById('statAlerts').textContent=alerts;
     }
 
+    function estimateChipSize(guest){
+      const name=String(guest?.name||'');
+      const regime=String(guest?.regime||'').trim();
+      const width=Math.min(118, Math.max(74, Math.round(name.length*5.4) + (regime ? 18 : 8)));
+      const height=regime ? 36 : 24;
+      return { width, height };
+    }
+
+    function seatsPerRing(capacity){
+      if(capacity <= 8) return capacity;
+      if(capacity <= 14) return 7;
+      return 8;
+    }
+
+    function seatLayout(seatIndex, capacity, guest){
+      const size=estimateChipSize(guest);
+      const perRing=seatsPerRing(capacity);
+      const ring=Math.floor(seatIndex / perRing);
+      const indexInRing=seatIndex % perRing;
+      const countInRing=Math.min(perRing, Math.max(1, capacity - ring*perRing));
+      const radius=118 + ring*34;
+      const angle=(Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2);
+      const cx=CLUSTER_PADDING + TABLE_RADIUS;
+      const cy=CLUSTER_PADDING + TABLE_RADIUS;
+      return {
+        left: Math.round(cx + Math.cos(angle)*radius - size.width/2),
+        top: Math.round(cy + Math.sin(angle)*radius - size.height/2),
+        width: size.width,
+        height: size.height,
+      };
+    }
+
+    function clusterBounds(capacity){
+      const total=Math.max(1, capacity||1);
+      let maxRight=TABLE_SIZE, maxBottom=TABLE_SIZE;
+      for(let i=0;i<total;i++){
+        const seat=seatLayout(i,total,{name:'Placeholder long', regime:'sans gluten'});
+        maxRight=Math.max(maxRight, seat.left + seat.width - CLUSTER_PADDING);
+        maxBottom=Math.max(maxBottom, seat.top + seat.height - CLUSTER_PADDING);
+      }
+      return {
+        width: Math.max(TABLE_SIZE, maxRight + CLUSTER_PADDING),
+        height: Math.max(TABLE_SIZE, maxBottom + CLUSTER_PADDING),
+      };
+    }
+
+    function defaultTablePos(i, bounds){
+      const gapX=72, gapY=72;
+      const usableWidth=Math.max(420, canvas.clientWidth || 1200);
+      const cols=Math.max(1, Math.floor((usableWidth - gapX) / (bounds.width + gapX)));
+      const col=i % cols;
+      const row=Math.floor(i / cols);
+      return {
+        x: 20 + col*(bounds.width + gapX),
+        y: 20 + row*(bounds.height + gapY),
+      };
+    }
+
+    function clampTablePos(pos, bounds){
+      const maxX=Math.max(0, canvas.clientWidth - bounds.width - 8);
+      const maxY=Math.max(0, canvas.clientHeight - bounds.height - 8);
+      return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) };
+    }
+
     function render(){
       canvas.innerHTML='';
       updateStats();
-      const tablePosById={};
       (plan.tables||[]).forEach((t,i)=>{
-        const pos=plan.layout.tables[t.id]||{x:28+(i%5)*214,y:22+Math.floor(i/5)*214};
-        tablePosById[t.id]=pos;
+        const capacity=Math.max(1, Number(t.capacity||1));
+        const bounds=clusterBounds(capacity);
+        const rawPos=plan.layout.tables[t.id] || defaultTablePos(i,bounds);
+        const pos=clampTablePos(rawPos, bounds);
+        plan.layout.tables[t.id]=pos;
+
+        const cluster=document.createElement('div');
+        cluster.className='table-cluster';
+        cluster.style.left=pos.x+'px';
+        cluster.style.top=pos.y+'px';
+        cluster.style.width=bounds.width+'px';
+        cluster.style.height=bounds.height+'px';
+
         const table=document.createElement('div');
         table.className='round-table';
-        table.style.left=pos.x+'px';
-        table.style.top=pos.y+'px';
-        const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,Number(t.capacity||1)))*100));
-        table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${t.capacity||0}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
-        drag(table,(nx,ny,dx,dy)=>{
-          plan.layout.tables[t.id]={x:nx,y:ny};
-          (t.guests||[]).forEach((g,gi)=>{
-            const gid=g.id||`${t.id}-${gi}`;
-            const prev=plan.layout.guests[gid] || defaultGuestPos(pos,gi,Math.max(1,Number(t.capacity||1)),g);
-            plan.layout.guests[gid]={x:prev.x+dx,y:prev.y+dy};
-          });
-        });
-        canvas.appendChild(table);
-        const guests=t.guests||[];
-        const capacity=Math.max(1, Number(t.capacity||guests.length||1));
+        table.style.left=CLUSTER_PADDING+'px';
+        table.style.top=CLUSTER_PADDING+'px';
+        const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,capacity))*100));
+        table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${capacity}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
+        drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]={x:nx,y:ny}; render(); });
+        cluster.appendChild(table);
+
         for(let seatIndex=0; seatIndex<capacity; seatIndex++){
-          const guest=guests[seatIndex] || null;
-          const seat=seatLayout(pos, seatIndex, capacity, guest||{name:'',regime:''});
+          const guest=(t.guests||[])[seatIndex] || null;
+          const seat=seatLayout(seatIndex, capacity, guest||{name:'',regime:''});
           const slot=document.createElement('div');
           slot.className='seat-slot';
-          slot.style.left=seat.x+'px';
-          slot.style.top=seat.y+'px';
+          slot.style.left=seat.left+'px';
+          slot.style.top=seat.top+'px';
           slot.style.width=seat.width+'px';
           slot.style.height=seat.height+'px';
-          canvas.appendChild(slot);
+          cluster.appendChild(slot);
           if(!guest) continue;
-          const gid=guest.id||`${t.id}-${seatIndex}`;
+
           const chip=document.createElement('div');
           chip.className=`guest-chip ${normType(guest.type)}`;
-          chip.style.left=seat.x+'px';
-          chip.style.top=seat.y+'px';
+          chip.style.left=seat.left+'px';
+          chip.style.top=seat.top+'px';
           chip.style.width=seat.width+'px';
           const regime=(guest.regime||'').trim();
           const type=normType(guest.type);
-          const typePill = type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
+          const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
           chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
-          drag(chip,(nx,ny)=>{
-            const moved=reassignGuestByDrop({guestId:gid, fromTableId:t.id, guest, x:nx, y:ny, tablePosById});
-            if(!moved) render();
-          });
-          canvas.appendChild(chip);
+          dragGuest(chip, cluster, pos, (dropX, dropY)=>reassignGuestByDrop(t.id, seatIndex, dropX, dropY));
+          cluster.appendChild(chip);
         }
+        canvas.appendChild(cluster);
       });
     }
 
@@ -176,81 +244,71 @@
       render();
     }
 
-    function estimateChipSize(guest){
-      const name=String(guest?.name||'');
-      const regime=String(guest?.regime||'').trim();
-      const width=Math.min(138, Math.max(64, Math.round(name.length*5.7) + (regime ? 20 : 8)));
-      const height=regime ? 36 : 22;
-      return { width, height };
-    }
-
-    function seatLayout(tablePos, seatIndex, capacity, guest){
-      const cx=tablePos.x+92, cy=tablePos.y+92;
-      const size=estimateChipSize(guest);
-      const perRing=Math.max(1, Math.min(8, capacity||1));
-      const ring=Math.floor(seatIndex / perRing);
-      const indexInRing=seatIndex % perRing;
-      const countInRing=Math.min(perRing, Math.max(1, (capacity||1) - ring*perRing));
-      const radius=116 + (ring*24);
-      const ang=(Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2);
-      return {
-        x:Math.round(cx+Math.cos(ang)*radius - size.width/2),
-        y:Math.round(cy+Math.sin(ang)*radius - size.height/2),
-        width:size.width,
-        height:size.height,
-      };
-    }
-
-    function defaultGuestPos(tablePos,index,total,guest){
-      const seat=seatLayout(tablePos,index,Math.max(total, index+1),guest);
-      return {x:seat.x,y:seat.y};
-    }
-
-    function findTargetTableByPoint(x,y,tablePosById){
-      const px=x+48; const py=y+16; const tableRadius=96;
-      let best=null; let bestDist=Infinity;
+    function findNearestTable(globalX, globalY){
+      let best=null, bestDist=Infinity;
       (plan.tables||[]).forEach(t=>{
-        const p=tablePosById[t.id]||plan.layout.tables?.[t.id];
+        const p=plan.layout.tables?.[t.id];
         if(!p) return;
-        const cx=p.x+86, cy=p.y+86;
-        const d=Math.hypot(px-cx, py-cy);
-        if(d<=tableRadius && d<bestDist){ best=t; bestDist=d; }
+        const cx=p.x + CLUSTER_PADDING + TABLE_RADIUS;
+        const cy=p.y + CLUSTER_PADDING + TABLE_RADIUS;
+        const d=Math.hypot(globalX-cx, globalY-cy);
+        if(d < bestDist){ best=t; bestDist=d; }
       });
-      return best;
+      return bestDist <= 220 ? best : null;
     }
 
-    function reassignGuestByDrop({guestId,fromTableId,guest,x,y,tablePosById}){
-      const target=findTargetTableByPoint(x,y,tablePosById);
-      if(!target || target.id===fromTableId) return false;
+    function reassignGuestByDrop(fromTableId, seatIndex, globalX, globalY){
       const from=(plan.tables||[]).find(t=>t.id===fromTableId);
-      if(!from) return false;
-      const to=target;
-      to.guests=to.guests||[];
-      if((to.guests.length||0) >= (to.capacity||0)){ alert(`Table ${to.name} pleine`); return false; }
-      from.guests=(from.guests||[]).filter(g=>g.id!==guestId);
-      to.guests.push(guest);
-      const toPos=tablePosById[to.id]||plan.layout.tables?.[to.id]||{x:0,y:0};
-      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,Math.max(1,Number(to.capacity||1)),guest);
+      if(!from) return render();
+      const guest=(from.guests||[])[seatIndex];
+      if(!guest) return render();
+      const target=findNearestTable(globalX, globalY);
+      if(!target) return render();
+      if(target.id===fromTableId) return render();
+      target.guests=target.guests||[];
+      if((target.guests.length||0) >= Number(target.capacity||0)){
+        alert(`Table ${target.name} pleine`);
+        return render();
+      }
+      from.guests.splice(seatIndex,1);
+      target.guests.push(guest);
       render();
-      return true;
     }
 
-    function drag(el,onDrop){
-      let sx=0,sy=0,ox=0,oy=0,down=false;
-      el.addEventListener('pointerdown',e=>{ down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(el.style.left,10)||0; oy=parseInt(el.style.top,10)||0; el.setPointerCapture(e.pointerId); });
-      el.addEventListener('pointermove',e=>{
-        if(!down) return;
-        let nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy);
-        nx=Math.max(0,Math.min(nx,canvas.clientWidth-el.offsetWidth));
-        ny=Math.max(0,Math.min(ny,canvas.clientHeight-el.offsetHeight));
-        el.style.left=nx+'px'; el.style.top=ny+'px';
+    function drag(handle, cluster, bounds, onDrop){
+      let sx=0, sy=0, ox=0, oy=0, down=false;
+      handle.addEventListener('pointerdown', e=>{
+        if(e.target.tagName==='INPUT') return;
+        down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(cluster.style.left,10)||0; oy=parseInt(cluster.style.top,10)||0; handle.setPointerCapture(e.pointerId);
       });
-      el.addEventListener('pointerup',()=>{
+      handle.addEventListener('pointermove', e=>{
+        if(!down) return;
+        const nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy);
+        const clamped=clampTablePos({x:nx,y:ny}, bounds);
+        cluster.style.left=clamped.x+'px';
+        cluster.style.top=clamped.y+'px';
+      });
+      handle.addEventListener('pointerup', ()=>{
         if(!down) return;
         down=false;
-        const nx=parseInt(el.style.left,10)||0;
-        const ny=parseInt(el.style.top,10)||0;
-        onDrop(nx,ny,nx-ox,ny-oy);
+        onDrop(parseInt(cluster.style.left,10)||0, parseInt(cluster.style.top,10)||0);
+      });
+    }
+
+    function dragGuest(chip, cluster, clusterPos, onDrop){
+      let sx=0, sy=0, ox=0, oy=0, down=false;
+      chip.addEventListener('pointerdown', e=>{ down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(chip.style.left,10)||0; oy=parseInt(chip.style.top,10)||0; chip.setPointerCapture(e.pointerId); });
+      chip.addEventListener('pointermove', e=>{
+        if(!down) return;
+        chip.style.left=(ox+(e.clientX-sx))+'px';
+        chip.style.top=(oy+(e.clientY-sy))+'px';
+      });
+      chip.addEventListener('pointerup', ()=>{
+        if(!down) return;
+        down=false;
+        const localLeft=parseInt(chip.style.left,10)||0;
+        const localTop=parseInt(chip.style.top,10)||0;
+        onDrop(clusterPos.x + localLeft + 40, clusterPos.y + localTop + 16);
       });
     }
 
@@ -259,6 +317,7 @@
       alert('Plan visuel sauvegardé ✅');
     }
     function resetLayout(){ plan.layout={tables:{},guests:{}}; render(); }
+    window.addEventListener('resize', ()=>render());
     window.addEventListener('focus', ()=>load());
     load();
   </script>
