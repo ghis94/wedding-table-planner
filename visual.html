@@ -76,6 +76,7 @@
   <script>
     let plan={tables:[],guests:[],layout:{}};
     let activeDropTarget=null;
+    let lastCanvasSize=null;
     const canvas=document.getElementById('canvas');
     const TABLE_SIZE=180;
     const TABLE_RADIUS=90;
@@ -107,6 +108,7 @@
       plan=await r.json();
       plan.layout=plan.layout||{};
       plan.layout.tables=plan.layout.tables||{};
+      plan.layout.viewport=plan.layout.viewport||null;
       render();
     }
     async function reloadPlan(){ await load(); }
@@ -193,8 +195,33 @@
       return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) };
     }
 
+    function adaptLayoutToViewport(){
+      const width=Math.max(1, canvas.clientWidth||1);
+      const height=Math.max(1, canvas.clientHeight||1);
+      const prev=plan.layout.viewport;
+      if(!prev || !prev.width || !prev.height){
+        plan.layout.viewport={width,height};
+        lastCanvasSize={width,height};
+        return;
+      }
+      if(prev.width===width && prev.height===height){
+        lastCanvasSize={width,height};
+        return;
+      }
+      const sx=width/prev.width;
+      const sy=height/prev.height;
+      Object.keys(plan.layout.tables||{}).forEach(id=>{
+        const p=plan.layout.tables[id];
+        if(!p) return;
+        plan.layout.tables[id]={ x: Math.round(p.x*sx), y: Math.round(p.y*sy) };
+      });
+      plan.layout.viewport={width,height};
+      lastCanvasSize={width,height};
+    }
+
     function render(){
       canvas.innerHTML='';
+      adaptLayoutToViewport();
       updateStats();
       (plan.tables||[]).forEach((t,i)=>{
         const capacity=Math.max(1, Number(t.capacity||1));
@@ -202,6 +229,7 @@
         const rawPos=plan.layout.tables[t.id] || defaultTablePos(i,bounds);
         const pos=clampTablePos(rawPos, bounds);
         plan.layout.tables[t.id]=pos;
+        plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
 
         const cluster=document.createElement('div');
         cluster.className='table-cluster';
@@ -344,7 +372,7 @@
       alert('Plan visuel sauvegardé ✅');
     }
     function resetLayout(){ plan.layout={tables:{},guests:{}}; render(); }
-    window.addEventListener('resize', ()=>render());
+    window.addEventListener('resize', ()=>requestAnimationFrame(render));
     window.addEventListener('focus', ()=>load());
     load();
   </script>
