@@ -132,7 +132,7 @@
         const guests=t.guests||[];
         guests.forEach((g,gi)=>{
           const gid=g.id||`${t.id}-${gi}`;
-          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,96);
+          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,g);
           const chip=document.createElement('div');
           chip.className=`guest-chip ${normType(g.type)}`;
           chip.style.left=gp.x+'px';
@@ -157,14 +157,29 @@
       render();
     }
 
-    function defaultGuestPos(tablePos,index,total,radius){
+    function estimateChipSize(guest){
+      const name=String(guest?.name||'');
+      const regime=String(guest?.regime||'').trim();
+      const width=Math.min(168, Math.max(72, Math.round(name.length*6.4) + (regime ? 26 : 10)));
+      const height=regime ? 42 : 26;
+      return { width, height };
+    }
+
+    function defaultGuestPos(tablePos,index,total,guest){
       const cx=tablePos.x+86, cy=tablePos.y+86;
-      const ang=(Math.PI*2)*(index/Math.max(total,1));
-      return {x:Math.round(cx+Math.cos(ang)*radius), y:Math.round(cy+Math.sin(ang)*radius)};
+      const ring=index<8 ? 0 : (index<16 ? 1 : 2);
+      const angleIndex=ring===0 ? index : (ring===1 ? index-8 : index-16);
+      const angleCount=ring===0 ? Math.min(total,8) : (ring===1 ? Math.min(Math.max(total-8,1),8) : Math.max(total-16,1));
+      const baseRadius=122 + (ring*26);
+      const ang=(Math.PI*2)*(angleIndex/Math.max(angleCount,1)) - (Math.PI/2);
+      const size=estimateChipSize(guest);
+      const x=Math.round(cx+Math.cos(ang)*baseRadius - size.width/2);
+      const y=Math.round(cy+Math.sin(ang)*baseRadius - size.height/2);
+      return {x,y};
     }
 
     function findTargetTableByPoint(x,y,tablePosById){
-      const px=x+56; const py=y+18; const tableRadius=98;
+      const px=x+56; const py=y+18; const tableRadius=92;
       let best=null; let bestDist=Infinity;
       (plan.tables||[]).forEach(t=>{
         const p=tablePosById[t.id]||plan.layout.tables?.[t.id];
@@ -187,7 +202,7 @@
       from.guests=(from.guests||[]).filter(g=>g.id!==guestId);
       to.guests.push(guest);
       const toPos=tablePosById[to.id]||plan.layout.tables?.[to.id]||{x:0,y:0};
-      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,96);
+      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,guest);
       render();
       return true;
     }
