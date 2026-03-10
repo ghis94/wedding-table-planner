@@ -5,79 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plan visuel — Wedding Table Planner</title>
   <style>
-    body{font-family:Arial,sans-serif;margin:0;background:#f8fafc;color:#0f172a}
-    .wrap{max-width:1280px;margin:0 auto;padding:14px}
-    .top{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    button{padding:9px 12px;border:1px solid #cbd5e1;border-radius:8px;background:#0f172a;color:#fff;cursor:pointer}
-    .canvas{position:relative;background:#fff;border:1px solid #cbd5e1;border-radius:14px;height:76vh;margin-top:12px;overflow:hidden}
-    .muted{color:#64748b;font-size:13px}
-
-    .round-table{
-      position:absolute;
-      width:170px;height:170px;
-      border-radius:50%;
-      border:2px solid #475569;
-      background:radial-gradient(circle at 30% 30%,#f8fafc,#e2e8f0);
-      display:flex;align-items:center;justify-content:center;
-      text-align:center; padding:10px;
-      cursor:move; user-select:none;
-      box-shadow:0 8px 18px #00000014;
-      z-index:10;
+    :root{
+      --bg:#f6f3ee;--bg-soft:#fbf8f4;--text:#221b15;--panel:#fffdf9;--panel-2:#f8f3ec;--line:#e8ddd0;--muted:#7c6a5a;--accent:#a67c52;--shadow:0 18px 38px rgba(76,55,35,.08);
+      --badge-ad:#f1ebff;--badge-ad-text:#5b21b6;--badge-en:#e0f2fe;--badge-en-text:#155e75;--badge-bb:#ffedd5;--badge-bb-text:#9a3412;
     }
-    .round-table .meta{font-size:12px;color:#475569}
-
-    .guest-chip{
-      position:absolute;
-      padding:6px 10px;
-      border-radius:14px;
-      border:1px solid #94a3b8;
-      background:#ffffff;
-      box-shadow:0 4px 10px #00000012;
-      font-size:12px;
-      cursor:move; user-select:none;
-      white-space:normal;
-      z-index:20;
-      width:max-content;
-      max-width:260px;
-      text-align:center;
-      line-height:1.2;
-    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,Arial,sans-serif;margin:0;background:linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
+    .wrap{max-width:1480px;margin:0 auto;padding:24px}
+    .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;color:var(--muted);font-size:13px}
+    .hero,.toolbar,.canvas{background:rgba(255,253,249,.96);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .hero{border-radius:24px;padding:22px}
+    .hero h1{margin:0 0 6px;font-size:34px}
+    .hero p{margin:0;color:var(--muted)}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin-top:16px}
+    .stat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}
+    .stat span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+    .stat strong{font-size:24px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px;border-radius:18px;position:sticky;top:10px;z-index:5;margin:16px 0}
+    button,input{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);font:inherit}
+    button{background:#2f251d;color:#fffdf8;border-color:transparent;cursor:pointer;font-weight:600}
+    .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+    .muted{color:var(--muted);font-size:13px}
+    .canvas{position:relative;border-radius:24px;height:76vh;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
+    .round-table{position:absolute;width:190px;height:190px;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;cursor:move;user-select:none;box-shadow:0 18px 34px rgba(76,55,35,.12);z-index:10}
+    .round-table .inner{display:grid;gap:10px;justify-items:center;width:100%}
+    .round-table input{max-width:120px;text-align:center;font-weight:700;background:#fff;border-color:#ead9b3}
+    .round-table .meta{font-size:12px;color:var(--muted)}
+    .progress{width:110px;height:8px;background:#efe7dc;border-radius:999px;overflow:hidden}
+    .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
+    .guest-chip{position:absolute;padding:8px 12px;border-radius:16px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 8px 20px rgba(0,0,0,.08);font-size:12px;cursor:move;user-select:none;white-space:normal;z-index:20;width:max-content;max-width:240px;text-align:center;line-height:1.25}
     .guest-chip .name{font-weight:700}
-    .guest-chip .regime{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      margin-top:4px;
-      padding:2px 7px;
-      border-radius:999px;
-      font-size:11px;
-      font-weight:600;
-      color:#0f172a;
-      background:#f8fafc;
-      border:1px solid #e2e8f0;
-    }
-    .guest-chip .regime::before{content:'';width:7px;height:7px;border-radius:999px;background:#64748b;display:inline-block}
-    .guest-chip .regime-default::before{background:#64748b}
-    .guest-chip .regime-vege::before{background:#16a34a}
-    .guest-chip .regime-vegan::before{background:#15803d}
-    .guest-chip .regime-sans-porc::before{background:#ea580c}
-    .guest-chip .regime-halal::before{background:#0f766e}
-    .guest-chip .regime-kasher::before{background:#2563eb}
-    .guest-chip .regime-sans-gluten::before{background:#dc2626}
-    .guest-chip .regime-sans-lactose::before{background:#c2410c}
-    .guest-chip.adulte{background:#eef2ff;color:#3730a3}
-    .guest-chip.enfant{background:#ecfeff;color:#155e75}
-    .guest-chip.bebe{background:#fff7ed;color:#9a3412}
+    .guest-chip .meta{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid #e2e8f0}
+    .pill.regime::before{content:'';width:7px;height:7px;border-radius:999px;background:#64748b;display:inline-block}
+    .regime-default::before{background:#64748b}.regime-vege::before{background:#16a34a}.regime-vegan::before{background:#15803d}.regime-sans-porc::before{background:#ea580c}.regime-halal::before{background:#0f766e}.regime-kasher::before{background:#2563eb}.regime-sans-gluten::before{background:#dc2626}.regime-sans-lactose::before{background:#c2410c}
+    .guest-chip.adulte .pill.type{background:var(--badge-ad);color:var(--badge-ad-text)}
+    .guest-chip.enfant .pill.type{background:var(--badge-en);color:var(--badge-en-text)}
+    .guest-chip.bebe .pill.type{background:var(--badge-bb);color:var(--badge-bb-text)}
+    @media (max-width:900px){.wrap{padding:14px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{position:static}.canvas{height:70vh}}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="muted" style="margin-bottom:10px"><a href="index.html">Accueil</a> · <a href="admin.html">Admin</a> · <a href="staff.html">Staff</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
-    <h1>🪑 Plan de table visuel</h1>
-    <div class="top">
-      <button onclick="saveLayout()">Sauvegarder le placement visuel</button>
-      <button onclick="resetLayout()">Reset positions</button>
-      <span class="muted">Tables rondes + noms déplaçables individuellement</span>
+    <div class="crumbs"><a href="index.html">Accueil</a> · <a href="admin.html">Admin</a> · <a href="staff.html">Staff</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
+    <section class="hero">
+      <h1>🪑 Plan visuel</h1>
+      <p>Déplace les tables et les invités, renomme les tables directement ici, puis sauvegarde. Les noms de tables sont persistés dans le plan et repris dans les autres vues.</p>
+      <div class="stats">
+        <div class="stat"><span>Tables</span><strong id="statTables">0</strong></div>
+        <div class="stat"><span>Invités placés</span><strong id="statGuests">0</strong></div>
+        <div class="stat"><span>Capacité totale</span><strong id="statCapacity">0</strong></div>
+        <div class="stat"><span>Alertes</span><strong id="statAlerts">0</strong></div>
+      </div>
+    </section>
+    <div class="toolbar">
+      <button onclick="saveLayout()">Sauvegarder le plan</button>
+      <button class="ghost" onclick="resetLayout()">Reset positions</button>
+      <button class="ghost" onclick="reloadPlan()">Recharger</button>
+      <span class="muted">Renomme une table ici ou dans l’admin, puis sauvegarde : le nom est réutilisé partout.</span>
     </div>
     <div id="canvas" class="canvas"></div>
   </div>
@@ -92,16 +77,10 @@
       if(v==='bebe') return 'bebe';
       return 'adulte';
     }
-
+    function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte'); }
     function escapeHtml(v){
-      return String(v||'')
-        .replaceAll('&','&amp;')
-        .replaceAll('<','&lt;')
-        .replaceAll('>','&gt;')
-        .replaceAll('"','&quot;')
-        .replaceAll("'",'&#39;');
+      return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
     }
-
     function regimeClass(regime){
       const r=String(regime||'').toLowerCase();
       if(!r) return '';
@@ -123,66 +102,74 @@
       plan.layout.guests=plan.layout.guests||{};
       render();
     }
+    async function reloadPlan(){ await load(); }
+
+    function updateStats(){
+      const tables=plan.tables||[];
+      const guests=tables.flatMap(t=>t.guests||[]);
+      const alerts=tables.filter(t=>(t.guests||[]).length>(t.capacity||0)).length;
+      document.getElementById('statTables').textContent=tables.length;
+      document.getElementById('statGuests').textContent=guests.length;
+      document.getElementById('statCapacity').textContent=tables.reduce((s,t)=>s+Number(t.capacity||0),0);
+      document.getElementById('statAlerts').textContent=alerts;
+    }
 
     function render(){
       canvas.innerHTML='';
+      updateStats();
       const tablePosById={};
-
       (plan.tables||[]).forEach((t,i)=>{
-        const pos=plan.layout.tables[t.id]||{x:30+(i%5)*220,y:20+Math.floor(i/5)*220};
+        const pos=plan.layout.tables[t.id]||{x:40+(i%5)*250,y:30+Math.floor(i/5)*250};
         tablePosById[t.id]=pos;
-
         const table=document.createElement('div');
         table.className='round-table';
         table.style.left=pos.x+'px';
         table.style.top=pos.y+'px';
-        table.innerHTML=`<div><strong>${t.name}</strong><div class="meta">${(t.guests||[]).length}/${t.capacity||0}</div></div>`;
+        const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,Number(t.capacity||1)))*100));
+        table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${t.capacity||0} • glisse pour déplacer</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
         drag(table,(nx,ny)=>{plan.layout.tables[t.id]={x:nx,y:ny};});
         canvas.appendChild(table);
-
         const guests=t.guests||[];
         guests.forEach((g,gi)=>{
           const gid=g.id||`${t.id}-${gi}`;
-          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,85);
+          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,102);
           const chip=document.createElement('div');
           chip.className=`guest-chip ${normType(g.type)}`;
           chip.style.left=gp.x+'px';
           chip.style.top=gp.y+'px';
           const regime=(g.regime||'').trim();
-          chip.innerHTML=`<span class="name">${escapeHtml(g.name||'')}</span>${regime?`<span class="regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}`;
+          chip.innerHTML=`<span class="name">${escapeHtml(g.name||'')}</span><div class="meta"><span class="pill type">${typeLabel(normType(g.type))}</span>${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
           drag(chip,(nx,ny)=>{
             const moved=reassignGuestByDrop({guestId:gid, fromTableId:t.id, guest:g, x:nx, y:ny, tablePosById});
-            if(!moved){
-              plan.layout.guests[gid]={x:nx,y:ny};
-            }
+            if(!moved) plan.layout.guests[gid]={x:nx,y:ny};
           });
           canvas.appendChild(chip);
         });
       });
     }
 
+    function renameTable(tableId, value){
+      const t=(plan.tables||[]).find(x=>x.id===tableId);
+      if(!t) return;
+      t.name=String(value||'').trim() || t.name || 'Table';
+      render();
+    }
+
     function defaultGuestPos(tablePos,index,total,radius){
-      const cx=tablePos.x+85, cy=tablePos.y+85;
+      const cx=tablePos.x+95, cy=tablePos.y+95;
       const ang=(Math.PI*2)*(index/Math.max(total,1));
       return {x:Math.round(cx+Math.cos(ang)*radius), y:Math.round(cy+Math.sin(ang)*radius)};
     }
 
     function findTargetTableByPoint(x,y,tablePosById){
-      const px=x+50; // centre approximatif d'un chip
-      const py=y+18;
-      const tableRadius=95;
-      let best=null;
-      let bestDist=Infinity;
+      const px=x+70; const py=y+24; const tableRadius=108;
+      let best=null; let bestDist=Infinity;
       (plan.tables||[]).forEach(t=>{
         const p=tablePosById[t.id]||plan.layout.tables?.[t.id];
         if(!p) return;
-        const cx=p.x+85;
-        const cy=p.y+85;
+        const cx=p.x+95, cy=p.y+95;
         const d=Math.hypot(px-cx, py-cy);
-        if(d<=tableRadius && d<bestDist){
-          best=t;
-          bestDist=d;
-        }
+        if(d<=tableRadius && d<bestDist){ best=t; bestDist=d; }
       });
       return best;
     }
@@ -190,62 +177,38 @@
     function reassignGuestByDrop({guestId,fromTableId,guest,x,y,tablePosById}){
       const target=findTargetTableByPoint(x,y,tablePosById);
       if(!target || target.id===fromTableId) return false;
-
       const from=(plan.tables||[]).find(t=>t.id===fromTableId);
       if(!from) return false;
       const to=target;
       to.guests=to.guests||[];
-      if((to.guests.length||0) >= (to.capacity||0)){
-        alert(`Table ${to.name} pleine`);
-        return false;
-      }
-
+      if((to.guests.length||0) >= (to.capacity||0)){ alert(`Table ${to.name} pleine`); return false; }
       from.guests=(from.guests||[]).filter(g=>g.id!==guestId);
       to.guests.push(guest);
-
       const toPos=tablePosById[to.id]||plan.layout.tables?.[to.id]||{x:0,y:0};
-      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,85);
-
+      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,102);
       render();
       return true;
     }
 
     function drag(el,onDrop){
       let sx=0,sy=0,ox=0,oy=0,down=false;
-      el.addEventListener('pointerdown',e=>{
-        down=true;
-        sx=e.clientX; sy=e.clientY;
-        ox=parseInt(el.style.left,10)||0;
-        oy=parseInt(el.style.top,10)||0;
-        el.setPointerCapture(e.pointerId);
-      });
+      el.addEventListener('pointerdown',e=>{ down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(el.style.left,10)||0; oy=parseInt(el.style.top,10)||0; el.setPointerCapture(e.pointerId); });
       el.addEventListener('pointermove',e=>{
         if(!down) return;
         let nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy);
         nx=Math.max(0,Math.min(nx,canvas.clientWidth-el.offsetWidth));
         ny=Math.max(0,Math.min(ny,canvas.clientHeight-el.offsetHeight));
-        el.style.left=nx+'px';
-        el.style.top=ny+'px';
+        el.style.left=nx+'px'; el.style.top=ny+'px';
       });
-      el.addEventListener('pointerup',()=>{
-        if(!down) return;
-        down=false;
-        const nx=parseInt(el.style.left,10)||0;
-        const ny=parseInt(el.style.top,10)||0;
-        onDrop(nx,ny);
-      });
+      el.addEventListener('pointerup',()=>{ if(!down) return; down=false; onDrop(parseInt(el.style.left,10)||0, parseInt(el.style.top,10)||0); });
     }
 
     async function saveLayout(){
       await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)});
-      alert('Placement visuel sauvegardé ✅');
+      alert('Plan visuel sauvegardé ✅');
     }
-
-    function resetLayout(){
-      plan.layout={tables:{},guests:{}};
-      render();
-    }
-
+    function resetLayout(){ plan.layout={tables:{},guests:{}}; render(); }
+    window.addEventListener('focus', ()=>load());
     load();
   </script>
 </body>
