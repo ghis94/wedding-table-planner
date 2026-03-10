@@ -129,8 +129,9 @@
 
     function seatsPerRing(capacity){
       if(capacity <= 8) return capacity;
-      if(capacity <= 14) return 7;
-      return 8;
+      if(capacity <= 10) return 5;
+      if(capacity <= 14) return 6;
+      return 7;
     }
 
     function seatLayout(seatIndex, capacity, guest){
@@ -139,7 +140,7 @@
       const ring=Math.floor(seatIndex / perRing);
       const indexInRing=seatIndex % perRing;
       const countInRing=Math.min(perRing, Math.max(1, capacity - ring*perRing));
-      const radius=118 + ring*34;
+      const radius=108 + ring*24;
       const angle=(Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2);
       const cx=CLUSTER_PADDING + TABLE_RADIUS;
       const cy=CLUSTER_PADDING + TABLE_RADIUS;
