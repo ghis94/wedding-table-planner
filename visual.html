@@ -33,6 +33,7 @@
     .round-table .meta{font-size:11px;color:var(--muted)}
     .progress{width:94px;height:6px;background:#efe7dc;border-radius:999px;overflow:hidden}
     .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
+    .seat-slot{position:absolute;border:1px dashed #cdb89d;background:rgba(255,255,255,.28);border-radius:14px;z-index:12}
     .guest-chip{position:absolute;padding:5px 8px;border-radius:13px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 14px rgba(0,0,0,.07);font-size:10px;cursor:move;user-select:none;white-space:normal;z-index:20;width:max-content;max-width:138px;text-align:center;line-height:1.15;overflow-wrap:anywhere}
     .guest-chip .name{font-weight:700;display:block}
     .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
@@ -131,29 +132,40 @@
           plan.layout.tables[t.id]={x:nx,y:ny};
           (t.guests||[]).forEach((g,gi)=>{
             const gid=g.id||`${t.id}-${gi}`;
-            const prev=plan.layout.guests[gid] || defaultGuestPos(pos,gi,(t.guests||[]).length,g);
+            const prev=plan.layout.guests[gid] || defaultGuestPos(pos,gi,Math.max(1,Number(t.capacity||1)),g);
             plan.layout.guests[gid]={x:prev.x+dx,y:prev.y+dy};
           });
         });
         canvas.appendChild(table);
         const guests=t.guests||[];
-        guests.forEach((g,gi)=>{
-          const gid=g.id||`${t.id}-${gi}`;
-          const gp=plan.layout.guests[gid]||defaultGuestPos(pos,gi,guests.length,g);
+        const capacity=Math.max(1, Number(t.capacity||guests.length||1));
+        for(let seatIndex=0; seatIndex<capacity; seatIndex++){
+          const guest=guests[seatIndex] || null;
+          const seat=seatLayout(pos, seatIndex, capacity, guest||{name:'',regime:''});
+          const slot=document.createElement('div');
+          slot.className='seat-slot';
+          slot.style.left=seat.x+'px';
+          slot.style.top=seat.y+'px';
+          slot.style.width=seat.width+'px';
+          slot.style.height=seat.height+'px';
+          canvas.appendChild(slot);
+          if(!guest) continue;
+          const gid=guest.id||`${t.id}-${seatIndex}`;
           const chip=document.createElement('div');
-          chip.className=`guest-chip ${normType(g.type)}`;
-          chip.style.left=gp.x+'px';
-          chip.style.top=gp.y+'px';
-          const regime=(g.regime||'').trim();
-          const type=normType(g.type);
+          chip.className=`guest-chip ${normType(guest.type)}`;
+          chip.style.left=seat.x+'px';
+          chip.style.top=seat.y+'px';
+          chip.style.width=seat.width+'px';
+          const regime=(guest.regime||'').trim();
+          const type=normType(guest.type);
           const typePill = type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
-          chip.innerHTML=`<span class="name">${escapeHtml(g.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
+          chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
           drag(chip,(nx,ny)=>{
-            const moved=reassignGuestByDrop({guestId:gid, fromTableId:t.id, guest:g, x:nx, y:ny, tablePosById});
-            if(!moved) plan.layout.guests[gid]={x:nx,y:ny};
+            const moved=reassignGuestByDrop({guestId:gid, fromTableId:t.id, guest, x:nx, y:ny, tablePosById});
+            if(!moved) render();
           });
           canvas.appendChild(chip);
-        });
+        }
       });
     }
 
@@ -172,17 +184,26 @@
       return { width, height };
     }
 
-    function defaultGuestPos(tablePos,index,total,guest){
+    function seatLayout(tablePos, seatIndex, capacity, guest){
       const cx=tablePos.x+86, cy=tablePos.y+86;
-      const ring=index<5 ? 0 : (index<10 ? 1 : 2);
-      const angleIndex=ring===0 ? index : (ring===1 ? index-5 : index-10);
-      const angleCount=ring===0 ? Math.min(total,5) : (ring===1 ? Math.min(Math.max(total-5,1),5) : Math.max(total-10,1));
-      const baseRadius=94 + (ring*12);
-      const ang=(Math.PI*2)*(angleIndex/Math.max(angleCount,1)) - (Math.PI/2);
       const size=estimateChipSize(guest);
-      const x=Math.round(cx+Math.cos(ang)*baseRadius - size.width/2);
-      const y=Math.round(cy+Math.sin(ang)*baseRadius - size.height/2);
-      return {x,y};
+      const perRing=Math.max(1, Math.min(8, capacity||1));
+      const ring=Math.floor(seatIndex / perRing);
+      const indexInRing=seatIndex % perRing;
+      const countInRing=Math.min(perRing, Math.max(1, (capacity||1) - ring*perRing));
+      const radius=102 + (ring*20);
+      const ang=(Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2);
+      return {
+        x:Math.round(cx+Math.cos(ang)*radius - size.width/2),
+        y:Math.round(cy+Math.sin(ang)*radius - size.height/2),
+        width:size.width,
+        height:size.height,
+      };
+    }
+
+    function defaultGuestPos(tablePos,index,total,guest){
+      const seat=seatLayout(tablePos,index,Math.max(total, index+1),guest);
+      return {x:seat.x,y:seat.y};
     }
 
     function findTargetTableByPoint(x,y,tablePosById){
@@ -209,7 +230,7 @@
       from.guests=(from.guests||[]).filter(g=>g.id!==guestId);
       to.guests.push(guest);
       const toPos=tablePosById[to.id]||plan.layout.tables?.[to.id]||{x:0,y:0};
-      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,to.guests.length,guest);
+      plan.layout.guests[guestId]=defaultGuestPos(toPos,to.guests.length-1,Math.max(1,Number(to.capacity||1)),guest);
       render();
       return true;
     }
