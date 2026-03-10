@@ -35,6 +35,16 @@
     .mini-select{max-width:120px;padding:4px 6px;font-size:12px}
     .mini-btn{padding:3px 7px;border-radius:6px;border:1px solid var(--line);background:#1d4ed8;color:#fff;cursor:pointer}
     .xbtn{padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:#7f1d1d;color:#fff;cursor:pointer}
+    .save-state{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#f8fafc;color:var(--muted)}
+    .save-state.dirty{background:#fff7ed;color:#9a3412}
+    .save-state.saving{background:#eff6ff;color:#1d4ed8}
+    .save-state.saved{background:#dcfce7;color:#166534}
+    .alerts{margin-top:10px;display:grid;gap:8px}
+    .alert-card{padding:10px;border-radius:10px;border:1px solid var(--line)}
+    .alert-card.warn{background:#fff7ed;color:#9a3412}
+    .alert-card.error{background:#fef2f2;color:#991b1b}
+    .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line);margin-left:6px}
+    .tag.group{background:#ede9fe;color:#5b21b6}
 
     body.theme-modern{--bg:#070b17;--text:#e6eefc;--panel:#0f172acc;--line:#334155;--line-2:#243042;--btn:#4f46e5;--btn-text:#fff;--muted:#9fb0c9;--badge-ad:#312e81;--badge-ad-text:#c7d2fe;--badge-en:#083344;--badge-en-text:#a5f3fc;--badge-bb:#422006;--badge-bb-text:#fed7aa}
     body.theme-romance{--bg:#fff7fb;--text:#4a044e;--panel:#ffffff;--line:#f5d0fe;--line-2:#fbcfe8;--btn:#be185d;--btn-text:#fff;--muted:#9d174d;--badge-ad:#fce7f3;--badge-ad-text:#9d174d;--badge-en:#ede9fe;--badge-en-text:#5b21b6;--badge-bb:#fff1f2;--badge-bb-text:#be123c}
@@ -61,7 +71,8 @@
     <div class="top">
       <button onclick="loadGuests()">Charger RSVPs</button>
       <button onclick="addTable()">+ Table</button>
-      <button class="ok" onclick="savePlan()">Sauvegarder plan</button>
+      <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder plan</button>
+      <span id="saveState" class="save-state">Synchronisé</span>
       <button onclick="window.print()">Exporter PDF (imprimer)</button>
       <button class="warn" onclick="exportJson()">Exporter JSON</button>
       <button class="warn" onclick="exportConfig()">Exporter config</button>
@@ -93,6 +104,8 @@
           </select>
         </div>
         <button style="margin-top:8px" onclick="quickAddGuest()">Ajouter</button>
+        <input id="guestSearch" placeholder="Rechercher un invité" oninput="renderGuests()" style="margin-top:10px" />
+        <div id="guestSearchMeta" class="muted" style="margin-top:6px"></div>
         <div id="guests"></div>
 
         <hr style="border-color:#223047;margin:14px 0" />
@@ -115,6 +128,27 @@
       </div>
       <div class="panel">
         <h3>Tables</h3>
+        <div class="row" style="margin-bottom:10px">
+          <button onclick="undoLastAction()">↩ Annuler</button>
+          <select id="guestFilterPlaced" onchange="renderAll()" style="max-width:170px">
+            <option value="all">Tous</option>
+            <option value="unplaced">Non placés</option>
+            <option value="placed">Placés</option>
+          </select>
+          <select id="guestFilterType" onchange="renderAll()" style="max-width:170px">
+            <option value="all">Tous types</option>
+            <option value="adulte">Adultes</option>
+            <option value="enfant">Enfants</option>
+            <option value="bebe">Bébés</option>
+          </select>
+          <select id="guestFilterRsvp" onchange="renderAll()" style="max-width:170px">
+            <option value="all">Tous RSVP</option>
+            <option value="oui">Oui</option>
+            <option value="peutetre">Peut-être</option>
+            <option value="non">Non</option>
+          </select>
+        </div>
+        <div id="alerts" class="alerts"></div>
         <div id="tables" class="tables"></div>
       </div>
     </div>
@@ -123,6 +157,11 @@
   <script>
     let guests=[], tables=[];
     let selectedGuestRef = { guestId:null, sourceRsvpId:null };
+    let autosaveTimer=null;
+    let saveState='saved';
+    let isSaving=false;
+    let saveQueued=false;
+    let historyStack=[];
 
     function applyTheme(theme){
       const body=document.body;
@@ -175,6 +214,117 @@
       return `<span class="guest-actions">${type}${rsvp}</span>`;
     }
 
+    function updateSaveBadge(){
+      const el=document.getElementById('saveState');
+      if(!el) return;
+      el.className=`save-state ${saveState}`;
+      el.textContent = saveState==='dirty' ? 'Modifs non sauvegardées' : (saveState==='saving' ? 'Sauvegarde…' : 'Synchronisé');
+    }
+
+    function markDirty(){
+      saveState='dirty';
+      updateSaveBadge();
+      queueAutosave();
+    }
+
+    function queueAutosave(){
+      clearTimeout(autosaveTimer);
+      autosaveTimer=setTimeout(()=>savePlan(), 1200);
+    }
+
+    function snapshotState(){
+      return JSON.stringify({guests, tables});
+    }
+
+    function pushHistory(){
+      historyStack.push(snapshotState());
+      if(historyStack.length>30) historyStack.shift();
+    }
+
+    function undoLastAction(){
+      const prev=historyStack.pop();
+      if(!prev){ alert('Rien à annuler'); return; }
+      const state=JSON.parse(prev);
+      guests=state.guests||[];
+      tables=state.tables||[];
+      markDirty();
+      renderAll();
+    }
+
+    function getFilters(){
+      return {
+        search: String(document.getElementById('guestSearch')?.value || '').trim().toLowerCase(),
+        placed: document.getElementById('guestFilterPlaced')?.value || 'all',
+        type: document.getElementById('guestFilterType')?.value || 'all',
+        rsvp: document.getElementById('guestFilterRsvp')?.value || 'all',
+      };
+    }
+
+    function matchesFilters(g, placedState){
+      const f=getFilters();
+      const name=String(g.name||'').toLowerCase();
+      const type=normalizeType(g.type);
+      const rsvp=normalizePresence(g.rsvpStatus);
+      if(f.search && !name.includes(f.search)) return false;
+      if(f.placed!=='all' && f.placed!==placedState) return false;
+      if(f.type!=='all' && f.type!==type) return false;
+      if(f.rsvp!=='all' && f.rsvp!==rsvp) return false;
+      return true;
+    }
+
+    function normalizeDietLabel(v){
+      const r=String(v||'').trim().toLowerCase();
+      if(!r) return '';
+      if(r.includes('vegan')) return 'vegan';
+      if(r.includes('végé')||r.includes('vege')||r.includes('végétar')) return 'végétarien';
+      if(r.includes('sans porc')) return 'sans porc';
+      if(r.includes('halal')) return 'halal';
+      if(r.includes('kasher')||r.includes('casher')) return 'kasher';
+      if(r.includes('sans gluten')||r.includes('gluten')) return 'sans gluten';
+      if(r.includes('sans lactose')||r.includes('lactose')) return 'sans lactose';
+      return String(v||'').trim();
+    }
+
+    function buildAlerts(){
+      const alerts=[];
+      const all=allGuestsList();
+      const names=new Map();
+      all.forEach(g=>{
+        const key=`${String(g.name||'').trim().toLowerCase()}::${normalizeType(g.type)}`;
+        names.set(key,(names.get(key)||0)+1);
+      });
+      for(const [key,count] of names.entries()){
+        if(count>1) alerts.push({level:'warn', text:`Doublon potentiel détecté: ${key.split('::')[0]} (${count} occurrences)`});
+      }
+      tables.forEach(t=>{
+        if((t.guests||[]).length > Number(t.capacity||0)) alerts.push({level:'error', text:`${t.name} dépasse sa capacité (${t.guests.length}/${t.capacity})`});
+        if((t.guests||[]).length===0) alerts.push({level:'warn', text:`${t.name} est vide`});
+        (t.guests||[]).forEach(g=>{
+          if(normalizePresence(g.rsvpStatus)==='non') alerts.push({level:'warn', text:`${g.name} est placé à ${t.name} mais RSVP = non`});
+        });
+      });
+      const unplaced=guests.length;
+      if(unplaced>0) alerts.push({level:'warn', text:`${unplaced} invité(s) non placé(s)`});
+      return alerts;
+    }
+
+    function renderAlerts(){
+      const c=document.getElementById('alerts');
+      if(!c) return;
+      const alerts=buildAlerts();
+      c.innerHTML='';
+      if(!alerts.length){
+        c.innerHTML='<div class="alert-card" style="background:#ecfdf5;color:#166534">Aucune incohérence détectée</div>';
+        return;
+      }
+      alerts.forEach(a=>{
+        const d=document.createElement('div');
+        d.className=`alert-card ${a.level}`;
+        d.textContent=a.text;
+        c.appendChild(d);
+      });
+    }
+
     function allGuestsList(){
       return [...guests, ...tables.flatMap(t=>t.guests||[])];
     }
@@ -182,6 +332,7 @@
     function updateGuestEverywhere(guestId, patch){
       guests = guests.map(g => g.id===guestId ? {...g, ...patch} : g);
       tables = tables.map(t => ({...t, guests:(t.guests||[]).map(g => g.id===guestId ? {...g, ...patch} : g)}));
+      markDirty();
     }
 
     function openGuestSheetLocal(g){
@@ -227,7 +378,7 @@
         adultes: Number(document.getElementById('sheetAdults').value || 0),
         enfants: Number(document.getElementById('sheetKids').value || 0),
         phone: document.getElementById('sheetPhone').value,
-        regime: document.getElementById('sheetRegime').value,
+        regime: normalizeDietLabel(document.getElementById('sheetRegime').value),
         adminNotes: document.getElementById('sheetNotes').value,
         message: ''
       };
@@ -245,12 +396,11 @@
           regime: payload.regime,
           adminNotes: payload.adminNotes,
         });
-        await savePlan();
         renderAll();
       }
 
+      await savePlan({ notify:false, force:true });
       alert('Fiche invité enregistrée ✅');
-      await loadGuests();
     }
 
     function expandRsvp(r){
@@ -276,31 +426,37 @@
     async function loadGuests(){
       const raw = await api('/api/rsvps');
       const filtered = raw.filter(g => ['oui','peut-être','peut-etre','maybe','yes','present'].includes(String(g.presence||'').toLowerCase()));
-      const expanded = filtered.flatMap(expandRsvp);
+      const expanded = filtered.flatMap(expandRsvp).map(g=>({...g, regime: normalizeDietLabel(g.regime)}));
+      pushHistory();
       guests=[...guests,...expanded.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type) && (g.sourceRsvpId||'')===(n.sourceRsvpId||'')))];
-      renderGuests();
+      markDirty();
+      renderAll();
     }
 
     function quickAddGuest(){
       const i=document.getElementById('quickAdd');
       const t=document.getElementById('quickType');
       const v=i.value.trim(); if(!v) return;
-      guests.push({id:crypto.randomUUID(),name:v,type:normalizeType(t.value),rsvpStatus:'',sourceRsvpId:null});
+      pushHistory();
+      guests.push({id:crypto.randomUUID(),name:v,type:normalizeType(t.value),rsvpStatus:'',sourceRsvpId:null,regime:'',adminNotes:''});
       i.value='';
-      renderGuests();
+      markDirty();
+      renderAll();
     }
 
     async function importCsv(){
       const csv=document.getElementById('csvInput').value;
       const res=await api('/api/import-csv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv})});
-      const imported=(res.guests||[]).map(g=>({...g,rsvpStatus:'',sourceRsvpId:null}));
+      const imported=(res.guests||[]).map(g=>({...g,rsvpStatus:'',sourceRsvpId:null,regime:normalizeDietLabel(g.regime)}));
+      pushHistory();
       guests=[...guests,...imported.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type)))];
-      renderGuests();
+      markDirty();
+      renderAll();
       alert(`${res.count} invité(s) importé(s)`);
     }
 
-    function addTable(){ const n=tables.length+1; tables.push({id:crypto.randomUUID(),name:'Table '+n,capacity:10,guests:[]}); renderTables(); }
-    function removeTable(id){ const t=tables.find(x=>x.id===id); if(!t) return; guests.push(...t.guests); tables=tables.filter(x=>x.id!==id); renderAll(); }
+    function addTable(){ const n=tables.length+1; pushHistory(); tables.push({id:crypto.randomUUID(),name:'Table '+n,capacity:10,guests:[]}); markDirty(); renderAll(); }
+    function removeTable(id){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); guests.push(...t.guests); tables=tables.filter(x=>x.id!==id); markDirty(); renderAll(); }
 
     function tableOptions(selected=''){
       const opts = [`<option value="">Table…</option>`];
@@ -316,10 +472,14 @@
 
     function renderGuests(){
       const c=document.getElementById('guests'); c.innerHTML='';
-      guests.forEach(g=>{
+      const meta=document.getElementById('guestSearchMeta');
+      const visibleGuests=guests.filter(g=>matchesFilters(g,'unplaced'));
+      if(meta) meta.textContent=`${visibleGuests.length} / ${guests.length} invité(s) affiché(s)`;
+      visibleGuests.forEach(g=>{
         const d=document.createElement('div');
         d.className='guest'; d.draggable=true; d.dataset.id=g.id;
-        d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}</span><span class="guest-actions">${guestTag(g)} <select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+        const diet=normalizeDietLabel(g.regime);
+        d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}${diet?` <span class="tag">${escapeHtml(diet)}</span>`:''}</span><span class="guest-actions">${guestTag(g)} <select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
         d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id);
         c.appendChild(d);
       });
@@ -328,24 +488,29 @@
     function renderTables(){
       const c=document.getElementById('tables'); c.innerHTML='';
       tables.forEach(t=>{
+        const visibleGuests=(t.guests||[]).filter(g=>matchesFilters(g,'placed'));
+        const showTable = getFilters().placed!=='unplaced' && (visibleGuests.length>0 || getFilters().search==='' || getFilters().type!=='all' || getFilters().rsvp!=='all');
+        if(!showTable && visibleGuests.length===0) return;
         const b=document.createElement('div'); b.className='table';
         b.ondragover=e=>e.preventDefault();
         b.ondrop=e=>{e.preventDefault(); assignToTable(e.dataTransfer.getData('text/plain'),t.id)};
         const adultCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='adulte').length;
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
-        b.innerHTML=`<h4>${escapeHtml(t.name)}</h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><div class="row" style="margin:6px 0"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
-        t.guests.forEach(g=>{
+        b.innerHTML=`<h4><input value="${escapeHtml(t.name)}" style="max-width:150px" onchange="renameTable('${t.id}', this.value)"></h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><div class="row" style="margin:6px 0"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
+        visibleGuests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
-          d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}</span><span class="guest-actions">${guestTag(g)} <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+          const diet=normalizeDietLabel(g.regime);
+          d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}${diet?` <span class="tag">${escapeHtml(diet)}</span>`:''}</span><span class="guest-actions">${guestTag(g)} <button class="mini-btn" onclick="unassign('${g.id}','${t.id}', event)">Retirer</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
           b.appendChild(d);
         });
         c.appendChild(b);
       });
     }
 
-    function setCap(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; t.capacity=Math.max(1,parseInt(val||'1',10)); renderTables(); }
-    function assignToTable(guestId,tableId){ const gi=guests.findIndex(g=>g.id===guestId); if(gi===-1) return; const t=tables.find(x=>x.id===tableId); if(!t) return; if(t.guests.length>=t.capacity){alert('Table pleine');return;} t.guests.push(guests[gi]); guests.splice(gi,1); renderAll(); }
+    function renameTable(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); t.name=String(val||'').trim()||t.name; markDirty(); renderAll(); }
+    function setCap(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); t.capacity=Math.max(1,parseInt(val||'1',10)); markDirty(); renderAll(); }
+    function assignToTable(guestId,tableId){ const gi=guests.findIndex(g=>g.id===guestId); if(gi===-1) return; const t=tables.find(x=>x.id===tableId); if(!t) return; if(t.guests.length>=t.capacity){alert('Table pleine');return;} pushHistory(); t.guests.push(guests[gi]); guests.splice(gi,1); markDirty(); renderAll(); }
     function assignFromList(guestId, ev){
       if(ev){ ev.stopPropagation(); ev.preventDefault(); }
       const sel=document.getElementById(`assign-${guestId}`);
@@ -360,31 +525,52 @@
       if(!guestId){ alert('Choisis un invité'); return; }
       assignToTable(guestId, tableId);
     }
-    function unassign(guestId,tableId,ev){ if(ev){ev.stopPropagation();ev.preventDefault();} const t=tables.find(x=>x.id===tableId); if(!t) return; const i=t.guests.findIndex(g=>g.id===guestId); if(i===-1) return; guests.push(t.guests[i]); t.guests.splice(i,1); renderAll(); }
+    function unassign(guestId,tableId,ev){ if(ev){ev.stopPropagation();ev.preventDefault();} const t=tables.find(x=>x.id===tableId); if(!t) return; const i=t.guests.findIndex(g=>g.id===guestId); if(i===-1) return; pushHistory(); guests.push(t.guests[i]); t.guests.splice(i,1); markDirty(); renderAll(); }
 
     async function deleteGuest(guestId, ev){
       if(ev){ ev.stopPropagation(); ev.preventDefault(); }
-      let g = guests.find(x=>x.id===guestId);
-      if(!g){
-        for(const t of tables){
-          const i=t.guests.findIndex(x=>x.id===guestId);
-          if(i!==-1){ g=t.guests[i]; t.guests.splice(i,1); break; }
-        }
-      } else {
-        guests = guests.filter(x=>x.id!==guestId);
-      }
+      const g = allGuestsList().find(x=>x.id===guestId);
       if(!g) return;
-      if(!confirm(`Supprimer définitivement ${g.name} ?`)) { renderAll(); return; }
+      if(!confirm(`Supprimer définitivement ${g.name} ?`)) return;
+      pushHistory();
       if(g.sourceRsvpId){
         try{ await fetch(`/api/rsvp/${g.sourceRsvpId}`, { method:'DELETE' }); }catch(_e){}
       }
       tables.forEach(t=> t.guests = (t.guests||[]).filter(x=>x.id!==guestId));
       guests = guests.filter(x=>x.id!==guestId);
+      markDirty();
       renderAll();
-      await savePlan();
+      await savePlan({ notify:false, force:true });
     }
 
-    async function savePlan(){ await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tables,guests})}); alert('Plan sauvegardé ✅'); }
+    async function savePlan({ notify=false, force=false } = {}){
+      clearTimeout(autosaveTimer);
+      if(isSaving){
+        saveQueued = true;
+        return;
+      }
+      if(!force && saveState==='saved') return;
+      isSaving = true;
+      saveState='saving';
+      updateSaveBadge();
+      try{
+        await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tables,guests})});
+        saveState='saved';
+        updateSaveBadge();
+        if(notify) alert('Plan sauvegardé ✅');
+      }catch(e){
+        saveState='dirty';
+        updateSaveBadge();
+        if(notify) alert('Échec de sauvegarde du plan');
+        throw e;
+      }finally{
+        isSaving = false;
+        if(saveQueued){
+          saveQueued = false;
+          queueAutosave();
+        }
+      }
+    }
     function exportJson(){ const blob=new Blob([JSON.stringify({tables,guests,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='plan-de-table.json'; a.click(); }
 
     async function exportConfig(){
@@ -407,22 +593,33 @@
       let cfg;
       try { cfg = JSON.parse(txt); } catch { alert('JSON invalide'); return; }
       if(!confirm('Importer cette config et remplacer les données actuelles ?')) return;
+      pushHistory();
       await api('/api/config/import', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(cfg) });
       const p = await api('/api/plan');
       guests = p.guests || [];
       tables = p.tables || [];
+      saveState='saved';
+      updateSaveBadge();
       renderAll();
       alert('Config importée ✅');
       event.target.value='';
     }
 
-    function resetAll(){ if(!confirm('Réinitialiser le plan ?')) return; guests=[]; tables=[]; renderAll(); }
-    function renderAll(){ renderGuests(); renderTables(); }
+    function resetAll(){ if(!confirm('Réinitialiser le plan ?')) return; pushHistory(); guests=[]; tables=[]; markDirty(); renderAll(); }
+    function renderAll(){ renderGuests(); renderTables(); renderAlerts(); updateSaveBadge(); }
+
+    window.addEventListener('beforeunload', (event)=>{
+      if(saveState==='dirty' || isSaving){
+        event.preventDefault();
+        event.returnValue='';
+      }
+    });
 
     (async function boot(){
       const savedTheme = localStorage.getItem('wtp_theme') || 'classic';
       applyTheme(savedTheme);
       try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; } catch(e){}
+      saveState='saved';
       renderAll();
     })();
   </script>
