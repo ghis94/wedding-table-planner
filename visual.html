@@ -27,9 +27,9 @@
     .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
     .muted{color:var(--muted);font-size:13px}
     .canvas{position:relative;border-radius:24px;height:76vh;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
-    .round-table{position:absolute;width:172px;height:172px;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 14px 26px rgba(76,55,35,.10);z-index:10}
+    .round-table{position:absolute;width:184px;height:184px;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 14px 26px rgba(76,55,35,.10);z-index:10}
     .round-table .inner{display:grid;gap:8px;justify-items:center;width:100%}
-    .round-table input{max-width:108px;text-align:center;font-weight:700;background:#fff;border-color:#ead9b3;padding:8px 10px;font-size:13px}
+    .round-table input{max-width:116px;text-align:center;font-weight:700;background:#fff;border-color:#ead9b3;padding:8px 10px;font-size:13px}
     .round-table .meta{font-size:11px;color:var(--muted)}
     .progress{width:94px;height:6px;background:#efe7dc;border-radius:999px;overflow:hidden}
     .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
@@ -185,13 +185,13 @@
     }
 
     function seatLayout(tablePos, seatIndex, capacity, guest){
-      const cx=tablePos.x+86, cy=tablePos.y+86;
+      const cx=tablePos.x+92, cy=tablePos.y+92;
       const size=estimateChipSize(guest);
       const perRing=Math.max(1, Math.min(8, capacity||1));
       const ring=Math.floor(seatIndex / perRing);
       const indexInRing=seatIndex % perRing;
       const countInRing=Math.min(perRing, Math.max(1, (capacity||1) - ring*perRing));
-      const radius=102 + (ring*20);
+      const radius=116 + (ring*24);
       const ang=(Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2);
       return {
         x:Math.round(cx+Math.cos(ang)*radius - size.width/2),
@@ -207,7 +207,7 @@
     }
 
     function findTargetTableByPoint(x,y,tablePosById){
-      const px=x+48; const py=y+16; const tableRadius=88;
+      const px=x+48; const py=y+16; const tableRadius=96;
       let best=null; let bestDist=Infinity;
       (plan.tables||[]).forEach(t=>{
         const p=tablePosById[t.id]||plan.layout.tables?.[t.id];
