@@ -6,150 +6,213 @@
   <title>Admin — Plan de table</title>
   <style>
     :root{
-      --bg:#f8fafc;--text:#0f172a;--panel:#ffffff;--line:#cbd5e1;--line-2:#e2e8f0;
-      --btn:#0f172a;--btn-text:#ffffff;--muted:#64748b;
-      --badge-ad:#eef2ff;--badge-ad-text:#3730a3;--badge-en:#ecfeff;--badge-en-text:#155e75;--badge-bb:#fff7ed;--badge-bb-text:#9a3412;
+      --bg:#f6f3ee;--bg-soft:#fbf8f4;--text:#221b15;--panel:#fffdf9;--panel-2:#f8f3ec;--line:#e8ddd0;--line-2:#d8c5ae;
+      --btn:#2f251d;--btn-text:#fffdf8;--muted:#7c6a5a;--accent:#a67c52;--accent-soft:#efe3d3;--shadow:0 18px 38px rgba(76,55,35,.08);
+      --badge-ad:#f1ebff;--badge-ad-text:#5b21b6;--badge-en:#e0f2fe;--badge-en-text:#155e75;--badge-bb:#ffedd5;--badge-bb-text:#9a3412;
     }
-    body{font-family:Arial,sans-serif;margin:0;background:var(--bg);color:var(--text)}
-    .wrap{max-width:1200px;margin:0 auto;padding:16px}
-    .header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-    .top{display:flex;gap:10px;flex-wrap:wrap}
-    button,input,textarea,select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--text)}
-    button{background:var(--btn);color:var(--btn-text);cursor:pointer}
-    .grid{display:grid;grid-template-columns:340px 1fr;gap:14px;margin-top:12px}
-    .panel{background:var(--panel);border:1px solid var(--line-2);border-radius:12px;padding:12px}
-    .guest{padding:8px;border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--panel);cursor:grab;display:flex;justify-content:space-between;align-items:center;gap:8px}
-    .table{border:1px dashed #94a3b8;border-radius:10px;padding:8px;min-height:80px;background:var(--bg)}
-    .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
-    .muted{color:var(--muted);font-size:13px}
+    *{box-sizing:border-box}
+    body{font-family:Inter,Arial,sans-serif;margin:0;background:linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
+    a{color:inherit}
+    .wrap{max-width:1480px;margin:0 auto;padding:24px}
+    .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;color:var(--muted);font-size:13px}
+    .shell{display:grid;gap:18px}
+    .hero{background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(248,243,236,.92));border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:var(--shadow)}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+    .hero h1{margin:0 0 8px;font-size:34px;line-height:1.05}
+    .hero p{margin:0;color:var(--muted);max-width:760px;line-height:1.5}
+    .hero-stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin-top:20px}
+    .stat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+    .stat .label{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+    .stat strong{font-size:24px}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:rgba(255,255,255,.8);border:1px solid var(--line);padding:14px;border-radius:18px;position:sticky;top:10px;backdrop-filter:blur(10px);z-index:5;box-shadow:0 10px 24px rgba(76,55,35,.05)}
+    button,input,textarea,select{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);font:inherit}
+    input,textarea,select{box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
+    button{background:var(--btn);color:var(--btn-text);cursor:pointer;font-weight:600;border-color:transparent;box-shadow:0 10px 20px rgba(47,37,29,.12)}
+    button:hover{transform:translateY(-1px)}
+    .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line);box-shadow:none}
     .danger{background:#7f1d1d}.warn{background:#92400e}.ok{background:#065f46}
-    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-    .type{font-size:12px;padding:2px 8px;border-radius:999px;font-weight:700;border:1px solid var(--line);background:var(--badge-ad);color:var(--badge-ad-text)}
-    .type.enfant{background:var(--badge-en);color:var(--badge-en-text)}
-    .type.bebe{background:var(--badge-bb);color:var(--badge-bb-text)}
-    .rsvp{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line)}
-    .rsvp.oui{background:#dcfce7;color:#166534}
-    .rsvp.peutetre{background:#fef3c7;color:#92400e}
-    .rsvp.non{background:#fee2e2;color:#991b1b}
-    .guest-actions{display:flex;gap:6px;align-items:center}
-    .mini-select{max-width:120px;padding:4px 6px;font-size:12px}
-    .mini-btn{padding:3px 7px;border-radius:6px;border:1px solid var(--line);background:#1d4ed8;color:#fff;cursor:pointer}
-    .xbtn{padding:2px 7px;border-radius:6px;border:1px solid var(--line);background:#7f1d1d;color:#fff;cursor:pointer}
-    .save-state{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:#f8fafc;color:var(--muted)}
+    .save-state{font-size:12px;padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel-2);color:var(--muted);font-weight:700}
     .save-state.dirty{background:#fff7ed;color:#9a3412}
     .save-state.saving{background:#eff6ff;color:#1d4ed8}
     .save-state.saved{background:#dcfce7;color:#166534}
-    .alerts{margin-top:10px;display:grid;gap:8px}
-    .alert-card{padding:10px;border-radius:10px;border:1px solid var(--line)}
-    .alert-card.warn{background:#fff7ed;color:#9a3412}
-    .alert-card.error{background:#fef2f2;color:#991b1b}
-    .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid var(--line);margin-left:6px}
-    .tag.group{background:#ede9fe;color:#5b21b6}
+    .grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
+    .panel{background:rgba(255,253,249,.96);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow)}
+    .panel h3{margin:0 0 16px;font-size:18px}
+    .stack{display:grid;gap:12px}
+    .section-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:8px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .row.tight>*{flex:1}
+    .guest-list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-right:4px}
+    .guest{padding:14px;border:1px solid var(--line);border-radius:18px;background:var(--panel);cursor:grab;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;box-shadow:0 8px 20px rgba(76,55,35,.05)}
+    .guest-main{display:grid;gap:8px;min-width:0}
+    .guest-name{font-weight:700;font-size:15px;line-height:1.35}
+    .guest-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+    .guest-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .type,.rsvp,.tag{font-size:11px;padding:4px 9px;border-radius:999px;font-weight:700;border:1px solid var(--line)}
+    .type{background:var(--badge-ad);color:var(--badge-ad-text)}
+    .type.enfant{background:var(--badge-en);color:var(--badge-en-text)}
+    .type.bebe{background:var(--badge-bb);color:var(--badge-bb-text)}
+    .rsvp.oui{background:#dcfce7;color:#166534}.rsvp.peutetre{background:#fef3c7;color:#92400e}.rsvp.non{background:#fee2e2;color:#991b1b}
+    .tag{background:var(--accent-soft);color:#7a5b3d}
+    .mini-select{min-width:126px;padding:8px 10px;font-size:12px}
+    .mini-btn{padding:8px 10px;border-radius:10px;border:1px solid transparent;background:#1d4ed8;color:#fff;cursor:pointer;font-size:12px;box-shadow:none}
+    .xbtn{padding:8px 10px;border-radius:10px;border:1px solid transparent;background:#7f1d1d;color:#fff;cursor:pointer;font-size:12px;box-shadow:none}
+    .filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .alerts{display:grid;gap:8px;margin-bottom:14px}
+    .alert-card{padding:12px 14px;border-radius:16px;border:1px solid var(--line);font-size:13px}
+    .alert-card.warn{background:#fff7ed;color:#9a3412}.alert-card.error{background:#fef2f2;color:#991b1b}
+    .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+    .table{border:1px solid var(--line);border-radius:22px;padding:16px;min-height:140px;background:linear-gradient(180deg,var(--panel),var(--panel-2));box-shadow:0 12px 26px rgba(76,55,35,.06)}
+    .table-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+    .table-head input{font-weight:700;font-size:16px;max-width:180px}
+    .table-kpis{display:grid;gap:6px;color:var(--muted);font-size:13px;margin-bottom:10px}
+    .progress{height:9px;background:#efe7dc;border-radius:999px;overflow:hidden}
+    .progress > span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
+    .muted{color:var(--muted);font-size:13px}
+    .sheet-lock{font-size:12px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);padding:10px 12px;border-radius:14px}
+    .sheet-actions{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    textarea{resize:vertical}
+    @media (max-width: 1080px){.grid{grid-template-columns:1fr}.hero-stats,.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width: 680px){.wrap{padding:14px}.hero{padding:18px}.hero-stats,.filters{grid-template-columns:1fr}.toolbar{position:static}.guest{flex-direction:column}.guest-actions{justify-content:flex-start}}
 
-    body.theme-modern{--bg:#070b17;--text:#e6eefc;--panel:#0f172acc;--line:#334155;--line-2:#243042;--btn:#4f46e5;--btn-text:#fff;--muted:#9fb0c9;--badge-ad:#312e81;--badge-ad-text:#c7d2fe;--badge-en:#083344;--badge-en-text:#a5f3fc;--badge-bb:#422006;--badge-bb-text:#fed7aa}
-    body.theme-romance{--bg:#fff7fb;--text:#4a044e;--panel:#ffffff;--line:#f5d0fe;--line-2:#fbcfe8;--btn:#be185d;--btn-text:#fff;--muted:#9d174d;--badge-ad:#fce7f3;--badge-ad-text:#9d174d;--badge-en:#ede9fe;--badge-en-text:#5b21b6;--badge-bb:#fff1f2;--badge-bb-text:#be123c}
-    body.theme-forest{--bg:#f0fdf4;--text:#052e16;--panel:#ffffff;--line:#bbf7d0;--line-2:#86efac;--btn:#166534;--btn-text:#fff;--muted:#166534;--badge-ad:#dcfce7;--badge-ad-text:#166534;--badge-en:#ccfbf1;--badge-en-text:#0f766e;--badge-bb:#fef9c3;--badge-bb-text:#854d0e}
-    body.theme-luxe{--bg:#fffdf7;--text:#3b2f17;--panel:#fffaf0;--line:#ead9b3;--line-2:#e4cfa2;--btn:#8a6a2f;--btn-text:#fff9eb;--muted:#8b7355;--badge-ad:#f8edd5;--badge-ad-text:#6b4f1f;--badge-en:#efe7ff;--badge-en-text:#5b21b6;--badge-bb:#ffe9e2;--badge-bb-text:#9a3412}
+    body.theme-modern{--bg:#070b17;--bg-soft:#0b1220;--text:#e6eefc;--panel:#101a2a;--panel-2:#111d31;--line:#26364d;--line-2:#334155;--btn:#4f46e5;--btn-text:#fff;--muted:#9fb0c9;--accent:#7c6cff;--accent-soft:#241f4a;--shadow:0 20px 42px rgba(2,8,23,.28);--badge-ad:#312e81;--badge-ad-text:#c7d2fe;--badge-en:#083344;--badge-en-text:#a5f3fc;--badge-bb:#422006;--badge-bb-text:#fed7aa}
+    body.theme-romance{--bg:#fff7fb;--bg-soft:#fffafb;--text:#4a044e;--panel:#ffffff;--panel-2:#fff1f7;--line:#f5d0fe;--line-2:#fbcfe8;--btn:#be185d;--btn-text:#fff;--muted:#9d174d;--accent:#db2777;--accent-soft:#fce7f3;--shadow:0 18px 36px rgba(190,24,93,.08);--badge-ad:#fce7f3;--badge-ad-text:#9d174d;--badge-en:#ede9fe;--badge-en-text:#5b21b6;--badge-bb:#fff1f2;--badge-bb-text:#be123c}
+    body.theme-forest{--bg:#f0fdf4;--bg-soft:#f7fff9;--text:#052e16;--panel:#ffffff;--panel-2:#f3fff6;--line:#bbf7d0;--line-2:#86efac;--btn:#166534;--btn-text:#fff;--muted:#166534;--accent:#15803d;--accent-soft:#dcfce7;--shadow:0 18px 36px rgba(22,101,52,.08);--badge-ad:#dcfce7;--badge-ad-text:#166534;--badge-en:#ccfbf1;--badge-en-text:#0f766e;--badge-bb:#fef9c3;--badge-bb-text:#854d0e}
+    body.theme-luxe{--bg:#fffdf7;--bg-soft:#fffaf0;--text:#3b2f17;--panel:#fffaf0;--panel-2:#fff6e8;--line:#ead9b3;--line-2:#e4cfa2;--btn:#8a6a2f;--btn-text:#fff9eb;--muted:#8b7355;--accent:#b68d52;--accent-soft:#f8edd5;--shadow:0 18px 36px rgba(138,106,47,.10);--badge-ad:#f8edd5;--badge-ad-text:#6b4f1f;--badge-en:#efe7ff;--badge-en-text:#5b21b6;--badge-bb:#ffe9e2;--badge-bb-text:#9a3412}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div style="margin-bottom:10px" class="muted"><a href="index.html">Accueil</a> · <a href="admin.html">Admin</a> · <a href="staff.html">Staff</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
-    <div class="header">
-      <h1>💍 Admin — Plan de table</h1>
-      <div class="row" style="min-width:280px;justify-content:flex-end">
-        <label for="themeSelect" class="muted">Thème</label>
-        <select id="themeSelect" onchange="applyTheme(this.value)" style="max-width:180px">
-          <option value="classic">Classique</option>
-          <option value="modern">Modern Dark</option>
-          <option value="romance">Romance</option>
-          <option value="forest">Forest</option>
-          <option value="luxe">Mariage Luxe</option>
-        </select>
+    <div class="crumbs"><a href="index.html">Accueil</a> · <a href="admin.html">Admin</a> · <a href="staff.html">Staff</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
+    <div class="shell">
+      <section class="hero">
+        <div class="header">
+          <div>
+            <h1>💍 Wedding Control</h1>
+            <p>Une vue admin plus propre, plus lisible et plus confortable pour préparer le plan de table. Glisse les invités, filtre, corrige les incohérences et pilote tout depuis une seule page.</p>
+          </div>
+          <div class="row" style="min-width:280px;justify-content:flex-end">
+            <label for="themeSelect" class="muted">Thème</label>
+            <select id="themeSelect" onchange="applyTheme(this.value)" style="max-width:180px">
+              <option value="classic">Classique</option>
+              <option value="modern">Modern Dark</option>
+              <option value="romance">Romance</option>
+              <option value="forest">Forest</option>
+              <option value="luxe">Mariage Luxe</option>
+            </select>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="label">Invités non placés</span><strong id="statUnplaced">0</strong></div>
+          <div class="stat"><span class="label">Tables</span><strong id="statTables">0</strong></div>
+          <div class="stat"><span class="label">Places occupées</span><strong id="statSeated">0</strong></div>
+          <div class="stat"><span class="label">Alertes</span><strong id="statAlerts">0</strong></div>
+        </div>
+      </section>
+
+      <div class="toolbar">
+        <button onclick="loadGuests()">Charger RSVPs</button>
+        <button class="ghost" onclick="addTable()">+ Table</button>
+        <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder plan</button>
+        <span id="saveState" class="save-state">Synchronisé</span>
+        <button class="ghost" onclick="window.print()">Exporter PDF</button>
+        <button class="ghost" onclick="exportJson()">JSON</button>
+        <button class="ghost" onclick="exportConfig()">Exporter config</button>
+        <button class="ghost" onclick="document.getElementById('configFile').click()">Importer config</button>
+        <button class="ghost" onclick="window.location.href='staff.html'">Staff</button>
+        <button class="ghost" onclick="window.location.href='visual.html'">Plan visuel</button>
+        <button class="ghost" onclick="exportCatererCsv()">Traiteur CSV</button>
+        <input id="configFile" type="file" accept="application/json" style="display:none" onchange="importConfig(event)">
+        <button class="danger" onclick="resetAll()">Reset</button>
       </div>
-    </div>
-    <div class="top">
-      <button onclick="loadGuests()">Charger RSVPs</button>
-      <button onclick="addTable()">+ Table</button>
-      <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder plan</button>
-      <span id="saveState" class="save-state">Synchronisé</span>
-      <button onclick="window.print()">Exporter PDF (imprimer)</button>
-      <button class="warn" onclick="exportJson()">Exporter JSON</button>
-      <button class="warn" onclick="exportConfig()">Exporter config</button>
-      <button class="warn" onclick="document.getElementById('configFile').click()">Importer config</button>
-      <button onclick="window.location.href='staff.html'">Staff mobile</button>
-      <button onclick="window.location.href='visual.html'">Plan visuel</button>
-      <button onclick="exportCatererCsv()">Export traiteur CSV</button>
-      <input id="configFile" type="file" accept="application/json" style="display:none" onchange="importConfig(event)">
-      <button class="danger" onclick="resetAll()">Reset</button>
-    </div>
-    <p class="muted">Drag & drop: glisser un invité vers une table.</p>
 
-    <div class="panel" style="margin-top:10px">
-      <h3>Import CSV invités</h3>
-      <p class="muted">Colonnes acceptées: `prenom,nom,type` (ou `first_name,last_name,type`, ou `name,type`). `type`: `adulte`, `enfant` ou `bebe`.</p>
-      <textarea id="csvInput" rows="4" style="width:100%" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
-      <button onclick="importCsv()">Importer CSV</button>
-    </div>
+      <div class="grid">
+        <aside class="panel stack">
+          <div>
+            <h3>Invités</h3>
+            <div class="row tight">
+              <input id="quickAdd" placeholder="Ajouter un invité rapide" onkeydown="if(event.key==='Enter')quickAddGuest()" />
+              <select id="quickType">
+                <option value="adulte">Adulte</option>
+                <option value="enfant">Enfant</option>
+                <option value="bebe">Bébé</option>
+              </select>
+            </div>
+            <button style="margin-top:10px;width:100%" onclick="quickAddGuest()">Ajouter l’invité</button>
+          </div>
 
-    <div class="grid">
-      <div class="panel">
-        <h3>Invités</h3>
-        <div class="row">
-          <input id="quickAdd" placeholder="Ajouter un invité rapide" onkeydown="if(event.key==='Enter')quickAddGuest()" style="flex:1" />
-          <select id="quickType">
-            <option value="adulte">Adulte</option>
-            <option value="enfant">Enfant</option>
-            <option value="bebe">Bébé</option>
-          </select>
-        </div>
-        <button style="margin-top:8px" onclick="quickAddGuest()">Ajouter</button>
-        <input id="guestSearch" placeholder="Rechercher un invité" oninput="renderGuests()" style="margin-top:10px" />
-        <div id="guestSearchMeta" class="muted" style="margin-top:6px"></div>
-        <div id="guests"></div>
+          <div>
+            <div class="section-label">Recherche</div>
+            <input id="guestSearch" placeholder="Rechercher un invité" oninput="renderAll()" />
+            <div id="guestSearchMeta" class="muted" style="margin-top:8px"></div>
+          </div>
 
-        <hr style="border-color:#223047;margin:14px 0" />
-        <h3>Fiche invité (admin)</h3>
-        <div class="muted" id="sheetHint">Clique un invité pour ouvrir sa fiche.</div>
-        <input id="sheetName" placeholder="Nom" disabled />
-        <select id="sheetPresence">
-          <option value="oui">Oui</option>
-          <option value="peut-etre">Peut-être</option>
-          <option value="non">Non</option>
-        </select>
-        <div class="row">
-          <input id="sheetAdults" type="number" min="0" placeholder="Adultes" style="flex:1" />
-          <input id="sheetKids" type="number" min="0" placeholder="Enfants" style="flex:1" />
-        </div>
-        <input id="sheetPhone" placeholder="Téléphone" />
-        <textarea id="sheetRegime" rows="2" placeholder="Allergies / régime"></textarea>
-        <textarea id="sheetNotes" rows="3" placeholder="Notes staff (PMR, poussette, etc.)"></textarea>
-        <button class="ok" onclick="saveGuestSheet()">Enregistrer fiche</button>
-      </div>
-      <div class="panel">
-        <h3>Tables</h3>
-        <div class="row" style="margin-bottom:10px">
-          <button onclick="undoLastAction()">↩ Annuler</button>
-          <select id="guestFilterPlaced" onchange="renderAll()" style="max-width:170px">
-            <option value="all">Tous</option>
-            <option value="unplaced">Non placés</option>
-            <option value="placed">Placés</option>
-          </select>
-          <select id="guestFilterType" onchange="renderAll()" style="max-width:170px">
-            <option value="all">Tous types</option>
-            <option value="adulte">Adultes</option>
-            <option value="enfant">Enfants</option>
-            <option value="bebe">Bébés</option>
-          </select>
-          <select id="guestFilterRsvp" onchange="renderAll()" style="max-width:170px">
-            <option value="all">Tous RSVP</option>
-            <option value="oui">Oui</option>
-            <option value="peutetre">Peut-être</option>
-            <option value="non">Non</option>
-          </select>
-        </div>
-        <div id="alerts" class="alerts"></div>
-        <div id="tables" class="tables"></div>
+          <div>
+            <div class="section-label">Import CSV</div>
+            <textarea id="csvInput" rows="4" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
+            <div class="muted" style="margin-top:8px">Colonnes acceptées : `prenom,nom,type`, `first_name,last_name,type` ou `name,type`.</div>
+            <button style="margin-top:10px;width:100%" onclick="importCsv()">Importer CSV</button>
+          </div>
+
+          <div>
+            <div class="section-label">Invités disponibles</div>
+            <div id="guests" class="guest-list"></div>
+          </div>
+
+          <div>
+            <div class="section-label">Fiche invité</div>
+            <div class="muted" id="sheetHint">Clique un invité pour ouvrir sa fiche.</div>
+            <div id="sheetLock" class="sheet-lock" style="display:none"></div>
+            <div class="stack" style="margin-top:10px">
+              <input id="sheetName" placeholder="Nom" />
+              <select id="sheetPresence">
+                <option value="oui">Oui</option>
+                <option value="peut-etre">Peut-être</option>
+                <option value="non">Non</option>
+              </select>
+              <div class="row tight">
+                <input id="sheetAdults" type="number" min="0" placeholder="Adultes" />
+                <input id="sheetKids" type="number" min="0" placeholder="Enfants" />
+              </div>
+              <input id="sheetPhone" placeholder="Téléphone" />
+              <textarea id="sheetRegime" rows="2" placeholder="Allergies / régime"></textarea>
+              <textarea id="sheetNotes" rows="3" placeholder="Notes staff (PMR, poussette, etc.)"></textarea>
+              <div class="sheet-actions">
+                <span class="muted">Les invités locaux sont renommables depuis cette fiche.</span>
+                <button class="ok" onclick="saveGuestSheet()">Enregistrer fiche</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <main class="panel">
+          <div class="row" style="justify-content:space-between;margin-bottom:10px">
+            <h3 style="margin:0">Plan de table</h3>
+            <button class="ghost" onclick="undoLastAction()">↩ Annuler</button>
+          </div>
+          <div class="filters">
+            <select id="guestFilterPlaced" onchange="renderAll()">
+              <option value="all">Tous</option>
+              <option value="unplaced">Non placés</option>
+              <option value="placed">Placés</option>
+            </select>
+            <select id="guestFilterType" onchange="renderAll()">
+              <option value="all">Tous types</option>
+              <option value="adulte">Adultes</option>
+              <option value="enfant">Enfants</option>
+              <option value="bebe">Bébés</option>
+            </select>
+            <select id="guestFilterRsvp" onchange="renderAll()">
+              <option value="all">Tous RSVP</option>
+              <option value="oui">Oui</option>
+              <option value="peutetre">Peut-être</option>
+              <option value="non">Non</option>
+            </select>
+            <div class="muted" style="display:flex;align-items:center;padding:0 6px">Drag & drop actif entre invités et tables</div>
+          </div>
+          <div id="alerts" class="alerts"></div>
+          <div id="tables" class="tables"></div>
+        </main>
       </div>
     </div>
   </div>
@@ -310,12 +373,13 @@
 
     function renderAlerts(){
       const c=document.getElementById('alerts');
-      if(!c) return;
+      if(!c) return 0;
       const alerts=buildAlerts();
       c.innerHTML='';
+      document.getElementById('statAlerts').textContent = alerts.length;
       if(!alerts.length){
         c.innerHTML='<div class="alert-card" style="background:#ecfdf5;color:#166534">Aucune incohérence détectée</div>';
-        return;
+        return 0;
       }
       alerts.forEach(a=>{
         const d=document.createElement('div');
@@ -323,6 +387,7 @@
         d.textContent=a.text;
         c.appendChild(d);
       });
+      return alerts.length;
     }
 
     function allGuestsList(){
@@ -337,8 +402,12 @@
 
     function openGuestSheetLocal(g){
       selectedGuestRef = { guestId:g.id, sourceRsvpId:g.sourceRsvpId || null };
-      document.getElementById('sheetHint').textContent = g.sourceRsvpId ? `Fiche liée à RSVP ${g.sourceRsvpId}` : 'Fiche locale (invité manuel/import CSV)';
+      const isRsvp = !!g.sourceRsvpId;
+      document.getElementById('sheetHint').textContent = isRsvp ? `Fiche liée à RSVP ${g.sourceRsvpId}` : 'Fiche locale (invité manuel/import CSV)';
       document.getElementById('sheetName').value = g.name || '';
+      document.getElementById('sheetName').disabled = isRsvp;
+      document.getElementById('sheetLock').style.display = isRsvp ? 'block' : 'none';
+      document.getElementById('sheetLock').textContent = isRsvp ? 'Nom verrouillé : cet invité provient d’un RSVP. Pour garder la cohérence, seul un invité local peut être renommé ici.' : '';
       document.getElementById('sheetPresence').value = (String(g.rsvpStatus||'oui').toLowerCase().replace('peut-être','peut-etre') || 'oui');
       document.getElementById('sheetAdults').value = Number(g.adultes ?? (g.type==='adulte'?1:0));
       document.getElementById('sheetKids').value = Number(g.enfants ?? ((g.type==='enfant'||g.type==='bebe')?1:0));
@@ -361,6 +430,9 @@
         selectedGuestRef = { guestId:null, sourceRsvpId:rsvpId };
         document.getElementById('sheetHint').textContent = `Fiche liée à RSVP ${rsvpId}`;
         document.getElementById('sheetName').value = displayName || `${r.prenom||''} ${r.nom||''}`.trim();
+        document.getElementById('sheetName').disabled = true;
+        document.getElementById('sheetLock').style.display = 'block';
+        document.getElementById('sheetLock').textContent = 'Nom verrouillé : cet invité provient d’un RSVP.';
         document.getElementById('sheetPresence').value = (String(r.presence||'').toLowerCase().replace('peut-être','peut-etre') || 'oui');
         document.getElementById('sheetAdults').value = Number(r.adultes||0);
         document.getElementById('sheetKids').value = Number(r.enfants||0);
@@ -374,6 +446,7 @@
 
     async function saveGuestSheet(){
       const payload = {
+        name: document.getElementById('sheetName').value.trim(),
         presence: document.getElementById('sheetPresence').value,
         adultes: Number(document.getElementById('sheetAdults').value || 0),
         enfants: Number(document.getElementById('sheetKids').value || 0),
@@ -389,6 +462,7 @@
 
       if(selectedGuestRef.guestId){
         updateGuestEverywhere(selectedGuestRef.guestId, {
+          name: payload.name || 'Invité',
           rsvpStatus: payload.presence,
           adultes: payload.adultes,
           enfants: payload.enfants,
@@ -479,7 +553,7 @@
         const d=document.createElement('div');
         d.className='guest'; d.draggable=true; d.dataset.id=g.id;
         const diet=normalizeDietLabel(g.regime);
-        d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}${diet?` <span class="tag">${escapeHtml(diet)}</span>`:''}</span><span class="guest-actions">${guestTag(g)} <select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+        d.innerHTML=`<div class="guest-main"><div class="guest-name" style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}</div><div class="guest-meta">${guestTag(g)}${diet?` <span class="tag">${escapeHtml(diet)}</span>`:''}</div></div><div class="guest-actions"><select class="mini-select" id="assign-${g.id}">${tableOptions()}</select><button class="mini-btn" onclick="assignFromList('${g.id}', event)">Affecter</button><button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></div>`;
         d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id);
         c.appendChild(d);
       });
@@ -497,11 +571,12 @@
         const adultCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='adulte').length;
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
-        b.innerHTML=`<h4><input value="${escapeHtml(t.name)}" style="max-width:150px" onchange="renameTable('${t.id}', this.value)"></h4><div class="muted">Capacité: <input type="number" min="1" value="${t.capacity}" style="width:80px" onchange="setCap('${t.id}',this.value)"></div><div class="muted">Places: ${t.guests.length}/${t.capacity}</div><div class="muted">Adultes: ${adultCount} • Enfants: ${childCount} • Bébés: ${babyCount}</div><div class="row" style="margin:6px 0"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div><button class="danger" style="margin:6px 0" onclick="removeTable('${t.id}')">Supprimer table</button>`;
+        const ratio=Math.min(100, Math.round(((t.guests.length||0)/Math.max(1,Number(t.capacity||1)))*100));
+        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div><div class="table-kpis"><div>Capacité : <input type="number" min="1" value="${t.capacity}" style="width:88px" onchange="setCap('${t.id}',this.value)"></div><div>Places : ${t.guests.length}/${t.capacity}</div><div>Adultes : ${adultCount} • Enfants : ${childCount} • Bébés : ${babyCount}</div></div><div class="progress"><span style="width:${ratio}%"></span></div><div class="row" style="margin:12px 0 10px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
         visibleGuests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
           const diet=normalizeDietLabel(g.regime);
-          d.innerHTML=`<span style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}${diet?` <span class="tag">${escapeHtml(diet)}</span>`:''}</span><span class="guest-actions">${guestTag(g)} <button class="mini-btn" onclick="unassign('${g.id}','${t.id}', event)">Retirer</button> <button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></span>`;
+          d.innerHTML=`<div class="guest-main"><div class="guest-name" style="cursor:pointer" onclick="openGuestSheetByGuestId('${g.id}', event)">${escapeHtml(g.name)}</div><div class="guest-meta">${guestTag(g)}${diet?` <span class="tag">${escapeHtml(diet)}</span>`:''}</div></div><div class="guest-actions"><button class="mini-btn" onclick="unassign('${g.id}','${t.id}', event)">Retirer</button><button class="xbtn" onclick="deleteGuest('${g.id}', event)">✕</button></div>`;
           b.appendChild(d);
         });
         c.appendChild(b);
@@ -605,8 +680,14 @@
       event.target.value='';
     }
 
+    function updateStats(){
+      document.getElementById('statUnplaced').textContent = guests.length;
+      document.getElementById('statTables').textContent = tables.length;
+      document.getElementById('statSeated').textContent = tables.reduce((sum,t)=>sum + (t.guests||[]).length, 0);
+    }
+
     function resetAll(){ if(!confirm('Réinitialiser le plan ?')) return; pushHistory(); guests=[]; tables=[]; markDirty(); renderAll(); }
-    function renderAll(){ renderGuests(); renderTables(); renderAlerts(); updateSaveBadge(); }
+    function renderAll(){ renderGuests(); renderTables(); renderAlerts(); updateStats(); updateSaveBadge(); }
 
     window.addEventListener('beforeunload', (event)=>{
       if(saveState==='dirty' || isSaving){
