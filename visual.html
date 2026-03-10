@@ -33,7 +33,7 @@
     .round-table .meta{font-size:11px;color:var(--muted)}
     .progress{width:94px;height:6px;background:#efe7dc;border-radius:999px;overflow:hidden}
     .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
-    .guest-chip{position:absolute;padding:6px 9px;border-radius:14px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 16px rgba(0,0,0,.07);font-size:11px;cursor:move;user-select:none;white-space:normal;z-index:20;width:max-content;max-width:168px;text-align:center;line-height:1.2;overflow-wrap:anywhere}
+    .guest-chip{position:absolute;padding:5px 8px;border-radius:13px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 14px rgba(0,0,0,.07);font-size:10px;cursor:move;user-select:none;white-space:normal;z-index:20;width:max-content;max-width:138px;text-align:center;line-height:1.15;overflow-wrap:anywhere}
     .guest-chip .name{font-weight:700;display:block}
     .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
     .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid #e2e8f0}
@@ -160,17 +160,17 @@
     function estimateChipSize(guest){
       const name=String(guest?.name||'');
       const regime=String(guest?.regime||'').trim();
-      const width=Math.min(168, Math.max(72, Math.round(name.length*6.4) + (regime ? 26 : 10)));
-      const height=regime ? 42 : 26;
+      const width=Math.min(138, Math.max(64, Math.round(name.length*5.7) + (regime ? 20 : 8)));
+      const height=regime ? 36 : 22;
       return { width, height };
     }
 
     function defaultGuestPos(tablePos,index,total,guest){
       const cx=tablePos.x+86, cy=tablePos.y+86;
-      const ring=index<8 ? 0 : (index<16 ? 1 : 2);
-      const angleIndex=ring===0 ? index : (ring===1 ? index-8 : index-16);
-      const angleCount=ring===0 ? Math.min(total,8) : (ring===1 ? Math.min(Math.max(total-8,1),8) : Math.max(total-16,1));
-      const baseRadius=122 + (ring*26);
+      const ring=index<6 ? 0 : (index<12 ? 1 : 2);
+      const angleIndex=ring===0 ? index : (ring===1 ? index-6 : index-12);
+      const angleCount=ring===0 ? Math.min(total,6) : (ring===1 ? Math.min(Math.max(total-6,1),6) : Math.max(total-12,1));
+      const baseRadius=102 + (ring*16);
       const ang=(Math.PI*2)*(angleIndex/Math.max(angleCount,1)) - (Math.PI/2);
       const size=estimateChipSize(guest);
       const x=Math.round(cx+Math.cos(ang)*baseRadius - size.width/2);
@@ -179,7 +179,7 @@
     }
 
     function findTargetTableByPoint(x,y,tablePosById){
-      const px=x+56; const py=y+18; const tableRadius=92;
+      const px=x+48; const py=y+16; const tableRadius=88;
       let best=null; let bestDist=Infinity;
       (plan.tables||[]).forEach(t=>{
         const p=tablePosById[t.id]||plan.layout.tables?.[t.id];
