@@ -144,8 +144,9 @@
       const ring=Math.floor(seatIndex / perRing);
       const indexInRing=seatIndex % perRing;
       const countInRing=Math.min(perRing, Math.max(1, capacity - ring*perRing));
-      const radius=106 + ring*24;
-      const angle=(Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2);
+      const radius=112 + ring*38;
+      const ringOffset=countInRing > 1 ? ((Math.PI * 2) / countInRing) * 0.5 * (ring % 2) : 0;
+      const angle=((Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2)) + ringOffset;
       const cx=CLUSTER_PADDING + TABLE_RADIUS;
       const cy=CLUSTER_PADDING + TABLE_RADIUS;
       return {
@@ -178,7 +179,7 @@
     }
 
     function defaultTablePos(i, bounds){
-      const gapX=140, gapY=120;
+      const gapX=170, gapY=150;
       const usableWidth=Math.max(520, canvas.clientWidth || 1200);
       const cols=Math.max(1, Math.floor((usableWidth - gapX) / (bounds.width + gapX)));
       const col=i % cols;
@@ -193,6 +194,37 @@
       const maxX=Math.max(0, canvas.clientWidth - bounds.width - 8);
       const maxY=Math.max(0, canvas.clientHeight - bounds.height - 8);
       return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) };
+    }
+
+    function rectsOverlap(a,b){
+      return !(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y);
+    }
+
+    function resolveTableOverlaps(entries){
+      const margin=28;
+      const sorted=[...entries].sort((a,b)=> (a.pos.y - b.pos.y) || (a.pos.x - b.pos.x));
+      const placed=[];
+      for(const entry of sorted){
+        let pos=clampTablePos(entry.pos, entry.bounds);
+        let guard=0;
+        while(guard < 500){
+          const rect={x:pos.x,y:pos.y,width:entry.bounds.width,height:entry.bounds.height};
+          const collision=placed.find(other=>rectsOverlap(
+            {x:rect.x-margin,y:rect.y-margin,width:rect.width+margin*2,height:rect.height+margin*2},
+            {x:other.pos.x,y:other.pos.y,width:other.bounds.width,height:other.bounds.height}
+          ));
+          if(!collision) break;
+          pos.x=collision.pos.x + collision.bounds.width + margin;
+          if(pos.x + entry.bounds.width > canvas.clientWidth - 8){
+            pos.x=8;
+            pos.y=collision.pos.y + Math.max(collision.bounds.height, entry.bounds.height) + margin;
+          }
+          pos=clampTablePos(pos, entry.bounds);
+          guard++;
+        }
+        placed.push({...entry,pos});
+      }
+      return placed;
     }
 
     function adaptLayoutToViewport(){
@@ -223,13 +255,19 @@
       canvas.innerHTML='';
       adaptLayoutToViewport();
       updateStats();
-      (plan.tables||[]).forEach((t,i)=>{
+
+      const entries=(plan.tables||[]).map((t,i)=>{
         const capacity=Math.max(1, Number(t.capacity||1));
         const bounds=clusterBounds(capacity);
         const rawPos=plan.layout.tables[t.id] || defaultTablePos(i,bounds);
-        const pos=clampTablePos(rawPos, bounds);
+        return { t, i, capacity, bounds, pos: clampTablePos(rawPos, bounds) };
+      });
+
+      const resolved=resolveTableOverlaps(entries);
+      plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
+
+      resolved.forEach(({t, capacity, bounds, pos})=>{
         plan.layout.tables[t.id]=pos;
-        plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
 
         const cluster=document.createElement('div');
         cluster.className='table-cluster';
@@ -244,7 +282,7 @@
         table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px';
         const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,capacity))*100));
         table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${capacity}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
-        drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]={x:nx,y:ny}; render(); });
+        drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); });
         cluster.appendChild(table);
 
         for(let seatIndex=0; seatIndex<capacity; seatIndex++){
