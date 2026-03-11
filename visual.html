@@ -131,22 +131,38 @@
       return { width, height };
     }
 
-    function seatsPerRing(capacity){
-      if(capacity <= 8) return capacity;
-      if(capacity <= 10) return 5;
-      if(capacity <= 14) return 6;
-      return 7;
+    function ringDistribution(capacity){
+      const remaining=Math.max(1, capacity|0);
+      const rings=[];
+      let left=remaining;
+      const capacities=[8, 12, 16];
+      for(let i=0;i<capacities.length && left>0;i++){
+        const take=Math.min(left, capacities[i]);
+        rings.push(take);
+        left-=take;
+      }
+      while(left>0){
+        const take=Math.min(left, 18);
+        rings.push(take);
+        left-=take;
+      }
+      return rings;
     }
 
     function seatLayout(seatIndex, capacity, guest){
       const size=estimateChipSize(guest);
-      const perRing=seatsPerRing(capacity);
-      const ring=Math.floor(seatIndex / perRing);
-      const indexInRing=seatIndex % perRing;
-      const countInRing=Math.min(perRing, Math.max(1, capacity - ring*perRing));
-      const radius=112 + ring*38;
-      const ringOffset=countInRing > 1 ? ((Math.PI * 2) / countInRing) * 0.5 * (ring % 2) : 0;
-      const angle=((Math.PI*2)*(indexInRing/Math.max(countInRing,1)) - (Math.PI/2)) + ringOffset;
+      const rings=ringDistribution(capacity);
+      let ring=0;
+      let offset=seatIndex;
+      while(ring < rings.length && offset >= rings[ring]){
+        offset -= rings[ring];
+        ring++;
+      }
+      const countInRing=Math.max(1, rings[ring] || 1);
+      const radius=116 + ring*52;
+      const baseStep=(Math.PI * 2) / countInRing;
+      const ringOffset=(ring % 2) ? baseStep / 2 : 0;
+      const angle=(-Math.PI / 2) + offset * baseStep + ringOffset;
       const cx=CLUSTER_PADDING + TABLE_RADIUS;
       const cy=CLUSTER_PADDING + TABLE_RADIUS;
       return {
@@ -178,15 +194,15 @@
       };
     }
 
-    function defaultTablePos(i, bounds){
-      const gapX=170, gapY=150;
+    function defaultTablePos(i, bounds, cell){
+      const gapX=cell.gapX, gapY=cell.gapY;
       const usableWidth=Math.max(520, canvas.clientWidth || 1200);
-      const cols=Math.max(1, Math.floor((usableWidth - gapX) / (bounds.width + gapX)));
+      const cols=Math.max(1, Math.floor((usableWidth - gapX) / (cell.width + gapX)));
       const col=i % cols;
       const row=Math.floor(i / cols);
       return {
-        x: 24 + col*(bounds.width + gapX),
-        y: 24 + row*(bounds.height + gapY),
+        x: 24 + col*(cell.width + gapX) + Math.round((cell.width - bounds.width)/2),
+        y: 24 + row*(cell.height + gapY) + Math.round((cell.height - bounds.height)/2),
       };
     }
 
@@ -200,30 +216,44 @@
       return !(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y);
     }
 
+    function layoutCellSpec(entries){
+      const maxWidth=Math.max(...entries.map(e=>e.bounds.width), TABLE_SIZE);
+      const maxHeight=Math.max(...entries.map(e=>e.bounds.height), TABLE_SIZE);
+      return { width:maxWidth, height:maxHeight, gapX:48, gapY:48 };
+    }
+
     function resolveTableOverlaps(entries){
-      const margin=28;
-      const sorted=[...entries].sort((a,b)=> (a.pos.y - b.pos.y) || (a.pos.x - b.pos.x));
+      if(!entries.length) return entries;
+      const cell=layoutCellSpec(entries);
+      const usableWidth=Math.max(520, canvas.clientWidth || 1200);
+      const cols=Math.max(1, Math.floor((usableWidth - cell.gapX) / (cell.width + cell.gapX)));
+      const occupied=new Set();
       const placed=[];
-      for(const entry of sorted){
-        let pos=clampTablePos(entry.pos, entry.bounds);
+
+      const toCell=(pos)=>({
+        col: Math.max(0, Math.round((pos.x - 24) / (cell.width + cell.gapX))),
+        row: Math.max(0, Math.round((pos.y - 24) / (cell.height + cell.gapY))),
+      });
+
+      const keyOf=(col,row)=>`${col}:${row}`;
+      const snapPos=(col,row,bounds)=>clampTablePos({
+        x: 24 + col*(cell.width + cell.gapX) + Math.round((cell.width - bounds.width)/2),
+        y: 24 + row*(cell.height + cell.gapY) + Math.round((cell.height - bounds.height)/2),
+      }, bounds);
+
+      entries.forEach((entry,index)=>{
+        let {col,row}=toCell(entry.pos);
+        if(col >= cols) col = cols - 1;
         let guard=0;
-        while(guard < 500){
-          const rect={x:pos.x,y:pos.y,width:entry.bounds.width,height:entry.bounds.height};
-          const collision=placed.find(other=>rectsOverlap(
-            {x:rect.x-margin,y:rect.y-margin,width:rect.width+margin*2,height:rect.height+margin*2},
-            {x:other.pos.x,y:other.pos.y,width:other.bounds.width,height:other.bounds.height}
-          ));
-          if(!collision) break;
-          pos.x=collision.pos.x + collision.bounds.width + margin;
-          if(pos.x + entry.bounds.width > canvas.clientWidth - 8){
-            pos.x=8;
-            pos.y=collision.pos.y + Math.max(collision.bounds.height, entry.bounds.height) + margin;
-          }
-          pos=clampTablePos(pos, entry.bounds);
+        while(occupied.has(keyOf(col,row)) && guard < 1000){
+          col++;
+          if(col >= cols){ col = 0; row++; }
           guard++;
         }
-        placed.push({...entry,pos});
-      }
+        occupied.add(keyOf(col,row));
+        placed.push({ ...entry, pos: snapPos(col,row,entry.bounds), cell, index });
+      });
+
       return placed;
     }
 
@@ -256,12 +286,17 @@
       adaptLayoutToViewport();
       updateStats();
 
-      const entries=(plan.tables||[]).map((t,i)=>{
+      const baseEntries=(plan.tables||[]).map((t,i)=>{
         const capacity=Math.max(1, Number(t.capacity||1));
         const bounds=clusterBounds(capacity);
-        const rawPos=plan.layout.tables[t.id] || defaultTablePos(i,bounds);
-        return { t, i, capacity, bounds, pos: clampTablePos(rawPos, bounds) };
+        return { t, i, capacity, bounds, pos: plan.layout.tables[t.id] || null };
       });
+
+      const cell=baseEntries.length ? layoutCellSpec(baseEntries) : { width:TABLE_SIZE, height:TABLE_SIZE, gapX:48, gapY:48 };
+      const entries=baseEntries.map(({t,i,capacity,bounds,pos})=>({
+        t, i, capacity, bounds,
+        pos: clampTablePos(pos || defaultTablePos(i,bounds,cell), bounds),
+      }));
 
       const resolved=resolveTableOverlaps(entries);
       plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
