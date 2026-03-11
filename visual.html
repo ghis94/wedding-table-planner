@@ -26,7 +26,7 @@
     button{background:#2f251d;color:#fffdf8;border-color:transparent;cursor:pointer;font-weight:600}
     .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
     .muted{color:var(--muted);font-size:13px}
-    .canvas{position:relative;border-radius:24px;height:78vh;overflow:hidden;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
+    .canvas{position:relative;border-radius:24px;height:78vh;overflow:auto;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
 
     .table-cluster{position:absolute}
     .seat-slot,.guest-chip,.round-table{position:absolute}
@@ -132,17 +132,18 @@
     }
 
     function ringDistribution(capacity){
-      const remaining=Math.max(1, capacity|0);
+      const total=Math.max(1, capacity|0);
+      if(total <= 9) return [total];
       const rings=[];
-      let left=remaining;
-      const capacities=[8, 12, 16];
+      let left=total;
+      const capacities=[10, 14, 18];
       for(let i=0;i<capacities.length && left>0;i++){
         const take=Math.min(left, capacities[i]);
         rings.push(take);
         left-=take;
       }
       while(left>0){
-        const take=Math.min(left, 18);
+        const take=Math.min(left, 20);
         rings.push(take);
         left-=take;
       }
@@ -207,8 +208,9 @@
     }
 
     function clampTablePos(pos, bounds){
+      const layoutHeight=Math.max(canvas.clientHeight || 0, parseInt(canvas.style.minHeight || '0', 10) || 0);
       const maxX=Math.max(0, canvas.clientWidth - bounds.width - 8);
-      const maxY=Math.max(0, canvas.clientHeight - bounds.height - 8);
+      const maxY=Math.max(0, layoutHeight - bounds.height - 8);
       return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) };
     }
 
@@ -223,12 +225,13 @@
     }
 
     function resolveTableOverlaps(entries){
-      if(!entries.length) return entries;
+      if(!entries.length) return { entries, rows:0, cell:layoutCellSpec([{bounds:{width:TABLE_SIZE,height:TABLE_SIZE}}]) };
       const cell=layoutCellSpec(entries);
       const usableWidth=Math.max(520, canvas.clientWidth || 1200);
       const cols=Math.max(1, Math.floor((usableWidth - cell.gapX) / (cell.width + cell.gapX)));
       const occupied=new Set();
       const placed=[];
+      let maxRow=0;
 
       const toCell=(pos)=>({
         col: Math.max(0, Math.round((pos.x - 24) / (cell.width + cell.gapX))),
@@ -236,10 +239,10 @@
       });
 
       const keyOf=(col,row)=>`${col}:${row}`;
-      const snapPos=(col,row,bounds)=>clampTablePos({
+      const snapPos=(col,row,bounds)=>({
         x: 24 + col*(cell.width + cell.gapX) + Math.round((cell.width - bounds.width)/2),
         y: 24 + row*(cell.height + cell.gapY) + Math.round((cell.height - bounds.height)/2),
-      }, bounds);
+      });
 
       entries.forEach((entry,index)=>{
         let {col,row}=toCell(entry.pos);
@@ -251,10 +254,11 @@
           guard++;
         }
         occupied.add(keyOf(col,row));
+        maxRow=Math.max(maxRow,row);
         placed.push({ ...entry, pos: snapPos(col,row,entry.bounds), cell, index });
       });
 
-      return placed;
+      return { entries: placed, rows: maxRow + 1, cell };
     }
 
     function adaptLayoutToViewport(){
@@ -298,11 +302,14 @@
         pos: clampTablePos(pos || defaultTablePos(i,bounds,cell), bounds),
       }));
 
-      const resolved=resolveTableOverlaps(entries);
+      const resolvedLayout=resolveTableOverlaps(entries);
+      const resolved=resolvedLayout.entries;
+      const contentHeight=Math.max(canvas.clientHeight || 1, 48 + resolvedLayout.rows * (resolvedLayout.cell.height + resolvedLayout.cell.gapY));
+      canvas.style.minHeight=contentHeight + 'px';
       plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
 
       resolved.forEach(({t, capacity, bounds, pos})=>{
-        plan.layout.tables[t.id]=pos;
+        plan.layout.tables[t.id]=clampTablePos(pos, bounds);
 
         const cluster=document.createElement('div');
         cluster.className='table-cluster';
