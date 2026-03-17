@@ -5,58 +5,66 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plan visuel — Wedding Table Planner</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
     :root{
-      --bg:#f6f3ee;--bg-soft:#fbf8f4;--text:#221b15;--panel:#fffdf9;--panel-2:#f8f3ec;--line:#e8ddd0;--muted:#7c6a5a;--accent:#a67c52;--shadow:0 18px 38px rgba(76,55,35,.08);
-      --badge-en:#e0f2fe;--badge-en-text:#155e75;--badge-bb:#ffedd5;--badge-bb-text:#9a3412;
+      --bg:#f3ede3;--bg-soft:#faf6f0;--bg-deep:#efe5d8;--text:#241913;--panel:rgba(255,251,246,.90);--panel-2:rgba(248,240,230,.84);--line:#dccab5;--line-soft:rgba(164,127,89,.18);--muted:#7f6957;--accent:#a47f59;--accent-strong:#7c5836;--accent-soft:#ddc3a5;--shadow:0 20px 48px rgba(67,44,23,.10);--shadow-soft:0 10px 24px rgba(67,44,23,.08);
+      --badge-en:#e8f2fb;--badge-en-text:#32556f;--badge-bb:#fdf0e1;--badge-bb-text:#9b5c24;
     }
     *{box-sizing:border-box}
-    body{font-family:Inter,Arial,sans-serif;margin:0;background:linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
-    .wrap{max-width:1480px;margin:0 auto;padding:24px}
-    .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;color:var(--muted);font-size:13px}
-    .hero,.toolbar,.canvas{background:rgba(255,253,249,.96);border:1px solid var(--line);box-shadow:var(--shadow)}
-    .hero{border-radius:24px;padding:22px}
-    .hero h1{margin:0 0 6px;font-size:34px}
-    .hero p{margin:0;color:var(--muted)}
-    .stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin-top:16px}
-    .stat{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}
-    .stat span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-    .stat strong{font-size:24px}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px;border-radius:18px;position:sticky;top:10px;z-index:5;margin:16px 0}
-    button,input{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);font:inherit}
-    button{background:#2f251d;color:#fffdf8;border-color:transparent;cursor:pointer;font-weight:600}
-    .ghost{background:var(--panel);color:var(--text);border:1px solid var(--line)}
+    body{font-family:'Manrope',Arial,sans-serif;margin:0;background:radial-gradient(circle at top,rgba(255,255,255,.55),transparent 28%),linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent 42%),repeating-linear-gradient(0deg,transparent 0 38px,rgba(120,84,53,.028) 38px 39px);opacity:.9}
+    .wrap{max-width:1520px;margin:0 auto;padding:28px}
+    .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+    .crumbs a{color:inherit;text-decoration:none;position:relative}
+    .crumbs a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;background:currentColor;opacity:.25}
+    .hero,.toolbar,.canvas{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-soft);box-shadow:var(--shadow);backdrop-filter:blur(10px)}
+    .hero{border-radius:30px;padding:28px 30px;position:relative;overflow:hidden}
+    .hero::after{content:'';position:absolute;inset:auto -80px -120px auto;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(164,127,89,.22),transparent 68%)}
+    .hero h1{margin:0 0 8px;font:600 48px/1 'Cormorant Garamond',serif;letter-spacing:.02em}
+    .hero p{margin:0;max-width:840px;color:var(--muted);font-size:15px;line-height:1.65}
+    .stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:14px;margin-top:20px}
+    .stat{background:rgba(255,255,255,.44);border:1px solid rgba(164,127,89,.16);border-radius:22px;padding:16px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
+    .stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
+    .stat strong{font:600 31px/1 'Cormorant Garamond',serif}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 16px;border-radius:22px;position:sticky;top:10px;z-index:5;margin:18px 0}
+    button,input{padding:11px 14px;border:1px solid rgba(164,127,89,.22);border-radius:14px;background:rgba(255,255,255,.72);color:var(--text);font:inherit}
+    button{background:linear-gradient(135deg,var(--accent-strong),var(--accent));color:#fffaf4;border-color:transparent;cursor:pointer;font-weight:700;letter-spacing:.01em;box-shadow:0 10px 20px rgba(124,88,54,.20)}
+    button:hover{transform:translateY(-1px)}
+    .ghost{background:rgba(255,255,255,.6);color:var(--text);border:1px solid rgba(164,127,89,.18);box-shadow:none}
     .muted{color:var(--muted);font-size:13px}
-    .canvas{position:relative;border-radius:24px;height:78vh;overflow:auto;background:linear-gradient(180deg,var(--panel),var(--panel-2))}
+    .canvas{position:relative;border-radius:30px;height:78vh;overflow:auto;background:radial-gradient(circle at top left,rgba(255,255,255,.60),transparent 24%),linear-gradient(180deg,rgba(255,251,246,.98),rgba(243,233,220,.94))}
 
     .table-cluster{position:absolute}
     .seat-slot,.guest-chip,.round-table{position:absolute}
-    .round-table{width:180px;height:180px;left:0;top:0;border-radius:50%;border:1px solid #d8c5ae;background:radial-gradient(circle at 30% 30%,#fffdf8,#efe3d3);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 14px 26px rgba(76,55,35,.10);z-index:10}
-    .round-table .inner{display:grid;gap:8px;justify-items:center;width:100%}
-    .round-table input{max-width:116px;text-align:center;font-weight:700;background:#fff;border-color:#ead9b3;padding:8px 10px;font-size:13px}
-    .round-table .meta{font-size:11px;color:var(--muted)}
-    .progress{width:94px;height:6px;background:#efe7dc;border-radius:999px;overflow:hidden}
-    .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
+    .round-table{width:180px;height:180px;left:0;top:0;border-radius:50%;border:1px solid rgba(164,127,89,.34);background:radial-gradient(circle at 30% 30%,#fffdf9 0%,#f6ecdf 56%,#eadbc8 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 20px 34px rgba(82,58,34,.14),inset 0 1px 0 rgba(255,255,255,.75);z-index:10}
+    .round-table::before{content:'';position:absolute;inset:10px;border-radius:50%;border:1px solid rgba(164,127,89,.20)}
+    .round-table .inner{display:grid;gap:8px;justify-items:center;width:100%;position:relative;z-index:1}
+    .round-table input{max-width:128px;text-align:center;font:600 22px/1 'Cormorant Garamond',serif;background:rgba(255,255,255,.82);border-color:rgba(164,127,89,.22);padding:8px 10px;font-size:22px;letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+    .round-table .meta{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+    .progress{width:102px;height:7px;background:rgba(138,102,70,.12);border-radius:999px;overflow:hidden}
+    .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#d0b08e)}
 
-    .seat-slot{border:1px dashed #cdb89d;background:rgba(255,255,255,.28);border-radius:14px;z-index:12;transition:transform .12s ease, border-color .12s ease, background .12s ease}
-    .seat-slot.drop-target{border-color:#a67c52;background:rgba(166,124,82,.12);transform:scale(1.04)}
-    .guest-chip{padding:5px 8px;border-radius:13px;border:1px solid #d8d2c7;background:#ffffff;box-shadow:0 6px 14px rgba(0,0,0,.07);font-size:10px;cursor:move;user-select:none;z-index:20;text-align:center;line-height:1.15;overflow:hidden}
-    .guest-chip .name{font-weight:700;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:4px}
-    .pill{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700;border:1px solid #e2e8f0;white-space:nowrap}
+    .seat-slot{border:1px dashed rgba(164,127,89,.34);background:rgba(255,255,255,.16);border-radius:16px;z-index:12;transition:transform .12s ease, border-color .12s ease, background .12s ease;backdrop-filter:blur(4px)}
+    .seat-slot::after{content:'Place';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 9px/1 'Manrope',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgba(127,105,87,.70)}
+    .seat-slot.drop-target{border-color:var(--accent-strong);background:rgba(164,127,89,.18);transform:scale(1.05)}
+    .guest-chip{padding:7px 10px;border-radius:18px;border:1px solid rgba(164,127,89,.20);background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,241,233,.96));box-shadow:var(--shadow-soft);font-size:10px;cursor:move;user-select:none;z-index:20;text-align:center;line-height:1.2;overflow:hidden}
+    .guest-chip .name{display:block;font:600 13px/1.1 'Cormorant Garamond',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
+    .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:5px}
+    .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:700;border:1px solid rgba(130,102,77,.12);white-space:nowrap;background:rgba(255,250,245,.9);letter-spacing:.05em;text-transform:uppercase}
     .pill.regime::before{content:'';width:7px;height:7px;border-radius:999px;background:#64748b;display:inline-block}
     .regime-default::before{background:#64748b}.regime-vege::before{background:#16a34a}.regime-vegan::before{background:#15803d}.regime-sans-porc::before{background:#ea580c}.regime-halal::before{background:#0f766e}.regime-kasher::before{background:#2563eb}.regime-sans-gluten::before{background:#dc2626}.regime-sans-lactose::before{background:#c2410c}
     .guest-chip.enfant .pill.type{background:var(--badge-en);color:var(--badge-en-text)}
     .guest-chip.bebe .pill.type{background:var(--badge-bb);color:var(--badge-bb-text)}
 
-    @media (max-width:900px){.wrap{padding:14px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{position:static}.canvas{height:70vh}}
+    @media (max-width:900px){.wrap{padding:14px}.hero h1{font-size:38px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{position:static}.canvas{height:70vh}}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
     <section class="hero">
-      <h1>🪑 Plan visuel</h1>
-      <p>Chaque table est un groupe stable avec des sièges fixes. Déplacer une table déplace tout son groupe. Déplacer un invité le réassigne à une autre table puis le replace dans un siège fixe.</p>
+      <h1>Plan visuel</h1>
+      <p>Un plan de salle immersif, pensé comme une mise en scène de réception. Chaque table reste un groupe stable : déplacer une table emporte son ensemble, déplacer un invité le réassigne avec une logique de placement fixe et lisible.</p>
       <div class="stats">
         <div class="stat"><span>Tables</span><strong id="statTables">0</strong></div>
         <div class="stat"><span>Invités placés</span><strong id="statGuests">0</strong></div>
