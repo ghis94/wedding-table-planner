@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan visuel — Wedding Table Planner</title>
+  <title>Plan visuel - Wedding Table Planner</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
     :root{
@@ -32,7 +32,33 @@
     button:hover{transform:translateY(-1px)}
     .ghost{background:rgba(255,255,255,.6);color:var(--text);border:1px solid rgba(164,127,89,.18);box-shadow:none}
     .muted{color:var(--muted);font-size:13px}
-    .canvas{position:relative;border-radius:30px;height:78vh;overflow:auto;background:radial-gradient(circle at top left,rgba(255,255,255,.60),transparent 24%),linear-gradient(180deg,rgba(255,251,246,.98),rgba(243,233,220,.94))}
+    .layout-container{display:flex;gap:20px;align-items:stretch}
+    .sidebar{width:280px;flex-shrink:0;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-soft);box-shadow:var(--shadow);backdrop-filter:blur(10px);border-radius:30px;padding:20px;position:sticky;top:10px;max-height:calc(100vh - 280px);display:flex;flex-direction:column;overflow:hidden}
+    .sidebar-header{font:600 18px/1.2 'Cormorant Garamond',serif;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line-soft);color:var(--text);display:flex;align-items:center;gap:8px}
+    .sidebar-header::before{content:'';width:10px;height:10px;background:var(--accent);border-radius:50%}
+    .sidebar-content{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;margin-bottom:12px;max-height:calc(100vh - 520px)}
+    .sidebar-guest{position:relative;padding:10px 12px;border-radius:16px;border:1px solid rgba(164,127,89,.16);background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,241,233,.88));box-shadow:var(--shadow-soft);cursor:grab;transition:transform .12s ease,box-shadow .12s ease}
+    .sidebar-guest:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+    .sidebar-guest:active{cursor:grabbing}
+    .sidebar-guest .name{font:600 14px/1.2 'Cormorant Garamond',serif;color:var(--text)}
+    .sidebar-guest .meta{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+    
+    /* Placeholder slot in sidebar */
+    .sidebar-placeholder{border:2px dashed rgba(164,127,89,.40);background:rgba(255,255,255,.25);cursor:pointer;transition:all .15s ease;min-height:44px}
+    .sidebar-placeholder:hover{transform:translateY(-2px);border-color:var(--accent-strong);background:rgba(164,127,89,.08)}
+    .sidebar-placeholder.drop-active{border-color:var(--accent-strong);background:rgba(164,127,89,.15);transform:scale(1.02)}
+    .sidebar-placeholder .placeholder-text{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.05em;text-transform:uppercase;opacity:.7}
+    
+    .sidebar-empty{color:var(--muted);font-size:12px;font-style:italic;text-align:center;padding:20px 0}
+    .canvas{flex:1;position:relative;border-radius:30px;min-height:78vh;height:auto;overflow:auto;background:radial-gradient(circle at top left,rgba(255,255,255,.60),transparent 24%),linear-gradient(180deg,rgba(255,251,246,.98),rgba(243,233,220,.94))}
+    .staging{width:100%;margin-top:18px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:2px dashed var(--line);border-radius:24px;padding:16px 20px;min-height:80px;transition:border-color .2s ease,background .2s ease;flex-shrink:0}
+    .staging.drop-active{border-color:var(--accent-strong);background:rgba(164,127,89,.08)}
+    .staging-header{font:600 14px/1.2 'Cormorant Garamond',serif;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+    .staging-header::before{content:'↔';font-size:16px}
+    .staging-guests{display:flex;flex-wrap:wrap;gap:8px;min-height:40px}
+    .staging-guest{position:relative;padding:6px 10px;border-radius:14px;border:1px solid rgba(164,127,89,.18);background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(248,241,233,.84));cursor:grab;display:inline-flex;align-items:center;gap:6px;font:600 12px/1.2 'Cormorant Garamond',serif;transition:transform .12s ease,box-shadow .12s ease}
+    .staging-guest:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+    .staging-guest:active{cursor:grabbing}
 
     .table-cluster{position:absolute}
     .seat-slot,.guest-chip,.round-table{position:absolute}
@@ -47,7 +73,9 @@
     .seat-slot{border:1px dashed rgba(164,127,89,.34);background:rgba(255,255,255,.16);border-radius:16px;z-index:12;transition:transform .12s ease, border-color .12s ease, background .12s ease;backdrop-filter:blur(4px)}
     .seat-slot::after{content:'Place';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 9px/1 'Manrope',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgba(127,105,87,.70)}
     .seat-slot.drop-target{border-color:var(--accent-strong);background:rgba(164,127,89,.18);transform:scale(1.05)}
-    .guest-chip{padding:7px 10px;border-radius:18px;border:1px solid rgba(164,127,89,.20);background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,241,233,.96));box-shadow:var(--shadow-soft);font-size:10px;cursor:move;user-select:none;z-index:20;text-align:center;line-height:1.2;overflow:hidden}
+    .guest-chip{padding:7px 10px;border-radius:18px;border:1px solid rgba(164,127,89,.20);background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,241,233,.96));box-shadow:var(--shadow-soft);font-size:10px;cursor:grab;user-select:none;z-index:20;text-align:center;line-height:1.2;overflow:hidden;transition:transform .12s ease,box-shadow .12s ease}
+    .guest-chip:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+    .guest-chip:active{cursor:grabbing}
     .guest-chip .name{display:block;font:600 13px/1.1 'Cormorant Garamond',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
     .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:5px}
     .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:700;border:1px solid rgba(130,102,77,.12);white-space:nowrap;background:rgba(255,250,245,.9);letter-spacing:.05em;text-transform:uppercase}
@@ -56,7 +84,7 @@
     .guest-chip.enfant .pill.type{background:var(--badge-en);color:var(--badge-en-text)}
     .guest-chip.bebe .pill.type{background:var(--badge-bb);color:var(--badge-bb-text)}
 
-    @media (max-width:900px){.wrap{padding:14px}.hero h1{font-size:38px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{position:static}.canvas{height:70vh}}
+    @media (max-width:900px){.wrap{padding:14px}.hero h1{font-size:38px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{position:static}.canvas{height:70vh}.layout-container{flex-direction:column}.sidebar{width:100%;position:static;max-height:200px}}
   </style>
 </head>
 <body>
@@ -64,7 +92,7 @@
     <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
     <section class="hero">
       <h1>Plan visuel</h1>
-      <p>Un plan de salle immersif, pensé comme une mise en scène de réception. Chaque table reste un groupe stable : déplacer une table emporte son ensemble, déplacer un invité le réassigne avec une logique de placement fixe et lisible.</p>
+      <p>Un plan de salle immersif, pensé comme une mise en scène de réception. Chaque table reste un groupe stable : déplacer une table emporte son ensemble, déplacer un invité le réassigne avec une logique de placement fixe et lisible.</p>
       <div class="stats">
         <div class="stat"><span>Tables</span><strong id="statTables">0</strong></div>
         <div class="stat"><span>Invités placés</span><strong id="statGuests">0</strong></div>
@@ -73,23 +101,41 @@
       </div>
     </section>
     <div class="toolbar">
-      <button onclick="saveLayout()">Sauvegarder le plan</button>
-      <button class="ghost" onclick="resetLayout()">Reset positions</button>
+      <span class="save-indicator" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(255,255,255,.7);border:1px solid rgba(164,127,89,.16);border-radius:12px;font-size:12px;color:var(--muted)">
+        <span style="width:8px;height:8px;background:#22c55e;border-radius:50%"></span>
+        <span>Auto-sauvegarde</span>
+      </span>
+      <button onclick="saveLayout()">Sauvegarder</button>
+      <button class="ghost" onclick="resetLayout()">Reset</button>
       <button class="ghost" onclick="reloadPlan()">Recharger</button>
-      <span class="muted">Les sièges vides restent visibles en pointillé jusqu’au remplissage complet.</span>
     </div>
-    <div id="canvas" class="canvas"></div>
+    <div class="layout-container">
+      <!-- SIDEBAR: Unified zone with unassigned guests + 1 empty placeholder -->
+      <div class="sidebar">
+        <div class="sidebar-header">Non classés</div>
+        <div id="sidebarGuests" class="sidebar-content">
+          <!-- Unassigned guests go here -->
+        </div>
+        <!-- Empty placeholder slot - always visible, acts as drop target to unplace guests -->
+        <div id="sidebarPlaceholder" class="sidebar-guest sidebar-placeholder" data-placeholder="true">
+          <span class="placeholder-text">Déposer ici pour désaffecter</span>
+        </div>
+      </div>
+      <div id="canvas" class="canvas"></div>
+    </div>
   </div>
 
   <script>
-    let plan={tables:[],guests:[],layout:{}};
+    let plan={tables:[],guests:[],layout:{},stagingGuests:[]};
     let activeDropTarget=null;
     let lastCanvasSize=null;
     const canvas=document.getElementById('canvas');
+    const sidebarPlaceholder=document.getElementById('sidebarPlaceholder');
     const TABLE_SIZE=180;
     const TABLE_RADIUS=90;
     const CLUSTER_PADDING=150;
 
+    // ============ UTILITIES ============
     function normType(t){
       const v=String(t||'adulte');
       if(v==='enfant') return 'enfant';
@@ -111,26 +157,416 @@
       return 'regime-default';
     }
 
+    // ============ GUEST STATE ============
+    function getPlacedGuestIds(){
+      const placed=new Set();
+      (plan.tables||[]).forEach(t=>{
+        (t.guests||[]).forEach(g=>{ if(g?.id) placed.add(g.id); });
+      });
+      return placed;
+    }
+
+    // ============ GUEST LIST MANAGEMENT ============
+    // Rebuild complete guest list from tables + current plan.guests
+    // This ensures unplaced guests are always visible in sidebar
+    function rebuildGuestList(){
+      const allGuests=new Map();
+      
+      // First, add all guests from plan.guests
+      (plan.guests||[]).forEach(g=>{
+        if(g && g.id) allGuests.set(g.id, {...g});
+      });
+      
+      // Then add any guests from tables that aren't in the list
+      (plan.tables||[]).forEach(t=>{
+        (t.guests||[]).forEach(g=>{
+          if(g && g.id && !allGuests.has(g.id)){
+            allGuests.set(g.id, {...g});
+          }
+        });
+      });
+      
+      // Convert back to array
+      plan.guests=Array.from(allGuests.values());
+    }
+
+    function getUnplacedGuests(){
+      // Ensure guest list is complete before filtering
+      rebuildGuestList();
+      const placed=getPlacedGuestIds();
+      return (plan.guests||[]).filter(g=>g && !placed.has(g.id));
+    }
+
+    // ============ RENDER SIDEBAR (UNIFIED ZONE) ============
+    function renderSidebar(){
+      const container=document.getElementById('sidebarGuests');
+      container.innerHTML='';
+      const unplaced=getUnplacedGuests();
+      
+      if(!unplaced.length){
+        container.innerHTML='<div class="sidebar-empty">Tous les invités sont placés</div>';
+        return;
+      }
+      
+      unplaced.forEach(guest=>{
+        const div=document.createElement('div');
+        div.className='sidebar-guest';
+        div.dataset.guestId=guest.id;
+        const regime=(guest.regime||'').trim();
+        const type=normType(guest.type);
+        const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
+        div.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
+        
+        // Make draggable
+        setupDragFromSidebar(div, guest);
+        
+        container.appendChild(div);
+      });
+    }
+
+    // ============ DRAG FROM SIDEBAR TO TABLE ============
+    function setupDragFromSidebar(chip, guest){
+      let sx=0, sy=0, ox=0, oy=0, down=false, started=false, ghostEl=null;
+      
+      const onPointerDown = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        down=true; started=false; 
+        sx=e.clientX; sy=e.clientY; 
+        const rect=chip.getBoundingClientRect();
+        ox=rect.left; oy=rect.top;
+        chip.style.opacity='0.3';
+        
+        // Create ghost for dragging
+        ghostEl=chip.cloneNode(true);
+        ghostEl.style.position='fixed';
+        ghostEl.style.left=ox+'px';
+        ghostEl.style.top=oy+'px';
+        ghostEl.style.width=rect.width+'px';
+        ghostEl.style.opacity='0.9';
+        ghostEl.style.zIndex='9999';
+        ghostEl.style.pointerEvents='none';
+        ghostEl.style.transform='scale(1.05)';
+        ghostEl.style.boxShadow='0 12px 28px rgba(67,44,23,.25)';
+        document.body.appendChild(ghostEl);
+        
+        chip.setPointerCapture(e.pointerId);
+      };
+      
+      const onPointerMove = (e) => {
+        if(!down) return;
+        if(!started && (Math.abs(e.clientX-sx)>5 || Math.abs(e.clientY-sy)>5)) started=true;
+        if(!started) return;
+        
+        const dx=e.clientX-sx;
+        const dy=e.clientY-sy;
+        
+        if(ghostEl){
+          ghostEl.style.left=(ox+dx)+'px';
+          ghostEl.style.top=(oy+dy)+'px';
+        }
+        
+        // Highlight placeholder in sidebar
+        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
+        if(e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom){
+          sidebarPlaceholder.classList.add('drop-active');
+        }else{
+          sidebarPlaceholder.classList.remove('drop-active');
+        }
+        
+        // Look for seat targets
+        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
+        if(target?.slot !== activeDropTarget){
+          clearDropTarget();
+          if(target?.slot){ 
+            activeDropTarget=target.slot; 
+            activeDropTarget.classList.add('drop-target'); 
+          }
+        }
+      };
+      
+      const onPointerUp = (e) => {
+        if(!down){ down=false; return; }
+        down=false;
+        chip.style.opacity='1';
+        
+        // Remove ghost
+        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
+        
+        clearDropTarget();
+        sidebarPlaceholder.classList.remove('drop-active');
+        
+        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
+        const inPlaceholder=e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom;
+        
+        // Check for seat drop
+        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
+        
+        if(inPlaceholder){
+          // Dropped on placeholder - unplace the guest (just stays in unassigned)
+          // Remove from any table first
+          removeFromTables(guest.id);
+        }else if(target){
+          // Place on seat
+          placeGuest(guest, target.tableId, target.seatIndex);
+        }
+        
+        render();
+        autoSave();
+      };
+      
+      const onPointerCancel = (e) => {
+        down=false;
+        chip.style.opacity='1';
+        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
+        clearDropTarget();
+        sidebarPlaceholder.classList.remove('drop-active');
+      };
+      
+      chip.addEventListener('pointerdown', onPointerDown);
+      chip.addEventListener('pointermove', onPointerMove);
+      chip.addEventListener('pointerup', onPointerUp);
+      chip.addEventListener('pointercancel', onPointerCancel);
+    }
+
+    // ============ DRAG FROM TABLE TO SIDEBAR (UNPLACE) OR OTHER SEAT ============
+    function setupDragFromTable(chip, guest, tableId, seatIndex){
+      let sx=0, sy=0, ox=0, oy=0, down=false, started=false, ghostEl=null;
+      
+      const onPointerDown = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        down=true; started=false; 
+        sx=e.clientX; sy=e.clientY; 
+        const rect=chip.getBoundingClientRect();
+        ox=rect.left; oy=rect.top;
+        chip.style.opacity='0.3';
+        
+        // Create ghost
+        ghostEl=chip.cloneNode(true);
+        ghostEl.style.position='fixed';
+        ghostEl.style.left=ox+'px';
+        ghostEl.style.top=oy+'px';
+        ghostEl.style.width=rect.width+'px';
+        ghostEl.style.opacity='0.9';
+        ghostEl.style.zIndex='9999';
+        ghostEl.style.pointerEvents='none';
+        ghostEl.style.transform='scale(1.05)';
+        ghostEl.style.boxShadow='0 12px 28px rgba(67,44,23,.25)';
+        document.body.appendChild(ghostEl);
+        
+        chip.setPointerCapture(e.pointerId);
+      };
+      
+      const onPointerMove = (e) => {
+        if(!down) return;
+        if(!started && (Math.abs(e.clientX-sx)>5 || Math.abs(e.clientY-sy)>5)) started=true;
+        if(!started) return;
+        
+        const dx=e.clientX-sx;
+        const dy=e.clientY-sy;
+        
+        if(ghostEl){
+          ghostEl.style.left=(ox+dx)+'px';
+          ghostEl.style.top=(oy+dy)+'px';
+        }
+        
+        // Highlight placeholder in sidebar
+        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
+        if(e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom){
+          sidebarPlaceholder.classList.add('drop-active');
+        }else{
+          sidebarPlaceholder.classList.remove('drop-active');
+        }
+        
+        // Look for other seat targets (swapping)
+        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
+        if(target?.slot !== activeDropTarget){
+          clearDropTarget();
+          if(target?.slot){ 
+            activeDropTarget=target.slot; 
+            activeDropTarget.classList.add('drop-target'); 
+          }
+        }
+      };
+      
+      const onPointerUp = (e) => {
+        if(!down){ down=false; return; }
+        down=false;
+        chip.style.opacity='1';
+        
+        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
+        
+        clearDropTarget();
+        
+        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
+        const inPlaceholder=e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom;
+        
+        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
+        
+        if(inPlaceholder){
+          // Unplace - remove from table and show in sidebar
+          console.log('Unplacing guest:', guest.id, guest.name);
+          removeFromTables(guest.id);
+          // Also clear from staging just in case
+          removeFromStaging(guest.id);
+        }else if(target && (target.tableId !== tableId || target.seatIndex !== seatIndex)){
+          // Swap/move to another seat
+          swapOrMoveGuest(tableId, seatIndex, target);
+        }
+        
+        sidebarPlaceholder.classList.remove('drop-active');
+        render();
+        autoSave();
+      };
+      
+      const onPointerCancel = (e) => {
+        down=false;
+        chip.style.opacity='1';
+        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
+        clearDropTarget();
+        sidebarPlaceholder.classList.remove('drop-active');
+      };
+      
+      chip.addEventListener('pointerdown', onPointerDown);
+      chip.addEventListener('pointermove', onPointerMove);
+      chip.addEventListener('pointerup', onPointerUp);
+      chip.addEventListener('pointercancel', onPointerCancel);
+    }
+
+    // ============ FIND SEAT TARGET AT POINT ============
+    // Uses getBoundingClientRect for accurate positioning
+    function findSeatTargetAtPoint(clientX, clientY){
+      let best=null, bestDist=Infinity;
+      
+      document.querySelectorAll('.seat-slot').forEach(slot=>{
+        const rect=slot.getBoundingClientRect();
+        const cx=rect.left + rect.width/2;
+        const cy=rect.top + rect.height/2;
+        const d=Math.hypot(clientX-cx, clientY-cy);
+        
+        // Check if point is inside or near the slot
+        const isInside = clientX >= rect.left && clientX <= rect.right && 
+                         clientY >= rect.top && clientY <= rect.bottom;
+        
+        if(d<bestDist && (isInside || d < 60)){
+          bestDist=d;
+          best={
+            slot,
+            tableId:slot.dataset.tableId,
+            seatIndex:Number(slot.dataset.seatIndex)
+          };
+        }
+      });
+      
+      return best;
+    }
+
+    // ============ GUEST OPERATIONS ============
+    function removeFromTables(guestId){
+      (plan.tables||[]).forEach(t=>{
+        t.guests=t.guests||[];
+        const idx=t.guests.findIndex(g=>g && g.id===guestId);
+        if(idx!==-1) t.guests[idx]=null;
+      });
+    }
+
+    function removeFromStaging(guestId){
+      plan.stagingGuests = (plan.stagingGuests||[]).filter(g=>g.id!==guestId);
+    }
+
+    function placeGuest(guest, tableId, seatIndex){
+      const t=(plan.tables||[]).find(x=>x.id===tableId);
+      if(!t) return;
+      t.guests=t.guests||[];
+      // Remove from any previous table first
+      removeFromTables(guest.id);
+      removeFromStaging(guest.id);
+      // Place at new location
+      t.guests[seatIndex]=guest;
+    }
+
+    function swapOrMoveGuest(fromTableId, fromSeatIndex, target){
+      if(!target) return render();
+      const from=(plan.tables||[]).find(t=>t.id===fromTableId);
+      const to=(plan.tables||[]).find(t=>t.id===target.tableId);
+      if(!from || !to) return render();
+      from.guests=from.guests||[];
+      to.guests=to.guests||[];
+      const moving=from.guests[fromSeatIndex];
+      if(!moving) return render();
+      const targetGuest=to.guests[target.seatIndex] || null;
+      if(from.id===to.id && fromSeatIndex===target.seatIndex) return render();
+      from.guests[fromSeatIndex]=targetGuest;
+      to.guests[target.seatIndex]=moving;
+      // Clean up nulls at end
+      while(from.guests.length && !from.guests[from.guests.length-1]) from.guests.pop();
+      while(to.guests.length && !to.guests[to.guests.length-1]) to.guests.pop();
+      render();
+      autoSave();
+    }
+
+    function clearDropTarget(){
+      if(activeDropTarget){ 
+        activeDropTarget.classList.remove('drop-target'); 
+        activeDropTarget=null; 
+      }
+    }
+
+    // ============ LOAD/SAVE ============
     async function load(){
       const r=await fetch('/api/plan');
       plan=await r.json();
       plan.layout=plan.layout||{};
       plan.layout.tables=plan.layout.tables||{};
       plan.layout.viewport=plan.layout.viewport||null;
+      plan.stagingGuests=plan.stagingGuests||[];
+      
+      // Initialize plan.guests from tables if empty (fixes missing master guest list)
+      if(!plan.guests || plan.guests.length === 0){
+        const tableGuestIds=new Set();
+        (plan.tables||[]).forEach(t=>{
+          (t.guests||[]).forEach(g=>{ if(g?.id) tableGuestIds.add(g.id); });
+        });
+        // Collect all unique guests from tables
+        const guestsFromTables=[];
+        const seenIds=new Set();
+        (plan.tables||[]).forEach(t=>{
+          (t.guests||[]).forEach(g=>{
+            if(g && g.id && !seenIds.has(g.id)){
+              seenIds.add(g.id);
+              guestsFromTables.push({
+                id: g.id,
+                name: g.name || 'Invité',
+                type: g.type || 'adulte',
+                regime: g.regime || '',
+                rsvpStatus: g.rsvpStatus || '',
+                phone: g.phone || '',
+                adminNotes: g.adminNotes || ''
+              });
+            }
+          });
+        });
+        plan.guests=guestsFromTables;
+      }
+      
       render();
     }
     async function reloadPlan(){ await load(); }
 
     function updateStats(){
       const tables=plan.tables||[];
-      const guests=tables.flatMap(t=>t.guests||[]);
+      const placedGuests=tables.flatMap(t=>t.guests||[]);
+      const unplaced=getUnplacedGuests();
+      const stagingCount=(plan.stagingGuests||[]).length;
       const alerts=tables.filter(t=>(t.guests||[]).length>(t.capacity||0)).length;
       document.getElementById('statTables').textContent=tables.length;
-      document.getElementById('statGuests').textContent=guests.length;
+      document.getElementById('statGuests').textContent=placedGuests.length;
       document.getElementById('statCapacity').textContent=tables.reduce((s,t)=>s+Number(t.capacity||0),0);
-      document.getElementById('statAlerts').textContent=alerts;
+      document.getElementById('statAlerts').textContent=alerts + (unplaced.length>0?1:0) + (stagingCount>0?1:0);
     }
 
+    // ============ TABLE LAYOUT ============
     function estimateChipSize(guest){
       const name=String(guest?.name||'');
       const regime=String(guest?.regime||'').trim();
@@ -222,10 +658,6 @@
       return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) };
     }
 
-    function rectsOverlap(a,b){
-      return !(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y);
-    }
-
     function layoutCellSpec(entries){
       const maxWidth=Math.max(...entries.map(e=>e.bounds.width), TABLE_SIZE);
       const maxHeight=Math.max(...entries.map(e=>e.bounds.height), TABLE_SIZE);
@@ -293,10 +725,12 @@
       lastCanvasSize={width,height};
     }
 
+    // ============ RENDER ============
     function render(){
       canvas.innerHTML='';
       adaptLayoutToViewport();
       updateStats();
+      renderSidebar();
 
       const baseEntries=(plan.tables||[]).map((t,i)=>{
         const capacity=Math.max(1, Number(t.capacity||1));
@@ -332,7 +766,7 @@
         table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px';
         const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,capacity))*100));
         table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${capacity}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
-        drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); });
+        drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); autoSave(); });
         cluster.appendChild(table);
 
         for(let seatIndex=0; seatIndex<capacity; seatIndex++){
@@ -358,55 +792,24 @@
           const type=normType(guest.type);
           const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
           chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
-          dragGuest(chip, cluster, pos, (target)=>swapOrMoveGuest(t.id, seatIndex, target));
+          
+          // Setup drag from table to sidebar (to unplace) or another seat
+          setupDragFromTable(chip, guest, t.id, seatIndex);
+          
           cluster.appendChild(chip);
         }
         canvas.appendChild(cluster);
       });
     }
 
+
+
     function renameTable(tableId, value){
       const t=(plan.tables||[]).find(x=>x.id===tableId);
       if(!t) return;
       t.name=String(value||'').trim() || t.name || 'Table';
       render();
-    }
-
-    function clearDropTarget(){
-      if(activeDropTarget){ activeDropTarget.classList.remove('drop-target'); activeDropTarget=null; }
-    }
-
-    function findSeatTarget(globalX, globalY){
-      let best=null, bestDist=Infinity;
-      document.querySelectorAll('.seat-slot').forEach(slot=>{
-        const left=parseInt(slot.parentElement.style.left||'0',10)+parseInt(slot.style.left||'0',10);
-        const top=parseInt(slot.parentElement.style.top||'0',10)+parseInt(slot.style.top||'0',10);
-        const width=parseInt(slot.style.width||'0',10);
-        const height=parseInt(slot.style.height||'0',10);
-        const cx=left + width/2;
-        const cy=top + height/2;
-        const d=Math.hypot(globalX-cx, globalY-cy);
-        if(d<bestDist){ best={slot,left,top,width,height,tableId:slot.dataset.tableId,seatIndex:Number(slot.dataset.seatIndex)}; bestDist=d; }
-      });
-      return bestDist <= 90 ? best : null;
-    }
-
-    function swapOrMoveGuest(fromTableId, fromSeatIndex, target){
-      if(!target) return render();
-      const from=(plan.tables||[]).find(t=>t.id===fromTableId);
-      const to=(plan.tables||[]).find(t=>t.id===target.tableId);
-      if(!from || !to) return render();
-      from.guests=from.guests||[];
-      to.guests=to.guests||[];
-      const moving=from.guests[fromSeatIndex];
-      if(!moving) return render();
-      const targetGuest=to.guests[target.seatIndex] || null;
-      if(from.id===to.id && fromSeatIndex===target.seatIndex) return render();
-      from.guests[fromSeatIndex]=targetGuest;
-      to.guests[target.seatIndex]=moving;
-      while(from.guests.length && !from.guests[from.guests.length-1]) from.guests.pop();
-      while(to.guests.length && !to.guests[to.guests.length-1]) to.guests.pop();
-      render();
+      autoSave();
     }
 
     function drag(handle, cluster, bounds, onDrop){
@@ -429,37 +832,29 @@
       });
     }
 
-    function dragGuest(chip, cluster, clusterPos, onDrop){
-      let sx=0, sy=0, ox=0, oy=0, down=false;
-      chip.addEventListener('pointerdown', e=>{ down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(chip.style.left,10)||0; oy=parseInt(chip.style.top,10)||0; chip.setPointerCapture(e.pointerId); });
-      chip.addEventListener('pointermove', e=>{
-        if(!down) return;
-        const localLeft=ox+(e.clientX-sx);
-        const localTop=oy+(e.clientY-sy);
-        chip.style.left=localLeft+'px';
-        chip.style.top=localTop+'px';
-        const target=findSeatTarget(clusterPos.x + localLeft + chip.offsetWidth/2, clusterPos.y + localTop + chip.offsetHeight/2);
-        if(target?.slot !== activeDropTarget){
-          clearDropTarget();
-          if(target?.slot){ activeDropTarget=target.slot; activeDropTarget.classList.add('drop-target'); }
-        }
-      });
-      chip.addEventListener('pointerup', ()=>{
-        if(!down) return;
-        down=false;
-        const localLeft=parseInt(chip.style.left,10)||0;
-        const localTop=parseInt(chip.style.top,10)||0;
-        const target=findSeatTarget(clusterPos.x + localLeft + chip.offsetWidth/2, clusterPos.y + localTop + chip.offsetHeight/2);
-        clearDropTarget();
-        onDrop(target);
-      });
+    // Auto-save
+    let saveTimeout = null;
+    
+    async function autoSave(){
+      if(saveTimeout) clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        try {
+          await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)});
+          showSaveIndicator();
+        } catch(e){ console.error('Auto-save failed:', e); }
+      }, 800);
+    }
+    function showSaveIndicator(){
+      const btn = document.querySelector('.toolbar .save-indicator');
+      if(btn){ btn.classList.add('saving'); setTimeout(()=>btn.classList.remove('saving'),600); }
     }
 
     async function saveLayout(){
       await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)});
-      alert('Plan visuel sauvegardé ✅');
+      showSaveIndicator();
     }
-    function resetLayout(){ plan.layout={tables:{},guests:{}}; render(); }
+    function resetLayout(){ plan.layout={tables:{},guests:{}}; plan.stagingGuests=[]; render(); }
+    
     window.addEventListener('resize', ()=>requestAnimationFrame(render));
     window.addEventListener('focus', ()=>load());
     load();

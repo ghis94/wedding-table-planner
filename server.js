@@ -63,19 +63,27 @@ function sanitizeRsvp(input = {}, { keepCreatedAt = true } = {}) {
   };
 }
 
-function sanitizeGuest(input = {}) {
-  return {
+function sanitizeGuest(input = {}, { keepRsvpFields = false } = {}) {
+  // For table.guests: only keep essential placement fields
+  // Legacy support: accept but don't persist adultes/enfants in table.guests
+  const base = {
     id: cleanText(input.id || crypto.randomUUID(), 80),
     name: cleanText(input.name || 'Invité', 160) || 'Invité',
     type: normalizeGuestType(input.type),
-    rsvpStatus: normalizePresence(input.rsvpStatus),
-    sourceRsvpId: cleanText(input.sourceRsvpId, 80),
+    rsvpStatus: normalizePresence(input.rsvpStatus || input.presence),  // Accept both
     phone: cleanText(input.phone, 80),
     regime: cleanText(input.regime, 500),
     adminNotes: cleanText(input.adminNotes, 2000),
-    adultes: clampInt(input.adultes, { min: 0, max: 20, fallback: 0 }),
-    enfants: clampInt(input.enfants, { min: 0, max: 20, fallback: 0 }),
   };
+  
+  // Legacy support: keep RSVP-specific fields when explicitly requested
+  if (keepRsvpFields) {
+    base.sourceRsvpId = cleanText(input.sourceRsvpId, 80);
+    base.adultes = clampInt(input.adultes, { min: 0, max: 20, fallback: 0 });
+    base.enfants = clampInt(input.enfants, { min: 0, max: 20, fallback: 0 });
+  }
+  
+  return base;
 }
 
 function sanitizeTable(input = {}) {
