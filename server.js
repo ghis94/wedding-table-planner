@@ -412,10 +412,9 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
   }
 });
 
-app.get(['/admin.html', '/visual.html', '/day-of.html'], requireAdmin);
-app.get('/', (_req, res) => res.redirect('/login.html'));
-app.get('/index.html', (_req, res) => res.redirect('/login.html'));
-app.get('/staff.html', (_req, res) => res.redirect('/admin.html'));
+app.get(['/admin.html', '/visual.html', '/day-of.html', '/staff.html'], requireAdmin);
+app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/index.html', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/login.html', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 app.use(express.static(__dirname));
 

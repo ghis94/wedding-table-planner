@@ -4,88 +4,280 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mariage — RSVP</title>
+  <link rel="stylesheet" href="styles.css" />
   <style>
-    body{font-family:Arial,sans-serif;max-width:760px;margin:24px auto;padding:0 14px;color:#1f2937}
-    h1{margin-bottom:6px} .card{border:1px solid #e5e7eb;border-radius:10px;padding:14px;margin:14px 0}
-    label{display:block;margin-top:10px;font-weight:600} input,select,textarea,button{width:100%;padding:10px;margin-top:6px;border:1px solid #d1d5db;border-radius:8px}
-    button{cursor:pointer;background:#111827;color:#fff;font-weight:700} .muted{color:#6b7280;font-size:14px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    @media(max-width:640px){.row{grid-template-columns:1fr}}
-    .ok{color:#065f46;font-weight:700;margin-top:10px}
-    a{color:#1d4ed8}
+    .page-shell {
+      display: grid;
+      gap: 22px;
+    }
+    .nav-links {
+      justify-content: center;
+    }
+    .rsvp-hero {
+      text-align: center;
+      padding: 42px 36px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      margin-bottom: 16px;
+      border-radius: 999px;
+      background: var(--accent-ghost);
+      color: var(--accent-strong);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .rsvp-hero p {
+      max-width: 720px;
+      margin: 0 auto;
+      font-size: 1.02rem;
+    }
+    .rsvp-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
+      gap: 22px;
+      align-items: start;
+    }
+    .rsvp-form {
+      padding: 28px;
+    }
+    .side-info {
+      display: grid;
+      gap: 16px;
+    }
+    .info-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .info-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.28);
+      border: 1px solid var(--line-soft);
+    }
+    .info-list strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .info-list span:first-child {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .submit-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .success-message {
+      display: none;
+      padding: 14px 16px;
+      background: var(--success-bg);
+      color: var(--success-text);
+      border-radius: 14px;
+      font-weight: 700;
+      animation: fadeIn .25s ease;
+    }
+    .success-message.show {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .org-links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .org-links a {
+      display: block;
+      padding: 18px 20px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,.36), rgba(255,255,255,.10));
+      border: 1px solid var(--line-soft);
+      color: var(--text);
+      box-shadow: var(--shadow-xs);
+      transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+    }
+    .org-links a:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+      border-color: var(--line-strong);
+      text-decoration: none;
+    }
+    .org-links strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    @media (max-width: 900px) {
+      .rsvp-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 640px) {
+      .rsvp-hero,
+      .rsvp-form {
+        padding: 22px;
+      }
+      .org-links {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
-  <div style="margin-bottom:10px"><a href="index.html">Accueil</a> · <a href="admin.html">Admin</a> · <a href="staff.html">Staff</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
-  <h1>💍 RSVP Mariage</h1>
-  <p class="muted">Confirme ta présence et tes informations pratiques.</p>
+  <script src="theme.js"></script>
+  <script src="header.js" defer></script>
+  <div class="wrap">
+    <div class="page-shell">
+      <nav class="nav-links">
+        <a href="index.html" class="active">Accueil</a>
+        <a href="admin.html">Admin</a>
+        <a href="staff.html">Staff</a>
+        <a href="visual.html">Plan visuel</a>
+        <a href="day-of.html">Jour J</a>
+      </nav>
 
-  <div class="card">
-    <form id="rsvpForm">
-      <div class="row">
-        <div>
-          <label>Nom</label>
-          <input name="nom" required />
+      <section class="hero rsvp-hero">
+        <div class="eyebrow">✦ Confirmation de présence</div>
+        <h1>💍 RSVP Mariage</h1>
+        <p>Une page plus propre, plus douce et plus lisible pour confirmer ta présence, préciser les accompagnants et signaler les informations utiles à l’organisation.</p>
+        <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px">
+          <span class="metric-inline"><strong>Rapide</strong> formulaire compact</span>
+          <span class="metric-inline"><strong>Compatible</strong> light / dark / system</span>
         </div>
-        <div>
-          <label>Prénom</label>
-          <input name="prenom" required />
+      </section>
+
+      <section class="rsvp-layout">
+        <div class="card rsvp-form">
+          <div class="wedding-section-title">
+            <div>
+              <h3>Répondre à l’invitation</h3>
+              <p class="text-sm text-muted">Quelques champs simples, un rendu plus clair, et un formulaire cohérent avec le reste de l’app.</p>
+            </div>
+          </div>
+          <form id="rsvpForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="nom">Nom</label>
+                <input type="text" id="nom" name="nom" placeholder="Ton nom" required />
+              </div>
+              <div class="form-group">
+                <label for="prenom">Prénom</label>
+                <input type="text" id="prenom" name="prenom" placeholder="Ton prénom" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="presence">Présence</label>
+              <select id="presence" name="presence" required>
+                <option value="">Choisir…</option>
+                <option value="Oui">Oui</option>
+                <option value="Non">Non</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="adultes">Nombre d'adultes</label>
+                <input type="number" id="adultes" name="adultes" min="0" value="1" required />
+              </div>
+              <div class="form-group">
+                <label for="enfants">Nombre d'enfants</label>
+                <input type="number" id="enfants" name="enfants" min="0" value="0" required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="regime">Régime alimentaire / allergies</label>
+              <textarea id="regime" name="regime" rows="3" placeholder="Ex : végétarien, sans gluten, allergies…"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="3" placeholder="Petit mot pour les mariés"></textarea>
+            </div>
+
+            <div class="submit-row">
+              <button type="submit">Envoyer la réponse</button>
+              <div id="success" class="success-message">✅ Merci, votre réponse est enregistrée</div>
+            </div>
+          </form>
         </div>
-      </div>
 
-      <label>Présence</label>
-      <select name="presence" required>
-        <option value="">Choisir…</option>
-        <option>Oui</option>
-        <option>Non</option>
-      </select>
+        <aside class="side-info">
+          <div class="card">
+            <h3>Ce qu’on récupère</h3>
+            <ul class="info-list">
+              <li><span>👥</span><div><strong>Présence & volume</strong><p class="text-sm">Adultes, enfants, et visibilité sur les places à prévoir.</p></div></li>
+              <li><span>🥗</span><div><strong>Contraintes alimentaires</strong><p class="text-sm">Allergies et régimes utiles pour le traiteur et le staff.</p></div></li>
+              <li><span>💌</span><div><strong>Message invité</strong><p class="text-sm">Un mot libre, sans alourdir la page.</p></div></li>
+            </ul>
+          </div>
 
-      <div class="row">
-        <div>
-          <label>Nombre d'adultes</label>
-          <input type="number" min="0" value="1" name="adultes" required />
-        </div>
-        <div>
-          <label>Nombre d'enfants</label>
-          <input type="number" min="0" value="0" name="enfants" required />
-        </div>
-      </div>
-
-      <label>Régime alimentaire / allergies</label>
-      <textarea name="regime" rows="3" placeholder="Ex: végétarien, sans gluten…"></textarea>
-
-      <label>Message</label>
-      <textarea name="message" rows="3" placeholder="Petit mot pour les mariés"></textarea>
-
-      <button type="submit">Envoyer</button>
-      <p id="ok" class="ok" style="display:none">Merci, votre réponse est enregistrée ✅</p>
-    </form>
-  </div>
-
-  <div class="card">
-    <h3>Espace organisation</h3>
-    <a href="admin.html">Plan de table (admin)</a><br/>
-    <a href="day-of.html">Vue jour J (admin)</a>
+          <div class="card">
+            <p class="text-sm text-muted">Espace organisation</p>
+            <h3>Accès rapides</h3>
+            <div class="org-links">
+              <a href="admin.html">
+                <strong>📋 Plan de table</strong>
+                <span class="text-sm text-muted">Organisation, invités, import/export, cohérence globale.</span>
+              </a>
+              <a href="day-of.html">
+                <strong>📅 Vue Jour J</strong>
+                <span class="text-sm text-muted">Lecture opérationnelle simple pour le jour du mariage.</span>
+              </a>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </div>
   </div>
 
   <script>
-    const form=document.getElementById('rsvpForm');
-    const ok=document.getElementById('ok');
+    const form = document.getElementById('rsvpForm');
+    const success = document.getElementById('success');
 
-    form.addEventListener('submit', async (e)=>{
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const data=Object.fromEntries(new FormData(form).entries());
-      data.id=crypto.randomUUID();
-      data.createdAt=new Date().toISOString();
-      const resp = await fetch('/api/rsvp', {
-        method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
-      });
-      if(resp.ok){
-        form.reset();
-        ok.style.display='block';
-        setTimeout(()=>ok.style.display='none',3000);
-      } else {
-        alert('Erreur enregistrement RSVP');
+      const data = Object.fromEntries(new FormData(form).entries());
+      data.id = crypto.randomUUID();
+      data.createdAt = new Date().toISOString();
+
+      const btn = form.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Envoi en cours…';
+
+      try {
+        const resp = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (resp.ok) {
+          form.reset();
+          success.classList.add('show');
+          setTimeout(() => success.classList.remove('show'), 4000);
+        } else {
+          alert('Erreur lors de l\'enregistrement du RSVP');
+        }
+      } catch (err) {
+        alert('Erreur de connexion');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Envoyer la réponse';
       }
     });
   </script>

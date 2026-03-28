@@ -4,106 +4,232 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin — Plan de table</title>
+  <link rel="stylesheet" href="styles.css" />
   <style>
-    :root{
-      --bg:#f3ede3;--bg-soft:#faf6f0;--bg-deep:#efe5d8;--text:#241913;--panel:rgba(255,251,246,.90);--panel-2:rgba(248,240,230,.84);--line:#dccab5;--line-soft:rgba(164,127,89,.18);--muted:#7f6957;--accent:#a47f59;--accent-strong:#7c5836;--accent-soft:#ddc3a5;--shadow:0 20px 48px rgba(67,44,23,.10);--shadow-soft:0 10px 24px rgba(67,44,23,.08);
-      --btn:#2f251d;--btn-text:#fffdf8;
-      --badge-ad:#f1ebff;--badge-ad-text:#5b21b6;--badge-en:#e8f2fb;--badge-en-text:#32556f;--badge-bb:#fdf0e1;--badge-bb-text:#9b5c24;
+    .shell { display: grid; gap: 22px; }
+    .hero-copy { max-width: 820px; }
+    .hero-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:18px;
+      flex-wrap:wrap;
     }
-    *{box-sizing:border-box}
-    body{font-family:'Manrope',Inter,Arial,sans-serif;margin:0;background:radial-gradient(circle at top,rgba(255,255,255,.55),transparent 28%),linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
-    body::before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent 42%),repeating-linear-gradient(0deg,transparent 0 38px,rgba(120,84,53,.028) 38px 39px);opacity:.9}
-    a{color:inherit}
-    .wrap{max-width:1480px;margin:0 auto;padding:28px}
-    .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-    .crumbs a{color:inherit;text-decoration:none;position:relative}
-    .crumbs a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;background:currentColor;opacity:.25}
-    .shell{display:grid;gap:20px}
-    .hero,.card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-soft);box-shadow:var(--shadow);backdrop-filter:blur(10px)}
-    .hero{border-radius:30px;padding:28px 30px;position:relative;overflow:hidden}
-    .hero::after{content:'';position:absolute;inset:auto -80px -120px auto;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(164,127,89,.22),transparent 68%)}
-    .header{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
-    .hero h1{margin:0 0 8px;font:600 40px/1.05 'Cormorant Garamond',serif;letter-spacing:.02em}
-    .hero p{margin:0;color:var(--muted);max-width:760px;line-height:1.6;font-size:15px}
-    .hero-stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:14px;margin-top:22px}
-    .stat{background:rgba(255,255,255,.44);border:1px solid rgba(164,127,89,.16);border-radius:22px;padding:16px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
-    .stat .label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
-    .stat strong{font:600 28px/1 'Cormorant Garamond',serif}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-soft);padding:14px 16px;border-radius:22px;position:sticky;top:10px;backdrop-filter:blur(10px);z-index:5;box-shadow:var(--shadow)}
-    button,input,textarea,select{padding:11px 14px;border:1px solid rgba(164,127,89,.22);border-radius:14px;background:rgba(255,255,255,.72);color:var(--text);font:inherit;box-shadow:inset 0 1px 0 rgba(255,255,255,.45)}
-    button{background:linear-gradient(135deg,var(--accent-strong),var(--accent));color:#fffaf4;border-color:transparent;cursor:pointer;font-weight:700;letter-spacing:.01em;box-shadow:0 10px 20px rgba(124,88,54,.20)}
-    button:hover{transform:translateY(-1px)}
-    .ghost{background:rgba(255,255,255,.6);color:var(--text);border:1px solid rgba(164,127,89,.18);box-shadow:none}
-    .danger{background:#7f1d1d}.warn{background:#92400e}.ok{background:#065f46}
-    .save-state{font-size:12px;padding:9px 14px;border-radius:999px;border:1px solid rgba(164,127,89,.18);background:rgba(255,255,255,.7);color:var(--muted);font-weight:700}
-    .save-state.dirty{background:#fff7ed;color:#9a3412}
-    .save-state.saving{background:#eff6ff;color:#1d4ed8}
-    .save-state.saved{background:#dcfce7;color:#166534}
-    .grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:20px;align-items:start}
-    .panel{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-soft);border-radius:30px;padding:24px;box-shadow:var(--shadow);backdrop-filter:blur(10px)}
-    .panel h3{margin:0 0 16px;font:600 22px/1.2 'Cormorant Garamond',serif}
-    .stack{display:grid;gap:14px}
-    .section-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:8px}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .row.tight>*{flex:1}
-    .guest-list{display:grid;gap:10px;max-height:480px;overflow:auto;padding-right:4px}
-    .guest{padding:14px;border:1px solid rgba(164,127,89,.16);border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,241,233,.88));cursor:grab;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;box-shadow:var(--shadow-soft);transition:transform .12s ease,box-shadow .12s ease}
-    .guest:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-    .guest-main{display:grid;gap:8px;min-width:0}
-    .guest-name{font:600 15px/1.35 'Cormorant Garamond',serif;color:var(--text)}
-    .guest-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-    .guest-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-    .type,.rsvp,.tag{font-size:11px;padding:4px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(130,102,77,.12)}
-    .type{background:var(--badge-ad);color:var(--badge-ad-text)}
-    .type.enfant{background:var(--badge-en);color:var(--badge-en-text)}
-    .type.bebe{background:var(--badge-bb);color:var(--badge-bb-text)}
-    .rsvp.oui{background:#dcfce7;color:#166534}.rsvp.peutetre{background:#fef3c7;color:#92400e}.rsvp.non{background:#fee2e2;color:#991b1b}
-    .tag{background:rgba(164,127,89,.12);color:var(--accent-strong)}
-    .mini-select{min-width:126px;padding:8px 10px;font-size:12px}
-    .mini-btn{padding:8px 10px;border-radius:10px;border:1px solid transparent;background:#1d4ed8;color:#fff;cursor:pointer;font-size:12px;box-shadow:none}
-    .xbtn{padding:8px 10px;border-radius:10px;border:1px solid transparent;background:#7f1d1d;color:#fff;cursor:pointer;font-size:12px;box-shadow:none}
-    .filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
-    .alerts{display:grid;gap:8px;margin-bottom:16px}
-    .alert-card{padding:12px 16px;border-radius:16px;border:1px solid rgba(164,127,89,.18);font-size:13px}
-    .alert-card.warn{background:#fff7ed;color:#9a3412}.alert-card.error{background:#fef2f2;color:#991b1b}
-    .tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
-    .table{border:1px solid rgba(164,127,89,.18);border-radius:24px;padding:18px;min-height:140px;background:linear-gradient(180deg,var(--panel),var(--panel-2));box-shadow:var(--shadow-soft)}
-    .table-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:12px}
-    .table-head input{font:600 18px/1 'Cormorant Garamond',serif;max-width:180px;background:rgba(255,255,255,.8)}
-    .table-kpis{display:grid;gap:6px;color:var(--muted);font-size:13px;margin-bottom:12px}
-    .progress{height:9px;background:rgba(138,102,70,.12);border-radius:999px;overflow:hidden}
-    .progress > span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#c09b74)}
-    .muted{color:var(--muted);font-size:13px}
-    .sheet-lock{font-size:12px;color:var(--muted);background:rgba(164,127,89,.1);border:1px solid rgba(164,127,89,.18);padding:12px 14px;border-radius:14px}
-    .sheet-actions{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    textarea{resize:vertical}
-    @media (max-width: 1080px){.grid{grid-template-columns:1fr}.hero-stats,.filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media (max-width: 680px){.wrap{padding:14px}.hero{padding:18px}.hero-stats,.filters{grid-template-columns:1fr}.toolbar{position:static}.guest{flex-direction:column}.guest-actions{justify-content:flex-start}}
+    .hero-actions {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .hero-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
+    .toolbar {
+      position: sticky;
+      top: 86px;
+      z-index: 20;
+      padding: 14px 16px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 82%, white 18%), var(--surface));
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(20px);
+    }
+    .save-state {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line-soft);
+      background: var(--surface-solid);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .save-state.dirty { background: #fff7ed; color: #9a3412; }
+    .save-state.saving { background: #eff6ff; color: #1d4ed8; }
+    .save-state.saved { background: #dcfce7; color: #166534; }
+    .layout { display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 22px; align-items: start; }
+    .section-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.10));
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-xs);
+    }
+    .stack { display: grid; gap: 18px; }
+    .section-label {
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      font-weight: 800;
+    }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .row.tight > * { flex: 1; }
+    .guest-list { display: grid; gap: 10px; max-height: 520px; overflow: auto; padding-right: 4px; }
+    .guest {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid var(--line-soft);
+      background: linear-gradient(180deg, rgba(255,255,255,.46), rgba(255,255,255,.14));
+      box-shadow: var(--shadow-xs);
+      cursor: grab;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .guest:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--line-strong); }
+    .guest-main { display: grid; gap: 8px; min-width: 0; }
+    .guest-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 600; color: var(--text); }
+    .guest-meta,
+    .guest-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .mini-select { min-width: 130px; min-height: 38px; padding: 8px 10px; font-size: 12px; border-radius: 12px; }
+    .mini-btn,
+    .xbtn {
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 0;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+    }
+    .mini-btn { background: linear-gradient(135deg, #1d4ed8, #3b82f6); }
+    .xbtn { background: linear-gradient(135deg, #7f1d1d, #b91c1c); }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+      padding: 16px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.08));
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-xs);
+    }
+    .alerts { display: grid; gap: 10px; margin-bottom: 18px; }
+    .alert-card {
+      padding: 13px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line-soft);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .alert-card.warn { background: #fff7ed; color: #9a3412; }
+    .alert-card.error { background: #fef2f2; color: #991b1b; }
+    .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+    .table {
+      padding: 18px;
+      border-radius: 24px;
+      border: 1px solid var(--line-soft);
+      background: linear-gradient(180deg, var(--surface-strong), var(--surface));
+      box-shadow: var(--shadow-sm);
+      min-height: 160px;
+      position: relative;
+      overflow: hidden;
+    }
+    .table::after {
+      content:'';
+      position:absolute;
+      inset:auto -40px -60px auto;
+      width:120px;
+      height:120px;
+      border-radius:50%;
+      background: radial-gradient(circle, rgba(181,136,99,.14), transparent 70%);
+      pointer-events:none;
+    }
+    .table-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .table-head input {
+      max-width: 200px;
+      min-height: 42px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+    .table-kpis { display: grid; gap: 8px; color: var(--text-muted); font-size: 13px; margin-bottom: 14px; }
+    .progress { height: 9px; background: rgba(138,102,70,.12); border-radius: 999px; overflow: hidden; }
+    .progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); }
+    .sheet-lock {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(181,136,99,.10);
+      border: 1px solid var(--line-soft);
+      padding: 12px 14px;
+      border-radius: 14px;
+    }
+    .sheet-actions { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .rsvp,
+    .type,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      border: 1px solid rgba(130,102,77,.10);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .type { background: var(--badge-adulte); color: var(--badge-adulte-text); }
+    .type.enfant { background: var(--badge-enfant); color: var(--badge-enfant-text); }
+    .type.bebe { background: var(--badge-bebe); color: var(--badge-bebe-text); }
+    .rsvp.oui { background: var(--success-bg); color: var(--success-text); }
+    .rsvp.peutetre { background: var(--warning-bg); color: var(--warning-text); }
+    .rsvp.non { background: var(--error-bg); color: var(--error-text); }
+    .tag { background: var(--accent-ghost); color: var(--accent-strong); }
+    @media (max-width: 1180px) { .layout { grid-template-columns: 1fr; } }
+    @media (max-width: 880px) {
+      .hero-stats,
+      .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .hero-stats,
+      .filters { grid-template-columns: 1fr; }
+      .guest { flex-direction: column; }
+      .toolbar { top: 12px; }
+    }
   </style>
 </head>
 <body>
+  <script src="theme.js"></script>
+  <script src="header.js" defer></script>
   <div class="wrap">
     <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
     <div class="shell">
       <section class="hero">
-        <div class="header">
-          <div>
+        <div class="hero-top">
+          <div class="hero-copy">
             <h1>💍 Wedding Control</h1>
-            <p>Une vue admin plus propre, plus lisible et plus confortable pour préparer le plan de table. Glisse les invités, filtre, corrige les incohérences et pilote tout depuis une seule page.</p>
+            <p>Une interface admin plus nette, mieux hiérarchisée et plus uniforme pour piloter les invités, les tables, les imports et les incohérences du plan de table sans impression de bricolage.</p>
+          </div>
+          <div class="hero-actions">
+            <span class="metric-inline"><strong>Mode</strong> administration</span>
+            <span class="metric-inline"><strong>UX</strong> passe 2</span>
           </div>
         </div>
         <div class="hero-stats">
-          <div class="stat"><span class="label">Invités non placés</span><strong id="statUnplaced">0</strong></div>
-          <div class="stat"><span class="label">Tables</span><strong id="statTables">0</strong></div>
-          <div class="stat"><span class="label">Places occupées</span><strong id="statSeated">0</strong></div>
-          <div class="stat"><span class="label">Alertes</span><strong id="statAlerts">0</strong></div>
+          <div class="stat-card"><span class="label">Invités non placés</span><strong id="statUnplaced">0</strong></div>
+          <div class="stat-card"><span class="label">Tables</span><strong id="statTables">0</strong></div>
+          <div class="stat-card"><span class="label">Places occupées</span><strong id="statSeated">0</strong></div>
+          <div class="stat-card"><span class="label">Alertes</span><strong id="statAlerts">0</strong></div>
         </div>
       </section>
 
       <div class="toolbar">
         <button onclick="loadGuests()">Charger les invités</button>
         <button class="ghost" onclick="addTable()">+ Table</button>
-        <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder plan</button>
+        <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder le plan</button>
         <span id="saveState" class="save-state">Synchronisé</span>
         <button class="ghost" onclick="window.location.href='visual.html'">Plan visuel</button>
         <button class="ghost" onclick="window.location.href='day-of.html'">Jour J</button>
@@ -111,10 +237,10 @@
         <button class="danger" onclick="resetAll()">Reset</button>
       </div>
 
-      <div class="grid">
+      <div class="layout">
         <aside class="panel stack">
-          <div>
-            <h3>Invités</h3>
+          <section class="section-card glow-ring">
+            <div class="wedding-section-title"><h3>Invités</h3></div>
             <div class="row tight">
               <input id="quickAdd" placeholder="Ajouter un invité rapide" onkeydown="if(event.key==='Enter')quickAddGuest()" />
               <select id="quickType">
@@ -124,18 +250,18 @@
               </select>
             </div>
             <button style="margin-top:10px;width:100%" onclick="quickAddGuest()">Ajouter l’invité</button>
-          </div>
+          </section>
 
-          <div>
+          <section class="section-card glow-ring">
             <div class="section-label">Recherche</div>
             <input id="guestSearch" placeholder="Rechercher un invité" oninput="renderAll()" />
             <div id="guestSearchMeta" class="muted" style="margin-top:8px"></div>
-          </div>
+          </section>
 
-          <div>
+          <section class="section-card glow-ring">
             <div class="section-label">Imports & exports</div>
             <textarea id="csvInput" rows="4" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
-            <div class="muted" style="margin-top:8px">Colonnes acceptées : `prenom,nom,type`, `first_name,last_name,type` ou `name,type`.</div>
+            <div class="muted" style="margin-top:8px">Colonnes acceptées : <code>prenom,nom,type</code>, <code>first_name,last_name,type</code> ou <code>name,type</code>.</div>
             <div class="stack" style="margin-top:10px">
               <button onclick="importCsv()">Importer CSV invités</button>
               <button class="ghost" onclick="exportJson()">Exporter plan JSON</button>
@@ -143,14 +269,14 @@
               <button class="ghost" onclick="document.getElementById('configFile').click()">Importer config complète</button>
               <button class="ghost" onclick="exportCatererCsv()">Exporter traiteur CSV</button>
             </div>
-          </div>
+          </section>
 
-          <div>
+          <section class="section-card glow-ring">
             <div class="section-label">Invités disponibles</div>
             <div id="guests" class="guest-list"></div>
-          </div>
+          </section>
 
-          <div>
+          <section class="section-card glow-ring">
             <div class="section-label">Fiche invité</div>
             <div class="muted" id="sheetHint">Clique un invité pour ouvrir sa fiche.</div>
             <div id="sheetLock" class="sheet-lock" style="display:none"></div>
@@ -170,15 +296,18 @@
               <textarea id="sheetNotes" rows="3" placeholder="Notes staff (PMR, poussette, etc.)"></textarea>
               <div class="sheet-actions">
                 <span class="muted">Les invités locaux sont renommables depuis cette fiche.</span>
-                <button class="ok" onclick="saveGuestSheet()">Enregistrer fiche</button>
+                <button class="ok" onclick="saveGuestSheet()">Enregistrer la fiche</button>
               </div>
             </div>
-          </div>
+          </section>
         </aside>
 
         <main class="panel">
-          <div class="row" style="justify-content:space-between;margin-bottom:10px">
-            <h3 style="margin:0">Plan de table</h3>
+          <div class="wedding-section-title">
+            <div>
+              <h3>Plan de table</h3>
+              <p class="text-sm text-muted">Tout est plus homogène : filtres, cartes, densité visuelle, progression et lecture des tables.</p>
+            </div>
             <button class="ghost" onclick="undoLastAction()">↩ Annuler</button>
           </div>
           <div class="filters">
@@ -274,14 +403,8 @@
       autosaveTimer=setTimeout(()=>savePlan(), 1200);
     }
 
-    function snapshotState(){
-      return JSON.stringify({guests, tables});
-    }
-
-    function pushHistory(){
-      historyStack.push(snapshotState());
-      if(historyStack.length>30) historyStack.shift();
-    }
+    function snapshotState(){ return JSON.stringify({guests, tables}); }
+    function pushHistory(){ historyStack.push(snapshotState()); if(historyStack.length>30) historyStack.shift(); }
 
     function undoLastAction(){
       const prev=historyStack.pop();
@@ -332,18 +455,15 @@
       const all=allGuestsList();
       const names=new Map();
       all.forEach(g=>{
-        const key=`${String(g.name||'').trim().toLowerCase()}::${normalizeType(g.type)}`;
+        const stableGuestKey = g.sourceRsvpId || g.id || `${String(g.name||'').trim().toLowerCase()}::${normalizeType(g.type)}`;
+        const key=`${String(g.name||'').trim().toLowerCase()}::${normalizeType(g.type)}::${stableGuestKey}`;
         names.set(key,(names.get(key)||0)+1);
       });
-      for(const [key,count] of names.entries()){
-        if(count>1) alerts.push({level:'warn', text:`Doublon potentiel détecté: ${key.split('::')[0]} (${count} occurrences)`});
-      }
+      for(const [key,count] of names.entries()) if(count>1) alerts.push({level:'warn', text:`Doublon potentiel détecté: ${key.split('::')[0]} (${count} occurrences)`});
       tables.forEach(t=>{
         if((t.guests||[]).length > Number(t.capacity||0)) alerts.push({level:'error', text:`${t.name} dépasse sa capacité (${t.guests.length}/${t.capacity})`});
         if((t.guests||[]).length===0) alerts.push({level:'warn', text:`${t.name} est vide`});
-        (t.guests||[]).forEach(g=>{
-          if(normalizePresence(g.rsvpStatus)==='non') alerts.push({level:'warn', text:`${g.name} est placé à ${t.name} mais RSVP = non`});
-        });
+        (t.guests||[]).forEach(g=>{ if(normalizePresence(g.rsvpStatus)==='non') alerts.push({level:'warn', text:`${g.name} est placé à ${t.name} mais RSVP = non`}); });
       });
       const unplaced=guests.length;
       if(unplaced>0) alerts.push({level:'warn', text:`${unplaced} invité(s) non placé(s)`});
@@ -370,7 +490,16 @@
     }
 
     function allGuestsList(){
-      return [...guests, ...tables.flatMap(t=>t.guests||[])];
+      const seen = new Set();
+      const out = [];
+      [...guests, ...tables.flatMap(t=>t.guests||[])].forEach(g => {
+        if(!g) return;
+        const key = g.id || `${String(g.name||'').trim().toLowerCase()}::${normalizeType(g.type)}::${g.sourceRsvpId||''}`;
+        if(seen.has(key)) return;
+        seen.add(key);
+        out.push(g);
+      });
+      return out;
     }
 
     function updateGuestEverywhere(guestId, patch){
@@ -418,9 +547,7 @@
         document.getElementById('sheetPhone').value = r.phone || '';
         document.getElementById('sheetRegime').value = r.regime || '';
         document.getElementById('sheetNotes').value = r.adminNotes || '';
-      }catch(e){
-        alert('Impossible de charger la fiche invité');
-      }
+      }catch(e){ alert('Impossible de charger la fiche invité'); }
     }
 
     async function saveGuestSheet(){
@@ -441,13 +568,8 @@
 
       if(selectedGuestRef.guestId){
         updateGuestEverywhere(selectedGuestRef.guestId, {
-          name: payload.name || 'Invité',
-          rsvpStatus: payload.presence,
-          adultes: payload.adultes,
-          enfants: payload.enfants,
-          phone: payload.phone,
-          regime: payload.regime,
-          adminNotes: payload.adminNotes,
+          name: payload.name || 'Invité', rsvpStatus: payload.presence, adultes: payload.adultes, enfants: payload.enfants,
+          phone: payload.phone, regime: payload.regime, adminNotes: payload.adminNotes,
         });
         renderAll();
       }
@@ -466,11 +588,7 @@
       const phone = r.phone || '';
       const regime = r.regime || '';
       const adminNotes = r.adminNotes || '';
-
-      if(a===0 && e===0){
-        out.push({ id: crypto.randomUUID(), name: base, type: 'adulte', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
-        return out;
-      }
+      if(a===0 && e===0){ out.push({ id: crypto.randomUUID(), name: base, type: 'adulte', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e }); return out; }
       for(let i=1;i<=a;i++) out.push({ id: crypto.randomUUID(), name: a===1?base:`${base} (Adulte ${i})`, type:'adulte', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
       for(let i=1;i<=e;i++) out.push({ id: crypto.randomUUID(), name: `${base} (Enfant ${i})`, type:'enfant', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
       return out;
@@ -482,46 +600,29 @@
       const expanded = filtered.flatMap(expandRsvp).map(g=>({...g, regime: normalizeDietLabel(g.regime)}));
       pushHistory();
       guests=[...guests,...expanded.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type) && (g.sourceRsvpId||'')===(n.sourceRsvpId||'')))];
-      markDirty();
-      renderAll();
+      markDirty(); renderAll();
     }
 
     function quickAddGuest(){
       const i=document.getElementById('quickAdd');
       const t=document.getElementById('quickType');
       const v=i.value.trim(); if(!v) return;
-      pushHistory();
-      guests.push({id:crypto.randomUUID(),name:v,type:normalizeType(t.value),rsvpStatus:'',sourceRsvpId:null,regime:'',adminNotes:''});
-      i.value='';
-      markDirty();
-      renderAll();
+      pushHistory(); guests.push({id:crypto.randomUUID(),name:v,type:normalizeType(t.value),rsvpStatus:'',sourceRsvpId:null,regime:'',adminNotes:''});
+      i.value=''; markDirty(); renderAll();
     }
 
     async function importCsv(){
       const csv=document.getElementById('csvInput').value;
       const res=await api('/api/import-csv',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csv})});
       const imported=(res.guests||[]).map(g=>({...g,rsvpStatus:'',sourceRsvpId:null,regime:normalizeDietLabel(g.regime)}));
-      pushHistory();
-      guests=[...guests,...imported.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type)))];
-      markDirty();
-      renderAll();
-      alert(`${res.count} invité(s) importé(s)`);
+      pushHistory(); guests=[...guests,...imported.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type)))];
+      markDirty(); renderAll(); alert(`${res.count} invité(s) importé(s)`);
     }
 
     function addTable(){ const n=tables.length+1; pushHistory(); tables.push({id:crypto.randomUUID(),name:'Table '+n,capacity:10,guests:[]}); markDirty(); renderAll(); }
     function removeTable(id){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); guests.push(...t.guests); tables=tables.filter(x=>x.id!==id); markDirty(); renderAll(); }
-
-    function tableOptions(selected=''){
-      const opts = [`<option value="">Table…</option>`];
-      (tables||[]).forEach(t=> opts.push(`<option value="${t.id}" ${selected===t.id?'selected':''}>${escapeHtml(t.name)}</option>`));
-      return opts.join('');
-    }
-
-    function guestOptions(){
-      const opts = [`<option value="">Invité…</option>`];
-      (guests||[]).forEach(g=> opts.push(`<option value="${g.id}">${escapeHtml(g.name)}</option>`));
-      return opts.join('');
-    }
+    function tableOptions(selected=''){ const opts = [`<option value="">Table…</option>`]; (tables||[]).forEach(t=> opts.push(`<option value="${t.id}" ${selected===t.id?'selected':''}>${escapeHtml(t.name)}</option>`)); return opts.join(''); }
+    function guestOptions(){ const opts = [`<option value="">Invité…</option>`]; (guests||[]).forEach(g=> opts.push(`<option value="${g.id}">${escapeHtml(g.name)}</option>`)); return opts.join(''); }
 
     function renderGuests(){
       const c=document.getElementById('guests'); c.innerHTML='';
@@ -536,6 +637,7 @@
         d.ondragstart=e=>e.dataTransfer.setData('text/plain',g.id);
         c.appendChild(d);
       });
+      if(!visibleGuests.length) c.innerHTML = '<div class="empty-state">Aucun invité correspondant aux filtres.</div>';
     }
 
     function renderTables(){
@@ -551,7 +653,7 @@
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
         const ratio=Math.min(100, Math.round(((t.guests.length||0)/Math.max(1,Number(t.capacity||1)))*100));
-        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div><div class="table-kpis"><div>Capacité : <input type="number" min="1" value="${t.capacity}" style="width:88px" onchange="setCap('${t.id}',this.value)"></div><div>Places : ${t.guests.length}/${t.capacity}</div><div>Adultes : ${adultCount} • Enfants : ${childCount} • Bébés : ${babyCount}</div></div><div class="progress"><span style="width:${ratio}%"></span></div><div class="row" style="margin:12px 0 10px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
+        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div><div class="table-kpis"><div>Capacité : <input type="number" min="1" value="${t.capacity}" style="width:88px;display:inline-flex" onchange="setCap('${t.id}',this.value)"></div><div>Places : ${t.guests.length}/${t.capacity}</div><div>Adultes : ${adultCount} • Enfants : ${childCount} • Bébés : ${babyCount}</div></div><div class="progress"><span style="width:${ratio}%"></span></div><div class="row" style="margin:12px 0 10px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
         visibleGuests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
           const diet=normalizeDietLabel(g.regime);
@@ -560,25 +662,14 @@
         });
         c.appendChild(b);
       });
+      if(!tables.length) c.innerHTML = '<div class="empty-state">Aucune table pour l’instant. Ajoute une première table pour commencer.</div>';
     }
 
     function renameTable(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); t.name=String(val||'').trim()||t.name; markDirty(); renderAll(); }
     function setCap(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); t.capacity=Math.max(1,parseInt(val||'1',10)); markDirty(); renderAll(); }
     function assignToTable(guestId,tableId){ const gi=guests.findIndex(g=>g.id===guestId); if(gi===-1) return; const t=tables.find(x=>x.id===tableId); if(!t) return; if(t.guests.length>=t.capacity){alert('Table pleine');return;} pushHistory(); t.guests.push(guests[gi]); guests.splice(gi,1); markDirty(); renderAll(); }
-    function assignFromList(guestId, ev){
-      if(ev){ ev.stopPropagation(); ev.preventDefault(); }
-      const sel=document.getElementById(`assign-${guestId}`);
-      const tableId=sel?.value;
-      if(!tableId){ alert('Choisis une table'); return; }
-      assignToTable(guestId, tableId);
-    }
-    function addGuestToTableFromSelect(tableId, ev){
-      if(ev){ ev.stopPropagation(); ev.preventDefault(); }
-      const sel=document.getElementById(`table-assign-${tableId}`);
-      const guestId=sel?.value;
-      if(!guestId){ alert('Choisis un invité'); return; }
-      assignToTable(guestId, tableId);
-    }
+    function assignFromList(guestId, ev){ if(ev){ ev.stopPropagation(); ev.preventDefault(); } const sel=document.getElementById(`assign-${guestId}`); const tableId=sel?.value; if(!tableId){ alert('Choisis une table'); return; } assignToTable(guestId, tableId); }
+    function addGuestToTableFromSelect(tableId, ev){ if(ev){ ev.stopPropagation(); ev.preventDefault(); } const sel=document.getElementById(`table-assign-${tableId}`); const guestId=sel?.value; if(!guestId){ alert('Choisis un invité'); return; } assignToTable(guestId, tableId); }
     function unassign(guestId,tableId,ev){ if(ev){ev.stopPropagation();ev.preventDefault();} const t=tables.find(x=>x.id===tableId); if(!t) return; const i=t.guests.findIndex(g=>g.id===guestId); if(i===-1) return; pushHistory(); guests.push(t.guests[i]); t.guests.splice(i,1); markDirty(); renderAll(); }
 
     async function deleteGuest(guestId, ev){
@@ -587,115 +678,38 @@
       if(!g) return;
       if(!confirm(`Supprimer définitivement ${g.name} ?`)) return;
       pushHistory();
-      if(g.sourceRsvpId){
-        try{ await fetch(`/api/rsvp/${g.sourceRsvpId}`, { method:'DELETE' }); }catch(_e){}
-      }
+      if(g.sourceRsvpId){ try{ await fetch(`/api/rsvp/${g.sourceRsvpId}`, { method:'DELETE' }); }catch(_e){} }
       tables.forEach(t=> t.guests = (t.guests||[]).filter(x=>x.id!==guestId));
       guests = guests.filter(x=>x.id!==guestId);
-      markDirty();
-      renderAll();
-      await savePlan({ notify:false, force:true });
+      markDirty(); renderAll(); await savePlan({ notify:false, force:true });
     }
 
     async function savePlan({ notify=false, force=false } = {}){
       clearTimeout(autosaveTimer);
-      if(isSaving){
-        saveQueued = true;
-        return;
-      }
+      if(isSaving){ saveQueued = true; return; }
       if(!force && saveState==='saved') return;
-      isSaving = true;
-      saveState='saving';
-      updateSaveBadge();
+      isSaving = true; saveState='saving'; updateSaveBadge();
       try{
         await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tables,guests})});
-        saveState='saved';
-        updateSaveBadge();
-        if(notify) alert('Plan sauvegardé ✅');
-      }catch(e){
-        saveState='dirty';
-        updateSaveBadge();
-        if(notify) alert('Échec de sauvegarde du plan');
-        throw e;
-      }finally{
-        isSaving = false;
-        if(saveQueued){
-          saveQueued = false;
-          queueAutosave();
-        }
-      }
+        saveState='saved'; updateSaveBadge(); if(notify) alert('Plan sauvegardé ✅');
+      }catch(e){ saveState='dirty'; updateSaveBadge(); if(notify) alert('Échec de sauvegarde du plan'); throw e; }
+      finally{ isSaving = false; if(saveQueued){ saveQueued = false; queueAutosave(); } }
     }
     function exportJson(){ const blob=new Blob([JSON.stringify({tables,guests,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='plan-de-table.json'; a.click(); }
+    async function exportConfig(){ const cfg = await api('/api/config/export'); const blob = new Blob([JSON.stringify(cfg, null, 2)], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `wedding-table-config-${new Date().toISOString().slice(0,10)}.json`; a.click(); }
+    function exportCatererCsv(){ window.location.href = '/api/export/caterer.csv'; }
 
-    async function exportConfig(){
-      const cfg = await api('/api/config/export');
-      const blob = new Blob([JSON.stringify(cfg, null, 2)], { type:'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `wedding-table-config-${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-    }
-
-    function exportCatererCsv(){
-      window.location.href = '/api/export/caterer.csv';
-    }
-
-    // Transform guest data to proper format for table placement
-    // Handles both raw RSVP data (with prenom/nom) and existing guest objects (with name)
     function transformRsvpToGuest(guest) {
-      // If guest already has a 'name' field, use it directly (existing guest in table)
-      // Otherwise, construct from RSVP fields (prenom + nom)
       const name = guest.name || [guest.prenom, guest.nom].filter(Boolean).join(' ') || 'Invité';
-      
-      const type = (() => {
-        const t = String(guest.type || '').toLowerCase();
-        if (['bebe', 'bébé', 'baby'].includes(t)) return 'bebe';
-        if (['enfant', 'child'].includes(t)) return 'enfant';
-        return 'adulte';
-      })();
-      
-      // Map 'presence' to 'rsvpStatus' if needed
+      const type = (() => { const t = String(guest.type || '').toLowerCase(); if (['bebe', 'bébé', 'baby'].includes(t)) return 'bebe'; if (['enfant', 'child'].includes(t)) return 'enfant'; return 'adulte'; })();
       const rsvpStatus = guest.rsvpStatus || guest.presence || '';
-      
-      return {
-        id: guest.id || crypto.randomUUID(),
-        name: name.trim(),
-        type: type,
-        rsvpStatus: rsvpStatus,
-        regime: guest.regime || '',
-        phone: guest.phone || '',
-        adminNotes: guest.adminNotes || '',
-      };
+      return { id: guest.id || crypto.randomUUID(), name: name.trim(), type, rsvpStatus, regime: guest.regime || '', phone: guest.phone || '', adminNotes: guest.adminNotes || '' };
     }
 
-    // Transform full config: convert RSVP guests to table guest format
     function transformConfigForImport(cfg) {
-      const result = {
-        version: cfg.version || 1,
-        exportedAt: cfg.exportedAt,
-        rsvps: cfg.rsvps || [],
-        plan: {
-          tables: [],
-          guests: [],
-          layout: cfg.plan?.layout || { tables: {}, guests: {} }
-        }
-      };
-      
-      // Transform table guests: remove RSVP fields (adultes, enfants)
-      if (cfg.plan?.tables) {
-        result.plan.tables = cfg.plan.tables.map(table => ({
-          id: table.id,
-          name: table.name,
-          capacity: table.capacity,
-          guests: (table.guests || []).map(g => transformRsvpToGuest(g))
-        }));
-      }
-      
-      // Transform unplaced guests
-      if (cfg.plan?.guests) {
-        result.plan.guests = cfg.plan.guests.map(g => transformRsvpToGuest(g));
-      }
-      
+      const result = { version: cfg.version || 1, exportedAt: cfg.exportedAt, rsvps: cfg.rsvps || [], plan: { tables: [], guests: [], layout: cfg.plan?.layout || { tables: {}, guests: {} } } };
+      if (cfg.plan?.tables) result.plan.tables = cfg.plan.tables.map(table => ({ id: table.id, name: table.name, capacity: table.capacity, guests: (table.guests || []).map(g => transformRsvpToGuest(g)) }));
+      if (cfg.plan?.guests) result.plan.guests = cfg.plan.guests.map(g => transformRsvpToGuest(g));
       return result;
     }
 
@@ -706,20 +720,11 @@
       let cfg;
       try { cfg = JSON.parse(txt); } catch { alert('JSON invalide'); return; }
       if(!confirm('Importer cette config et remplacer les données actuelles ?')) return;
-      
-      // Transform RSVP data to proper guest format for table placement
       cfg = transformConfigForImport(cfg);
-      
       pushHistory();
       await api('/api/config/import', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(cfg) });
-      const p = await api('/api/plan');
-      guests = p.guests || [];
-      tables = p.tables || [];
-      saveState='saved';
-      updateSaveBadge();
-      renderAll();
-      alert('Config importée ✅');
-      event.target.value='';
+      const p = await api('/api/plan'); guests = p.guests || []; tables = p.tables || [];
+      saveState='saved'; updateSaveBadge(); renderAll(); alert('Config importée ✅'); event.target.value='';
     }
 
     function updateStats(){
@@ -731,28 +736,13 @@
     function resetAll(){ if(!confirm('Réinitialiser le plan ?')) return; pushHistory(); guests=[]; tables=[]; markDirty(); renderAll(); }
     function renderAll(){ renderGuests(); renderTables(); renderAlerts(); updateStats(); updateSaveBadge(); }
 
-    window.addEventListener('beforeunload', (event)=>{
-      if(saveState==='dirty' || isSaving){
-        event.preventDefault();
-        event.returnValue='';
-      }
-    });
+    window.addEventListener('beforeunload', (event)=>{ if(saveState==='dirty' || isSaving){ event.preventDefault(); event.returnValue=''; } });
 
     (async function boot(){
-      try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; layout=p.layout||{}; } catch(e){}
-      saveState='saved';
-      renderAll();
-      // Auto-refresh every 3s to stay in sync with visual.html
+      try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; } catch(e){}
+      saveState='saved'; renderAll();
       setInterval(async ()=>{
-        try{
-          const p = await api('/api/plan');
-          const newHash = JSON.stringify(tables.map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()})));
-          const curHash = JSON.stringify(tables.map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()})));
-          if(newHash !== curHash){
-            tables=p.tables||[]; layout=p.layout||{};
-            saveState='saved'; renderAll();
-          }
-        }catch(_e){}
+        try{ const p = await api('/api/plan'); const newHash = JSON.stringify((p.tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); const curHash = JSON.stringify((tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); if(newHash !== curHash){ tables=p.tables||[]; guests=p.guests||guests; saveState='saved'; renderAll(); } }catch(_e){}
       }, 3000);
     })();
   </script>

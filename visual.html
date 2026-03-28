@@ -4,119 +4,226 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Plan visuel - Wedding Table Planner</title>
+  <link rel="stylesheet" href="styles.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
-    :root{
-      --bg:#f3ede3;--bg-soft:#faf6f0;--bg-deep:#efe5d8;--text:#241913;--panel:rgba(255,251,246,.90);--panel-2:rgba(248,240,230,.84);--line:#dccab5;--line-soft:rgba(164,127,89,.18);--muted:#7f6957;--accent:#a47f59;--accent-strong:#7c5836;--accent-soft:#ddc3a5;--shadow:0 20px 48px rgba(67,44,23,.10);--shadow-soft:0 10px 24px rgba(67,44,23,.08);
-      --badge-en:#e8f2fb;--badge-en-text:#32556f;--badge-bb:#fdf0e1;--badge-bb-text:#9b5c24;
+    .hero p { max-width: 860px; }
+    .hero-top {
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-start;
+      flex-wrap:wrap;
     }
-    *{box-sizing:border-box}
-    body{font-family:'Manrope',Arial,sans-serif;margin:0;background:radial-gradient(circle at top,rgba(255,255,255,.55),transparent 28%),linear-gradient(180deg,var(--bg-soft),var(--bg));color:var(--text)}
-    body::before{content:'';position:fixed;inset:0;pointer-events:none;background:linear-gradient(135deg,rgba(255,255,255,.14),transparent 42%),repeating-linear-gradient(0deg,transparent 0 38px,rgba(120,84,53,.028) 38px 39px);opacity:.9}
-    .wrap{max-width:1520px;margin:0 auto;padding:28px}
-    .crumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-    .crumbs a{color:inherit;text-decoration:none;position:relative}
-    .crumbs a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1px;background:currentColor;opacity:.25}
-    .hero,.toolbar,.canvas{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-soft);box-shadow:var(--shadow);backdrop-filter:blur(10px)}
-    .hero{border-radius:30px;padding:28px 30px;position:relative;overflow:hidden}
-    .hero::after{content:'';position:absolute;inset:auto -80px -120px auto;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(164,127,89,.22),transparent 68%)}
-    .hero h1{margin:0 0 8px;font:600 48px/1 'Cormorant Garamond',serif;letter-spacing:.02em}
-    .hero p{margin:0;max-width:840px;color:var(--muted);font-size:15px;line-height:1.65}
-    .stats{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:14px;margin-top:20px}
-    .stat{background:rgba(255,255,255,.44);border:1px solid rgba(164,127,89,.16);border-radius:22px;padding:16px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
-    .stat span{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.14em;margin-bottom:6px}
-    .stat strong{font:600 31px/1 'Cormorant Garamond',serif}
-    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 16px;border-radius:22px;position:sticky;top:10px;z-index:5;margin:18px 0}
-    button,input{padding:11px 14px;border:1px solid rgba(164,127,89,.22);border-radius:14px;background:rgba(255,255,255,.72);color:var(--text);font:inherit}
-    button{background:linear-gradient(135deg,var(--accent-strong),var(--accent));color:#fffaf4;border-color:transparent;cursor:pointer;font-weight:700;letter-spacing:.01em;box-shadow:0 10px 20px rgba(124,88,54,.20)}
-    button:hover{transform:translateY(-1px)}
-    .ghost{background:rgba(255,255,255,.6);color:var(--text);border:1px solid rgba(164,127,89,.18);box-shadow:none}
-    .muted{color:var(--muted);font-size:13px}
-    .layout-container{display:flex;gap:20px;align-items:stretch}
-    .sidebar{width:280px;flex-shrink:0;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line-soft);box-shadow:var(--shadow);backdrop-filter:blur(10px);border-radius:30px;padding:20px;position:sticky;top:10px;max-height:calc(100vh - 280px);display:flex;flex-direction:column;overflow:hidden}
-    .sidebar-header{font:600 18px/1.2 'Cormorant Garamond',serif;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line-soft);color:var(--text);display:flex;align-items:center;gap:8px}
-    .sidebar-header::before{content:'';width:10px;height:10px;background:var(--accent);border-radius:50%}
-    .sidebar-content{overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px;margin-bottom:12px;max-height:calc(100vh - 520px)}
-    .sidebar-guest{position:relative;padding:10px 12px;border-radius:16px;border:1px solid rgba(164,127,89,.16);background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,241,233,.88));box-shadow:var(--shadow-soft);cursor:grab;transition:transform .12s ease,box-shadow .12s ease}
-    .sidebar-guest:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-    .sidebar-guest:active{cursor:grabbing}
-    .sidebar-guest .name{font:600 14px/1.2 'Cormorant Garamond',serif;color:var(--text)}
-    .sidebar-guest .meta{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
-    
-    /* Placeholder slot in sidebar */
-    .sidebar-placeholder{border:2px dashed rgba(164,127,89,.40);background:rgba(255,255,255,.25);cursor:pointer;transition:all .15s ease;min-height:44px}
-    .sidebar-placeholder:hover{transform:translateY(-2px);border-color:var(--accent-strong);background:rgba(164,127,89,.08)}
-    .sidebar-placeholder.drop-active{border-color:var(--accent-strong);background:rgba(164,127,89,.15);transform:scale(1.02)}
-    .sidebar-placeholder .placeholder-text{font-size:11px;color:var(--muted);text-align:center;letter-spacing:.05em;text-transform:uppercase;opacity:.7}
-    
-    .sidebar-empty{color:var(--muted);font-size:12px;font-style:italic;text-align:center;padding:20px 0}
-    .canvas{flex:1;position:relative;border-radius:30px;min-height:78vh;height:auto;overflow:auto;background:radial-gradient(circle at top left,rgba(255,255,255,.60),transparent 24%),linear-gradient(180deg,rgba(255,251,246,.98),rgba(243,233,220,.94))}
-    .staging{width:100%;margin-top:18px;background:linear-gradient(180deg,var(--panel),var(--panel-2));border:2px dashed var(--line);border-radius:24px;padding:16px 20px;min-height:80px;transition:border-color .2s ease,background .2s ease;flex-shrink:0}
-    .staging.drop-active{border-color:var(--accent-strong);background:rgba(164,127,89,.08)}
-    .staging-header{font:600 14px/1.2 'Cormorant Garamond',serif;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px}
-    .staging-header::before{content:'↔';font-size:16px}
-    .staging-guests{display:flex;flex-wrap:wrap;gap:8px;min-height:40px}
-    .staging-guest{position:relative;padding:6px 10px;border-radius:14px;border:1px solid rgba(164,127,89,.18);background:linear-gradient(180deg,rgba(255,255,255,.88),rgba(248,241,233,.84));cursor:grab;display:inline-flex;align-items:center;gap:6px;font:600 12px/1.2 'Cormorant Garamond',serif;transition:transform .12s ease,box-shadow .12s ease}
-    .staging-guest:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-    .staging-guest:active{cursor:grabbing}
-
-    .table-cluster{position:absolute}
-    .seat-slot,.guest-chip,.round-table{position:absolute}
-    .round-table{width:180px;height:180px;left:0;top:0;border-radius:50%;border:1px solid rgba(164,127,89,.34);background:radial-gradient(circle at 30% 30%,#fffdf9 0%,#f6ecdf 56%,#eadbc8 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;cursor:move;user-select:none;box-shadow:0 20px 34px rgba(82,58,34,.14),inset 0 1px 0 rgba(255,255,255,.75);z-index:10}
-    .round-table::before{content:'';position:absolute;inset:10px;border-radius:50%;border:1px solid rgba(164,127,89,.20)}
-    .round-table .inner{display:grid;gap:8px;justify-items:center;width:100%;position:relative;z-index:1}
-    .round-table input{max-width:128px;text-align:center;font:600 22px/1 'Cormorant Garamond',serif;background:rgba(255,255,255,.82);border-color:rgba(164,127,89,.22);padding:8px 10px;font-size:22px;letter-spacing:.02em;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
-    .round-table .meta{font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
-    .progress{width:102px;height:7px;background:rgba(138,102,70,.12);border-radius:999px;overflow:hidden}
-    .progress span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#d0b08e)}
-
-    .seat-slot{border:1px dashed rgba(164,127,89,.34);background:rgba(255,255,255,.16);border-radius:16px;z-index:12;transition:transform .12s ease, border-color .12s ease, background .12s ease;backdrop-filter:blur(4px)}
-    .seat-slot::after{content:'Place';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:600 9px/1 'Manrope',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:rgba(127,105,87,.70)}
-    .seat-slot.drop-target{border-color:var(--accent-strong);background:rgba(164,127,89,.18);transform:scale(1.05)}
-    .guest-chip{padding:7px 10px;border-radius:18px;border:1px solid rgba(164,127,89,.20);background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,241,233,.96));box-shadow:var(--shadow-soft);font-size:10px;cursor:grab;user-select:none;z-index:20;text-align:center;line-height:1.2;overflow:hidden;transition:transform .12s ease,box-shadow .12s ease}
-    .guest-chip:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-    .guest-chip:active{cursor:grabbing}
-    .guest-chip .name{display:block;font:600 13px/1.1 'Cormorant Garamond',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
-    .guest-chip .meta{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:5px}
-    .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:700;border:1px solid rgba(130,102,77,.12);white-space:nowrap;background:rgba(255,250,245,.9);letter-spacing:.05em;text-transform:uppercase}
-    .pill.regime::before{content:'';width:7px;height:7px;border-radius:999px;background:#64748b;display:inline-block}
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 24px; }
+    .toolbar {
+      margin: 18px 0;
+      padding: 14px 16px;
+      border-radius: 22px;
+      position: sticky;
+      top: 86px;
+      z-index: 20;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 82%, white 18%), var(--surface));
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(20px);
+    }
+    .save-indicator {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 12px;
+      background: var(--surface-solid);
+      border:1px solid var(--line-soft);
+      border-radius:14px;
+      font-size:12px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .layout-container { display:flex; gap:22px; align-items:stretch; }
+    .sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, var(--surface-strong), var(--surface));
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(16px);
+      border-radius: 28px;
+      padding: 20px;
+      position: sticky;
+      top: 154px;
+      max-height: calc(100vh - 190px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-header {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding-bottom:12px;
+      margin-bottom:14px;
+      border-bottom:1px solid var(--line-soft);
+      font-size:12px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color: var(--text-soft);
+    }
+    .sidebar-header::before {
+      content:'';
+      width:10px;height:10px;border-radius:50%;background:var(--accent);
+    }
+    .sidebar-content {
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding-right:4px;
+      margin-bottom:12px;
+    }
+    .sidebar-guest {
+      position:relative;
+      padding:13px 14px;
+      border-radius:20px;
+      border:1px solid var(--line-soft);
+      background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.12));
+      box-shadow: var(--shadow-xs);
+      cursor:grab;
+      transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .sidebar-guest:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); border-color: var(--line-strong); }
+    .sidebar-guest .name { font:600 15px/1.2 'Cormorant Garamond',serif; color: var(--text); }
+    .sidebar-guest .meta { display:flex; gap:4px; flex-wrap:wrap; margin-top:8px; }
+    .sidebar-placeholder {
+      border:2px dashed var(--line-strong);
+      background: rgba(255,255,255,.14);
+      cursor:pointer;
+      transition:all .15s ease;
+      min-height:52px;
+      display:grid;
+      place-items:center;
+    }
+    .sidebar-placeholder:hover,
+    .sidebar-placeholder.drop-active {
+      border-color: var(--accent-strong);
+      background: var(--accent-ghost);
+      transform: translateY(-2px);
+    }
+    .sidebar-placeholder .placeholder-text { font-size:11px; color: var(--text-muted); text-transform:uppercase; letter-spacing:.08em; }
+    .sidebar-empty { color: var(--text-muted); font-size:13px; font-style:italic; text-align:center; padding:22px 0; }
+    .canvas {
+      flex:1;
+      position:relative;
+      border-radius:30px;
+      min-height:78vh;
+      overflow:auto;
+      background: var(--canvas-bg);
+      border: 1px solid var(--line-soft);
+      box-shadow: var(--shadow-lg);
+    }
+    .table-cluster { position:absolute; }
+    .seat-slot,.guest-chip,.round-table { position:absolute; }
+    .round-table {
+      width:180px;height:180px;left:0;top:0;border-radius:50%;
+      border:1px solid var(--line-strong);
+      background: var(--table-bg);
+      display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;
+      cursor:move;user-select:none;box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.4);z-index:10;
+    }
+    .round-table::before { content:''; position:absolute; inset:10px; border-radius:50%; border:1px solid rgba(164,127,89,.20); }
+    .round-table .inner { display:grid; gap:8px; justify-items:center; width:100%; position:relative; z-index:1; }
+    .round-table input { max-width:128px; text-align:center; font:600 22px/1 'Cormorant Garamond',serif; background:rgba(255,255,255,.82); color: var(--text); }
+    [data-theme="dark"] .round-table input {
+      background: rgba(255,255,255,.08);
+      color: #f3e8dc;
+      border-color: rgba(255,255,255,.10);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+    .round-table .meta { font-size:11px; color:var(--text-muted); letter-spacing:.12em; text-transform:uppercase; }
+    .progress { width:102px; height:7px; background:rgba(138,102,70,.12); border-radius:999px; overflow:hidden; }
+    .progress span { display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-strong)); }
+    .seat-slot {
+      border:1px dashed rgba(164,127,89,.34);
+      background:rgba(255,255,255,.16);
+      border-radius:16px;
+      z-index:12;
+      transition:transform .12s ease, border-color .12s ease, background .12s ease;
+      backdrop-filter:blur(4px);
+    }
+    .seat-slot::after {
+      content:'Place'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      font:700 9px/1 'Inter',sans-serif; letter-spacing:.14em; text-transform:uppercase; color:rgba(127,105,87,.70);
+    }
+    .seat-slot.drop-target { border-color:var(--accent-strong); background:rgba(181,136,99,.18); transform:scale(1.05); }
+    .guest-chip {
+      padding:7px 10px;
+      border-radius:18px;
+      border:1px solid var(--line-soft);
+      background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,241,233,.96));
+      color: var(--text);
+      box-shadow:var(--shadow-sm);
+      font-size:10px; cursor:grab; user-select:none; z-index:20; text-align:center; line-height:1.2; overflow:hidden;
+      transition:transform .12s ease,box-shadow .12s ease, border-color .12s ease;
+    }
+    [data-theme="dark"] .guest-chip {
+      background: linear-gradient(180deg, rgba(47,38,31,.96), rgba(31,25,21,.96));
+      border-color: rgba(212,176,140,.22);
+      color: #f3e8dc;
+      box-shadow: 0 16px 28px rgba(0,0,0,.32);
+    }
+    .guest-chip:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); border-color: var(--line-strong); }
+    [data-theme="dark"] .guest-chip:hover { box-shadow: 0 20px 34px rgba(0,0,0,.38); }
+    .guest-chip .name { display:block; font:600 13px/1.1 'Cormorant Garamond',serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color: inherit; }
+    .guest-chip .meta { display:flex; gap:4px; justify-content:center; flex-wrap:wrap; margin-top:5px; }
+    .pill { border:1px solid rgba(130,102,77,.12); background:rgba(255,250,245,.92); color: var(--text-muted); }
+    [data-theme="dark"] .pill { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.08); color: #d9c8b6; }
+    .pill.regime::before { content:''; width:7px; height:7px; border-radius:999px; background:#64748b; display:inline-block; }
     .regime-default::before{background:#64748b}.regime-vege::before{background:#16a34a}.regime-vegan::before{background:#15803d}.regime-sans-porc::before{background:#ea580c}.regime-halal::before{background:#0f766e}.regime-kasher::before{background:#2563eb}.regime-sans-gluten::before{background:#dc2626}.regime-sans-lactose::before{background:#c2410c}
-    .guest-chip.enfant .pill.type{background:var(--badge-en);color:var(--badge-en-text)}
-    .guest-chip.bebe .pill.type{background:var(--badge-bb);color:var(--badge-bb-text)}
-
-    @media (max-width:900px){.wrap{padding:14px}.hero h1{font-size:38px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{position:static}.canvas{height:70vh}.layout-container{flex-direction:column}.sidebar{width:100%;position:static;max-height:200px}}
+    .guest-chip.enfant .pill.type { background:var(--badge-enfant); color:var(--badge-enfant-text); }
+    .guest-chip.bebe .pill.type { background:var(--badge-bebe); color:var(--badge-bebe-text); }
+    @media (max-width: 1000px) {
+      .layout-container { flex-direction: column; }
+      .sidebar { width:100%; position:static; max-height:unset; }
+    }
+    @media (max-width: 700px) {
+      .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .toolbar { top: 12px; }
+    }
   </style>
 </head>
 <body>
+  <script src="theme.js"></script>
+  <script src="header.js" defer></script>
   <div class="wrap">
     <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="day-of.html">Jour J</a></div>
     <section class="hero">
-      <h1>Plan visuel</h1>
-      <p>Un plan de salle immersif, pensé comme une mise en scène de réception. Chaque table reste un groupe stable : déplacer une table emporte son ensemble, déplacer un invité le réassigne avec une logique de placement fixe et lisible.</p>
+      <div class="hero-top">
+        <div>
+          <h1>Plan visuel</h1>
+          <p>Un plan de salle plus raffiné, plus uniforme et plus lisible : tables mieux mises en scène, sidebar plus propre, et une présentation visuelle enfin cohérente avec l’admin.</p>
+        </div>
+        <div class="hero-actions">
+          <span class="metric-inline"><strong>Vue</strong> scénographique</span>
+          <span class="metric-inline"><strong>Drag</strong> optimisé</span>
+        </div>
+      </div>
       <div class="stats">
-        <div class="stat"><span>Tables</span><strong id="statTables">0</strong></div>
-        <div class="stat"><span>Invités placés</span><strong id="statGuests">0</strong></div>
-        <div class="stat"><span>Capacité totale</span><strong id="statCapacity">0</strong></div>
-        <div class="stat"><span>Alertes</span><strong id="statAlerts">0</strong></div>
+        <div class="stat-card"><span class="label">Tables</span><strong id="statTables">0</strong></div>
+        <div class="stat-card"><span class="label">Invités placés</span><strong id="statGuests">0</strong></div>
+        <div class="stat-card"><span class="label">Capacité totale</span><strong id="statCapacity">0</strong></div>
+        <div class="stat-card"><span class="label">Alertes</span><strong id="statAlerts">0</strong></div>
       </div>
     </section>
     <div class="toolbar">
-      <span class="save-indicator" style="display:inline-flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(255,255,255,.7);border:1px solid rgba(164,127,89,.16);border-radius:12px;font-size:12px;color:var(--muted)">
-        <span style="width:8px;height:8px;background:#22c55e;border-radius:50%"></span>
-        <span>Auto-sauvegarde</span>
-      </span>
+      <span class="save-indicator"><span style="width:8px;height:8px;background:#22c55e;border-radius:50%"></span><span>Auto-sauvegarde</span></span>
       <button onclick="saveLayout()">Sauvegarder</button>
       <button class="ghost" onclick="resetLayout()">Reset</button>
       <button class="ghost" onclick="reloadPlan()">Recharger</button>
     </div>
     <div class="layout-container">
-      <!-- SIDEBAR: Unified zone with unassigned guests + 1 empty placeholder -->
       <div class="sidebar">
         <div class="sidebar-header">Non classés</div>
-        <div id="sidebarGuests" class="sidebar-content">
-          <!-- Unassigned guests go here -->
-        </div>
-        <!-- Empty placeholder slot - always visible, acts as drop target to unplace guests -->
+        <div id="sidebarGuests" class="sidebar-content"></div>
         <div id="sidebarPlaceholder" class="sidebar-guest sidebar-placeholder" data-placeholder="true">
           <span class="placeholder-text">Déposer ici pour désaffecter</span>
         </div>
@@ -128,736 +235,93 @@
   <script>
     let plan={tables:[],guests:[],layout:{},stagingGuests:[]};
     let activeDropTarget=null;
-    let lastCanvasSize=null;
     const canvas=document.getElementById('canvas');
     const sidebarPlaceholder=document.getElementById('sidebarPlaceholder');
-    const TABLE_SIZE=180;
-    const TABLE_RADIUS=90;
-    const CLUSTER_PADDING=150;
+    const TABLE_SIZE=180; const TABLE_RADIUS=90; const CLUSTER_PADDING=150;
 
-    // ============ UTILITIES ============
-    function normType(t){
-      const v=String(t||'adulte');
-      if(v==='enfant') return 'enfant';
-      if(v==='bebe') return 'bebe';
-      return 'adulte';
-    }
+    function normType(t){ const v=String(t||'adulte'); if(v==='enfant') return 'enfant'; if(v==='bebe') return 'bebe'; return 'adulte'; }
     function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':''); }
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
-    function regimeClass(regime){
-      const r=String(regime||'').toLowerCase();
-      if(!r) return '';
-      if(r.includes('vegan')) return 'regime-vegan';
-      if(r.includes('végé')||r.includes('vege')||r.includes('végétar')) return 'regime-vege';
-      if(r.includes('sans porc')) return 'regime-sans-porc';
-      if(r.includes('halal')) return 'regime-halal';
-      if(r.includes('kasher')||r.includes('casher')) return 'regime-kasher';
-      if(r.includes('sans gluten')||r.includes('gluten')) return 'regime-sans-gluten';
-      if(r.includes('sans lactose')||r.includes('lactose')) return 'regime-sans-lactose';
-      return 'regime-default';
-    }
+    function regimeClass(regime){ const r=String(regime||'').toLowerCase(); if(!r) return ''; if(r.includes('vegan')) return 'regime-vegan'; if(r.includes('végé')||r.includes('vege')||r.includes('végétar')) return 'regime-vege'; if(r.includes('sans porc')) return 'regime-sans-porc'; if(r.includes('halal')) return 'regime-halal'; if(r.includes('kasher')||r.includes('casher')) return 'regime-kasher'; if(r.includes('sans gluten')||r.includes('gluten')) return 'regime-sans-gluten'; if(r.includes('sans lactose')||r.includes('lactose')) return 'regime-sans-lactose'; return 'regime-default'; }
+    function getPlacedGuestIds(){ const placed=new Set(); (plan.tables||[]).forEach(t=>(t.guests||[]).forEach(g=>{ if(g?.id) placed.add(g.id); })); return placed; }
+    function rebuildGuestList(){ const allGuests=new Map(); (plan.guests||[]).forEach(g=>{ if(g && g.id) allGuests.set(g.id, {...g}); }); (plan.tables||[]).forEach(t=>(t.guests||[]).forEach(g=>{ if(g && g.id && !allGuests.has(g.id)) allGuests.set(g.id, {...g}); })); plan.guests=Array.from(allGuests.values()); }
+    function getUnplacedGuests(){ rebuildGuestList(); const placed=getPlacedGuestIds(); return (plan.guests||[]).filter(g=>g && !placed.has(g.id)); }
 
-    // ============ GUEST STATE ============
-    function getPlacedGuestIds(){
-      const placed=new Set();
-      (plan.tables||[]).forEach(t=>{
-        (t.guests||[]).forEach(g=>{ if(g?.id) placed.add(g.id); });
-      });
-      return placed;
-    }
-
-    // ============ GUEST LIST MANAGEMENT ============
-    // Rebuild complete guest list from tables + current plan.guests
-    // This ensures unplaced guests are always visible in sidebar
-    function rebuildGuestList(){
-      const allGuests=new Map();
-      
-      // First, add all guests from plan.guests
-      (plan.guests||[]).forEach(g=>{
-        if(g && g.id) allGuests.set(g.id, {...g});
-      });
-      
-      // Then add any guests from tables that aren't in the list
-      (plan.tables||[]).forEach(t=>{
-        (t.guests||[]).forEach(g=>{
-          if(g && g.id && !allGuests.has(g.id)){
-            allGuests.set(g.id, {...g});
-          }
-        });
-      });
-      
-      // Convert back to array
-      plan.guests=Array.from(allGuests.values());
-    }
-
-    function getUnplacedGuests(){
-      // Ensure guest list is complete before filtering
-      rebuildGuestList();
-      const placed=getPlacedGuestIds();
-      return (plan.guests||[]).filter(g=>g && !placed.has(g.id));
-    }
-
-    // ============ RENDER SIDEBAR (UNIFIED ZONE) ============
     function renderSidebar(){
-      const container=document.getElementById('sidebarGuests');
-      container.innerHTML='';
-      const unplaced=getUnplacedGuests();
-      
-      if(!unplaced.length){
-        container.innerHTML='<div class="sidebar-empty">Tous les invités sont placés</div>';
-        return;
-      }
-      
-      unplaced.forEach(guest=>{
-        const div=document.createElement('div');
-        div.className='sidebar-guest';
-        div.dataset.guestId=guest.id;
-        const regime=(guest.regime||'').trim();
-        const type=normType(guest.type);
-        const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
-        div.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
-        
-        // Make draggable
-        setupDragFromSidebar(div, guest);
-        
-        container.appendChild(div);
-      });
+      const container=document.getElementById('sidebarGuests'); container.innerHTML=''; const unplaced=getUnplacedGuests();
+      if(!unplaced.length){ container.innerHTML='<div class="sidebar-empty">Tous les invités sont placés</div>'; return; }
+      unplaced.forEach(guest=>{ const div=document.createElement('div'); div.className='sidebar-guest'; div.dataset.guestId=guest.id; const regime=(guest.regime||'').trim(); const type=normType(guest.type); const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`; div.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`; setupDragFromSidebar(div, guest); container.appendChild(div); });
     }
 
-    // ============ DRAG FROM SIDEBAR TO TABLE ============
     function setupDragFromSidebar(chip, guest){
       let sx=0, sy=0, ox=0, oy=0, down=false, started=false, ghostEl=null;
-      
-      const onPointerDown = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        down=true; started=false; 
-        sx=e.clientX; sy=e.clientY; 
-        const rect=chip.getBoundingClientRect();
-        ox=rect.left; oy=rect.top;
-        chip.style.opacity='0.3';
-        
-        // Create ghost for dragging
-        ghostEl=chip.cloneNode(true);
-        ghostEl.style.position='fixed';
-        ghostEl.style.left=ox+'px';
-        ghostEl.style.top=oy+'px';
-        ghostEl.style.width=rect.width+'px';
-        ghostEl.style.opacity='0.9';
-        ghostEl.style.zIndex='9999';
-        ghostEl.style.pointerEvents='none';
-        ghostEl.style.transform='scale(1.05)';
-        ghostEl.style.boxShadow='0 12px 28px rgba(67,44,23,.25)';
-        document.body.appendChild(ghostEl);
-        
-        chip.setPointerCapture(e.pointerId);
-      };
-      
-      const onPointerMove = (e) => {
-        if(!down) return;
-        if(!started && (Math.abs(e.clientX-sx)>5 || Math.abs(e.clientY-sy)>5)) started=true;
-        if(!started) return;
-        
-        const dx=e.clientX-sx;
-        const dy=e.clientY-sy;
-        
-        if(ghostEl){
-          ghostEl.style.left=(ox+dx)+'px';
-          ghostEl.style.top=(oy+dy)+'px';
-        }
-        
-        // Highlight placeholder in sidebar
-        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
-        if(e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom){
-          sidebarPlaceholder.classList.add('drop-active');
-        }else{
-          sidebarPlaceholder.classList.remove('drop-active');
-        }
-        
-        // Look for seat targets
-        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
-        if(target?.slot !== activeDropTarget){
-          clearDropTarget();
-          if(target?.slot){ 
-            activeDropTarget=target.slot; 
-            activeDropTarget.classList.add('drop-target'); 
-          }
-        }
-      };
-      
-      const onPointerUp = (e) => {
-        if(!down){ down=false; return; }
-        down=false;
-        chip.style.opacity='1';
-        
-        // Remove ghost
-        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
-        
-        clearDropTarget();
-        sidebarPlaceholder.classList.remove('drop-active');
-        
-        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
-        const inPlaceholder=e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom;
-        
-        // Check for seat drop
-        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
-        
-        if(inPlaceholder){
-          // Dropped on placeholder - unplace the guest (just stays in unassigned)
-          // Remove from any table first
-          removeFromTables(guest.id);
-        }else if(target){
-          // Place on seat
-          placeGuest(guest, target.tableId, target.seatIndex);
-        }
-        
-        render();
-        autoSave();
-      };
-      
-      const onPointerCancel = (e) => {
-        down=false;
-        chip.style.opacity='1';
-        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
-        clearDropTarget();
-        sidebarPlaceholder.classList.remove('drop-active');
-      };
-      
-      chip.addEventListener('pointerdown', onPointerDown);
-      chip.addEventListener('pointermove', onPointerMove);
-      chip.addEventListener('pointerup', onPointerUp);
-      chip.addEventListener('pointercancel', onPointerCancel);
+      const onPointerDown = (e) => { e.preventDefault(); e.stopPropagation(); down=true; started=false; sx=e.clientX; sy=e.clientY; const rect=chip.getBoundingClientRect(); ox=rect.left; oy=rect.top; chip.style.opacity='0.3'; ghostEl=chip.cloneNode(true); ghostEl.style.position='fixed'; ghostEl.style.left=ox+'px'; ghostEl.style.top=oy+'px'; ghostEl.style.width=rect.width+'px'; ghostEl.style.opacity='0.9'; ghostEl.style.zIndex='9999'; ghostEl.style.pointerEvents='none'; ghostEl.style.transform='scale(1.05)'; ghostEl.style.boxShadow='0 12px 28px rgba(67,44,23,.25)'; document.body.appendChild(ghostEl); chip.setPointerCapture(e.pointerId); };
+      const onPointerMove = (e) => { if(!down) return; if(!started && (Math.abs(e.clientX-sx)>5 || Math.abs(e.clientY-sy)>5)) started=true; if(!started) return; const dx=e.clientX-sx; const dy=e.clientY-sy; if(ghostEl){ ghostEl.style.left=(ox+dx)+'px'; ghostEl.style.top=(oy+dy)+'px'; } const placeholderRect=sidebarPlaceholder.getBoundingClientRect(); if(e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom) sidebarPlaceholder.classList.add('drop-active'); else sidebarPlaceholder.classList.remove('drop-active'); const target=findSeatTargetAtPoint(e.clientX, e.clientY); if(target?.slot !== activeDropTarget){ clearDropTarget(); if(target?.slot){ activeDropTarget=target.slot; activeDropTarget.classList.add('drop-target'); } } };
+      const onPointerUp = (e) => { if(!down){ down=false; return; } down=false; chip.style.opacity='1'; if(ghostEl){ ghostEl.remove(); ghostEl=null; } clearDropTarget(); sidebarPlaceholder.classList.remove('drop-active'); const placeholderRect=sidebarPlaceholder.getBoundingClientRect(); const inPlaceholder=e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom; const target=findSeatTargetAtPoint(e.clientX, e.clientY); if(inPlaceholder){ removeFromTables(guest.id); } else if(target){ placeGuest(guest, target.tableId, target.seatIndex); } render(); autoSave(); };
+      const onPointerCancel = () => { down=false; chip.style.opacity='1'; if(ghostEl){ ghostEl.remove(); ghostEl=null; } clearDropTarget(); sidebarPlaceholder.classList.remove('drop-active'); };
+      chip.addEventListener('pointerdown', onPointerDown); chip.addEventListener('pointermove', onPointerMove); chip.addEventListener('pointerup', onPointerUp); chip.addEventListener('pointercancel', onPointerCancel);
     }
 
-    // ============ DRAG FROM TABLE TO SIDEBAR (UNPLACE) OR OTHER SEAT ============
     function setupDragFromTable(chip, guest, tableId, seatIndex){
       let sx=0, sy=0, ox=0, oy=0, down=false, started=false, ghostEl=null;
-      
-      const onPointerDown = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        down=true; started=false; 
-        sx=e.clientX; sy=e.clientY; 
-        const rect=chip.getBoundingClientRect();
-        ox=rect.left; oy=rect.top;
-        chip.style.opacity='0.3';
-        
-        // Create ghost
-        ghostEl=chip.cloneNode(true);
-        ghostEl.style.position='fixed';
-        ghostEl.style.left=ox+'px';
-        ghostEl.style.top=oy+'px';
-        ghostEl.style.width=rect.width+'px';
-        ghostEl.style.opacity='0.9';
-        ghostEl.style.zIndex='9999';
-        ghostEl.style.pointerEvents='none';
-        ghostEl.style.transform='scale(1.05)';
-        ghostEl.style.boxShadow='0 12px 28px rgba(67,44,23,.25)';
-        document.body.appendChild(ghostEl);
-        
-        chip.setPointerCapture(e.pointerId);
-      };
-      
-      const onPointerMove = (e) => {
-        if(!down) return;
-        if(!started && (Math.abs(e.clientX-sx)>5 || Math.abs(e.clientY-sy)>5)) started=true;
-        if(!started) return;
-        
-        const dx=e.clientX-sx;
-        const dy=e.clientY-sy;
-        
-        if(ghostEl){
-          ghostEl.style.left=(ox+dx)+'px';
-          ghostEl.style.top=(oy+dy)+'px';
-        }
-        
-        // Highlight placeholder in sidebar
-        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
-        if(e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom){
-          sidebarPlaceholder.classList.add('drop-active');
-        }else{
-          sidebarPlaceholder.classList.remove('drop-active');
-        }
-        
-        // Look for other seat targets (swapping)
-        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
-        if(target?.slot !== activeDropTarget){
-          clearDropTarget();
-          if(target?.slot){ 
-            activeDropTarget=target.slot; 
-            activeDropTarget.classList.add('drop-target'); 
-          }
-        }
-      };
-      
-      const onPointerUp = (e) => {
-        if(!down){ down=false; return; }
-        down=false;
-        chip.style.opacity='1';
-        
-        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
-        
-        clearDropTarget();
-        
-        const placeholderRect=sidebarPlaceholder.getBoundingClientRect();
-        const inPlaceholder=e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom;
-        
-        const target=findSeatTargetAtPoint(e.clientX, e.clientY);
-        
-        if(inPlaceholder){
-          // Unplace - remove from table and show in sidebar
-          console.log('Unplacing guest:', guest.id, guest.name);
-          removeFromTables(guest.id);
-          // Also clear from staging just in case
-          removeFromStaging(guest.id);
-        }else if(target && (target.tableId !== tableId || target.seatIndex !== seatIndex)){
-          // Swap/move to another seat
-          swapOrMoveGuest(tableId, seatIndex, target);
-        }
-        
-        sidebarPlaceholder.classList.remove('drop-active');
-        render();
-        autoSave();
-      };
-      
-      const onPointerCancel = (e) => {
-        down=false;
-        chip.style.opacity='1';
-        if(ghostEl){ ghostEl.remove(); ghostEl=null; }
-        clearDropTarget();
-        sidebarPlaceholder.classList.remove('drop-active');
-      };
-      
-      chip.addEventListener('pointerdown', onPointerDown);
-      chip.addEventListener('pointermove', onPointerMove);
-      chip.addEventListener('pointerup', onPointerUp);
-      chip.addEventListener('pointercancel', onPointerCancel);
+      const onPointerDown = (e) => { e.preventDefault(); e.stopPropagation(); down=true; started=false; sx=e.clientX; sy=e.clientY; const rect=chip.getBoundingClientRect(); ox=rect.left; oy=rect.top; chip.style.opacity='0.3'; ghostEl=chip.cloneNode(true); ghostEl.style.position='fixed'; ghostEl.style.left=ox+'px'; ghostEl.style.top=oy+'px'; ghostEl.style.width=rect.width+'px'; ghostEl.style.opacity='0.9'; ghostEl.style.zIndex='9999'; ghostEl.style.pointerEvents='none'; ghostEl.style.transform='scale(1.05)'; ghostEl.style.boxShadow='0 12px 28px rgba(67,44,23,.25)'; document.body.appendChild(ghostEl); chip.setPointerCapture(e.pointerId); };
+      const onPointerMove = (e) => { if(!down) return; if(!started && (Math.abs(e.clientX-sx)>5 || Math.abs(e.clientY-sy)>5)) started=true; if(!started) return; const dx=e.clientX-sx; const dy=e.clientY-sy; if(ghostEl){ ghostEl.style.left=(ox+dx)+'px'; ghostEl.style.top=(oy+dy)+'px'; } const placeholderRect=sidebarPlaceholder.getBoundingClientRect(); if(e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom) sidebarPlaceholder.classList.add('drop-active'); else sidebarPlaceholder.classList.remove('drop-active'); const target=findSeatTargetAtPoint(e.clientX, e.clientY); if(target?.slot !== activeDropTarget){ clearDropTarget(); if(target?.slot){ activeDropTarget=target.slot; activeDropTarget.classList.add('drop-target'); } } };
+      const onPointerUp = (e) => { if(!down){ down=false; return; } down=false; chip.style.opacity='1'; if(ghostEl){ ghostEl.remove(); ghostEl=null; } clearDropTarget(); const placeholderRect=sidebarPlaceholder.getBoundingClientRect(); const inPlaceholder=e.clientX>=placeholderRect.left && e.clientX<=placeholderRect.right && e.clientY>=placeholderRect.top && e.clientY<=placeholderRect.bottom; const target=findSeatTargetAtPoint(e.clientX, e.clientY); if(inPlaceholder){ removeFromTables(guest.id); removeFromStaging(guest.id); } else if(target && (target.tableId !== tableId || target.seatIndex !== seatIndex)){ swapOrMoveGuest(tableId, seatIndex, target); } sidebarPlaceholder.classList.remove('drop-active'); render(); autoSave(); };
+      const onPointerCancel = () => { down=false; chip.style.opacity='1'; if(ghostEl){ ghostEl.remove(); ghostEl=null; } clearDropTarget(); sidebarPlaceholder.classList.remove('drop-active'); };
+      chip.addEventListener('pointerdown', onPointerDown); chip.addEventListener('pointermove', onPointerMove); chip.addEventListener('pointerup', onPointerUp); chip.addEventListener('pointercancel', onPointerCancel);
     }
 
-    // ============ FIND SEAT TARGET AT POINT ============
-    // Uses getBoundingClientRect for accurate positioning
-    function findSeatTargetAtPoint(clientX, clientY){
-      let best=null, bestDist=Infinity;
-      
-      document.querySelectorAll('.seat-slot').forEach(slot=>{
-        const rect=slot.getBoundingClientRect();
-        const cx=rect.left + rect.width/2;
-        const cy=rect.top + rect.height/2;
-        const d=Math.hypot(clientX-cx, clientY-cy);
-        
-        // Check if point is inside or near the slot
-        const isInside = clientX >= rect.left && clientX <= rect.right && 
-                         clientY >= rect.top && clientY <= rect.bottom;
-        
-        if(d<bestDist && (isInside || d < 60)){
-          bestDist=d;
-          best={
-            slot,
-            tableId:slot.dataset.tableId,
-            seatIndex:Number(slot.dataset.seatIndex)
-          };
-        }
-      });
-      
-      return best;
-    }
+    function findSeatTargetAtPoint(clientX, clientY){ let best=null, bestDist=Infinity; document.querySelectorAll('.seat-slot').forEach(slot=>{ const rect=slot.getBoundingClientRect(); const cx=rect.left + rect.width/2; const cy=rect.top + rect.height/2; const d=Math.hypot(clientX-cx, clientY-cy); const isInside = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom; if(d<bestDist && (isInside || d < 60)){ bestDist=d; best={ slot, tableId:slot.dataset.tableId, seatIndex:Number(slot.dataset.seatIndex) }; } }); return best; }
+    function removeFromTables(guestId){ (plan.tables||[]).forEach(t=>{ t.guests=t.guests||[]; const idx=t.guests.findIndex(g=>g && g.id===guestId); if(idx!==-1) t.guests[idx]=null; }); }
+    function removeFromStaging(guestId){ plan.stagingGuests = (plan.stagingGuests||[]).filter(g=>g.id!==guestId); }
+    function placeGuest(guest, tableId, seatIndex){ const t=(plan.tables||[]).find(x=>x.id===tableId); if(!t) return; t.guests=t.guests||[]; removeFromTables(guest.id); removeFromStaging(guest.id); t.guests[seatIndex]=guest; }
+    function swapOrMoveGuest(fromTableId, fromSeatIndex, target){ if(!target) return render(); const from=(plan.tables||[]).find(t=>t.id===fromTableId); const to=(plan.tables||[]).find(t=>t.id===target.tableId); if(!from || !to) return render(); from.guests=from.guests||[]; to.guests=to.guests||[]; const moving=from.guests[fromSeatIndex]; if(!moving) return render(); const targetGuest=to.guests[target.seatIndex] || null; if(from.id===to.id && fromSeatIndex===target.seatIndex) return render(); from.guests[fromSeatIndex]=targetGuest; to.guests[target.seatIndex]=moving; while(from.guests.length && !from.guests[from.guests.length-1]) from.guests.pop(); while(to.guests.length && !to.guests[to.guests.length-1]) to.guests.pop(); render(); autoSave(); }
+    function clearDropTarget(){ if(activeDropTarget){ activeDropTarget.classList.remove('drop-target'); activeDropTarget=null; } }
 
-    // ============ GUEST OPERATIONS ============
-    function removeFromTables(guestId){
-      (plan.tables||[]).forEach(t=>{
-        t.guests=t.guests||[];
-        const idx=t.guests.findIndex(g=>g && g.id===guestId);
-        if(idx!==-1) t.guests[idx]=null;
-      });
-    }
-
-    function removeFromStaging(guestId){
-      plan.stagingGuests = (plan.stagingGuests||[]).filter(g=>g.id!==guestId);
-    }
-
-    function placeGuest(guest, tableId, seatIndex){
-      const t=(plan.tables||[]).find(x=>x.id===tableId);
-      if(!t) return;
-      t.guests=t.guests||[];
-      // Remove from any previous table first
-      removeFromTables(guest.id);
-      removeFromStaging(guest.id);
-      // Place at new location
-      t.guests[seatIndex]=guest;
-    }
-
-    function swapOrMoveGuest(fromTableId, fromSeatIndex, target){
-      if(!target) return render();
-      const from=(plan.tables||[]).find(t=>t.id===fromTableId);
-      const to=(plan.tables||[]).find(t=>t.id===target.tableId);
-      if(!from || !to) return render();
-      from.guests=from.guests||[];
-      to.guests=to.guests||[];
-      const moving=from.guests[fromSeatIndex];
-      if(!moving) return render();
-      const targetGuest=to.guests[target.seatIndex] || null;
-      if(from.id===to.id && fromSeatIndex===target.seatIndex) return render();
-      from.guests[fromSeatIndex]=targetGuest;
-      to.guests[target.seatIndex]=moving;
-      // Clean up nulls at end
-      while(from.guests.length && !from.guests[from.guests.length-1]) from.guests.pop();
-      while(to.guests.length && !to.guests[to.guests.length-1]) to.guests.pop();
-      render();
-      autoSave();
-    }
-
-    function clearDropTarget(){
-      if(activeDropTarget){ 
-        activeDropTarget.classList.remove('drop-target'); 
-        activeDropTarget=null; 
-      }
-    }
-
-    // ============ LOAD/SAVE ============
     async function load(){
-      const r=await fetch('/api/plan');
-      plan=await r.json();
-      plan.layout=plan.layout||{};
-      plan.layout.tables=plan.layout.tables||{};
-      plan.layout.viewport=plan.layout.viewport||null;
-      plan.stagingGuests=plan.stagingGuests||[];
-      
-      // Initialize plan.guests from tables if empty (fixes missing master guest list)
-      if(!plan.guests || plan.guests.length === 0){
-        const tableGuestIds=new Set();
-        (plan.tables||[]).forEach(t=>{
-          (t.guests||[]).forEach(g=>{ if(g?.id) tableGuestIds.add(g.id); });
-        });
-        // Collect all unique guests from tables
-        const guestsFromTables=[];
-        const seenIds=new Set();
-        (plan.tables||[]).forEach(t=>{
-          (t.guests||[]).forEach(g=>{
-            if(g && g.id && !seenIds.has(g.id)){
-              seenIds.add(g.id);
-              guestsFromTables.push({
-                id: g.id,
-                name: g.name || 'Invité',
-                type: g.type || 'adulte',
-                regime: g.regime || '',
-                rsvpStatus: g.rsvpStatus || '',
-                phone: g.phone || '',
-                adminNotes: g.adminNotes || ''
-              });
-            }
-          });
-        });
-        plan.guests=guestsFromTables;
-      }
-      
+      const r=await fetch('/api/plan'); plan=await r.json(); plan.layout=plan.layout||{}; plan.layout.tables=plan.layout.tables||{}; plan.layout.viewport=plan.layout.viewport||null; plan.stagingGuests=plan.stagingGuests||[];
+      if(!plan.guests || plan.guests.length === 0){ const guestsFromTables=[]; const seenIds=new Set(); (plan.tables||[]).forEach(t=>(t.guests||[]).forEach(g=>{ if(g && g.id && !seenIds.has(g.id)){ seenIds.add(g.id); guestsFromTables.push({ id: g.id, name: g.name || 'Invité', type: g.type || 'adulte', regime: g.regime || '', rsvpStatus: g.rsvpStatus || '', phone: g.phone || '', adminNotes: g.adminNotes || '' }); }})); plan.guests=guestsFromTables; }
       render();
     }
     async function reloadPlan(){ await load(); }
 
-    function updateStats(){
-      const tables=plan.tables||[];
-      const placedGuests=tables.flatMap(t=>t.guests||[]);
-      const unplaced=getUnplacedGuests();
-      const stagingCount=(plan.stagingGuests||[]).length;
-      const alerts=tables.filter(t=>(t.guests||[]).length>(t.capacity||0)).length;
-      document.getElementById('statTables').textContent=tables.length;
-      document.getElementById('statGuests').textContent=placedGuests.length;
-      document.getElementById('statCapacity').textContent=tables.reduce((s,t)=>s+Number(t.capacity||0),0);
-      document.getElementById('statAlerts').textContent=alerts + (unplaced.length>0?1:0) + (stagingCount>0?1:0);
-    }
+    function updateStats(){ const tables=plan.tables||[]; const placedGuests=tables.flatMap(t=>t.guests||[]).filter(Boolean); const unplaced=getUnplacedGuests(); const alerts=tables.filter(t=>(t.guests||[]).filter(Boolean).length>(t.capacity||0)).length; document.getElementById('statTables').textContent=tables.length; document.getElementById('statGuests').textContent=placedGuests.length; document.getElementById('statCapacity').textContent=tables.reduce((s,t)=>s+Number(t.capacity||0),0); document.getElementById('statAlerts').textContent=alerts + (unplaced.length>0?1:0); }
+    function estimateChipSize(guest){ const name=String(guest?.name||''); const regime=String(guest?.regime||'').trim(); const width=Math.min(118, Math.max(74, Math.round(name.length*5.4) + (regime ? 18 : 8))); const height=regime ? 36 : 24; return { width, height }; }
+    function ringDistribution(capacity){ const total=Math.max(1, capacity|0); if(total <= 9) return [total]; const rings=[]; let left=total; const capacities=[10, 14, 18]; for(let i=0;i<capacities.length && left>0;i++){ const take=Math.min(left, capacities[i]); rings.push(take); left-=take; } while(left>0){ const take=Math.min(left, 20); rings.push(take); left-=take; } return rings; }
+    function seatLayout(seatIndex, capacity, guest){ const size=estimateChipSize(guest); const rings=ringDistribution(capacity); let ring=0; let offset=seatIndex; while(ring < rings.length && offset >= rings[ring]){ offset -= rings[ring]; ring++; } const countInRing=Math.max(1, rings[ring] || 1); const radius=116 + ring*52; const baseStep=(Math.PI * 2) / countInRing; const ringOffset=(ring % 2) ? baseStep / 2 : 0; const angle=(-Math.PI / 2) + offset * baseStep + ringOffset; const cx=CLUSTER_PADDING + TABLE_RADIUS; const cy=CLUSTER_PADDING + TABLE_RADIUS; return { left: Math.round(cx + Math.cos(angle)*radius - size.width/2), top: Math.round(cy + Math.sin(angle)*radius - size.height/2), width: size.width, height: size.height }; }
+    function clusterBounds(capacity){ const total=Math.max(1, capacity||1); let minLeft=CLUSTER_PADDING, minTop=CLUSTER_PADDING, maxRight=CLUSTER_PADDING + TABLE_SIZE, maxBottom=CLUSTER_PADDING + TABLE_SIZE; for(let i=0;i<total;i++){ const seat=seatLayout(i,total,{name:'Placeholder long', regime:'sans gluten'}); minLeft=Math.min(minLeft, seat.left); minTop=Math.min(minTop, seat.top); maxRight=Math.max(maxRight, seat.left + seat.width); maxBottom=Math.max(maxBottom, seat.top + seat.height); } const pad=26; return { minLeft, minTop, width: Math.max(TABLE_SIZE, maxRight - minLeft + pad*2), height: Math.max(TABLE_SIZE, maxBottom - minTop + pad*2), offsetX: pad - minLeft, offsetY: pad - minTop }; }
+    function defaultTablePos(i, bounds, cell){ const usableWidth=Math.max(520, canvas.clientWidth || 1200); const cols=Math.max(1, Math.floor((usableWidth - cell.gapX) / (cell.width + cell.gapX))); const col=i % cols; const row=Math.floor(i / cols); return { x: 24 + col*(cell.width + cell.gapX) + Math.round((cell.width - bounds.width)/2), y: 24 + row*(cell.height + cell.gapY) + Math.round((cell.height - bounds.height)/2) }; }
+    function clampTablePos(pos, bounds){ const layoutHeight=Math.max(canvas.clientHeight || 0, parseInt(canvas.style.minHeight || '0', 10) || 0); const maxX=Math.max(0, canvas.clientWidth - bounds.width - 8); const maxY=Math.max(0, layoutHeight - bounds.height - 8); return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) }; }
+    function layoutCellSpec(entries){ const maxWidth=Math.max(...entries.map(e=>e.bounds.width), TABLE_SIZE); const maxHeight=Math.max(...entries.map(e=>e.bounds.height), TABLE_SIZE); return { width:maxWidth, height:maxHeight, gapX:48, gapY:48 }; }
+    function resolveTableOverlaps(entries){ if(!entries.length) return { entries, rows:0, cell:layoutCellSpec([{bounds:{width:TABLE_SIZE,height:TABLE_SIZE}}]) }; const cell=layoutCellSpec(entries); const usableWidth=Math.max(520, canvas.clientWidth || 1200); const cols=Math.max(1, Math.floor((usableWidth - cell.gapX) / (cell.width + cell.gapX))); const occupied=new Set(); const placed=[]; let maxRow=0; const toCell=(pos)=>({ col: Math.max(0, Math.round((pos.x - 24) / (cell.width + cell.gapX))), row: Math.max(0, Math.round((pos.y - 24) / (cell.height + cell.gapY))) }); const keyOf=(col,row)=>`${col}:${row}`; const snapPos=(col,row,bounds)=>({ x: 24 + col*(cell.width + cell.gapX) + Math.round((cell.width - bounds.width)/2), y: 24 + row*(cell.height + cell.gapY) + Math.round((cell.height - bounds.height)/2) }); entries.forEach((entry)=>{ let {col,row}=toCell(entry.pos); if(col >= cols) col = cols - 1; let guard=0; while(occupied.has(keyOf(col,row)) && guard < 1000){ col++; if(col >= cols){ col = 0; row++; } guard++; } occupied.add(keyOf(col,row)); maxRow=Math.max(maxRow,row); placed.push({ ...entry, pos: snapPos(col,row,entry.bounds), cell }); }); return { entries: placed, rows: maxRow + 1, cell }; }
+    function adaptLayoutToViewport(){ const width=Math.max(1, canvas.clientWidth||1); const height=Math.max(1, canvas.clientHeight||1); const prev=plan.layout.viewport; if(!prev || !prev.width || !prev.height){ plan.layout.viewport={width,height}; return; } if(prev.width===width && prev.height===height) return; const sx=width/prev.width; const sy=height/prev.height; Object.keys(plan.layout.tables||{}).forEach(id=>{ const p=plan.layout.tables[id]; if(!p) return; plan.layout.tables[id]={ x: Math.round(p.x*sx), y: Math.round(p.y*sy) }; }); plan.layout.viewport={width,height}; }
 
-    // ============ TABLE LAYOUT ============
-    function estimateChipSize(guest){
-      const name=String(guest?.name||'');
-      const regime=String(guest?.regime||'').trim();
-      const width=Math.min(118, Math.max(74, Math.round(name.length*5.4) + (regime ? 18 : 8)));
-      const height=regime ? 36 : 24;
-      return { width, height };
-    }
-
-    function ringDistribution(capacity){
-      const total=Math.max(1, capacity|0);
-      if(total <= 9) return [total];
-      const rings=[];
-      let left=total;
-      const capacities=[10, 14, 18];
-      for(let i=0;i<capacities.length && left>0;i++){
-        const take=Math.min(left, capacities[i]);
-        rings.push(take);
-        left-=take;
-      }
-      while(left>0){
-        const take=Math.min(left, 20);
-        rings.push(take);
-        left-=take;
-      }
-      return rings;
-    }
-
-    function seatLayout(seatIndex, capacity, guest){
-      const size=estimateChipSize(guest);
-      const rings=ringDistribution(capacity);
-      let ring=0;
-      let offset=seatIndex;
-      while(ring < rings.length && offset >= rings[ring]){
-        offset -= rings[ring];
-        ring++;
-      }
-      const countInRing=Math.max(1, rings[ring] || 1);
-      const radius=116 + ring*52;
-      const baseStep=(Math.PI * 2) / countInRing;
-      const ringOffset=(ring % 2) ? baseStep / 2 : 0;
-      const angle=(-Math.PI / 2) + offset * baseStep + ringOffset;
-      const cx=CLUSTER_PADDING + TABLE_RADIUS;
-      const cy=CLUSTER_PADDING + TABLE_RADIUS;
-      return {
-        left: Math.round(cx + Math.cos(angle)*radius - size.width/2),
-        top: Math.round(cy + Math.sin(angle)*radius - size.height/2),
-        width: size.width,
-        height: size.height,
-      };
-    }
-
-    function clusterBounds(capacity){
-      const total=Math.max(1, capacity||1);
-      let minLeft=CLUSTER_PADDING, minTop=CLUSTER_PADDING, maxRight=CLUSTER_PADDING + TABLE_SIZE, maxBottom=CLUSTER_PADDING + TABLE_SIZE;
-      for(let i=0;i<total;i++){
-        const seat=seatLayout(i,total,{name:'Placeholder long', regime:'sans gluten'});
-        minLeft=Math.min(minLeft, seat.left);
-        minTop=Math.min(minTop, seat.top);
-        maxRight=Math.max(maxRight, seat.left + seat.width);
-        maxBottom=Math.max(maxBottom, seat.top + seat.height);
-      }
-      const pad=26;
-      return {
-        minLeft,
-        minTop,
-        width: Math.max(TABLE_SIZE, maxRight - minLeft + pad*2),
-        height: Math.max(TABLE_SIZE, maxBottom - minTop + pad*2),
-        offsetX: pad - minLeft,
-        offsetY: pad - minTop,
-      };
-    }
-
-    function defaultTablePos(i, bounds, cell){
-      const gapX=cell.gapX, gapY=cell.gapY;
-      const usableWidth=Math.max(520, canvas.clientWidth || 1200);
-      const cols=Math.max(1, Math.floor((usableWidth - gapX) / (cell.width + gapX)));
-      const col=i % cols;
-      const row=Math.floor(i / cols);
-      return {
-        x: 24 + col*(cell.width + gapX) + Math.round((cell.width - bounds.width)/2),
-        y: 24 + row*(cell.height + gapY) + Math.round((cell.height - bounds.height)/2),
-      };
-    }
-
-    function clampTablePos(pos, bounds){
-      const layoutHeight=Math.max(canvas.clientHeight || 0, parseInt(canvas.style.minHeight || '0', 10) || 0);
-      const maxX=Math.max(0, canvas.clientWidth - bounds.width - 8);
-      const maxY=Math.max(0, layoutHeight - bounds.height - 8);
-      return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) };
-    }
-
-    function layoutCellSpec(entries){
-      const maxWidth=Math.max(...entries.map(e=>e.bounds.width), TABLE_SIZE);
-      const maxHeight=Math.max(...entries.map(e=>e.bounds.height), TABLE_SIZE);
-      return { width:maxWidth, height:maxHeight, gapX:48, gapY:48 };
-    }
-
-    function resolveTableOverlaps(entries){
-      if(!entries.length) return { entries, rows:0, cell:layoutCellSpec([{bounds:{width:TABLE_SIZE,height:TABLE_SIZE}}]) };
-      const cell=layoutCellSpec(entries);
-      const usableWidth=Math.max(520, canvas.clientWidth || 1200);
-      const cols=Math.max(1, Math.floor((usableWidth - cell.gapX) / (cell.width + cell.gapX)));
-      const occupied=new Set();
-      const placed=[];
-      let maxRow=0;
-
-      const toCell=(pos)=>({
-        col: Math.max(0, Math.round((pos.x - 24) / (cell.width + cell.gapX))),
-        row: Math.max(0, Math.round((pos.y - 24) / (cell.height + cell.gapY))),
-      });
-
-      const keyOf=(col,row)=>`${col}:${row}`;
-      const snapPos=(col,row,bounds)=>({
-        x: 24 + col*(cell.width + cell.gapX) + Math.round((cell.width - bounds.width)/2),
-        y: 24 + row*(cell.height + cell.gapY) + Math.round((cell.height - bounds.height)/2),
-      });
-
-      entries.forEach((entry,index)=>{
-        let {col,row}=toCell(entry.pos);
-        if(col >= cols) col = cols - 1;
-        let guard=0;
-        while(occupied.has(keyOf(col,row)) && guard < 1000){
-          col++;
-          if(col >= cols){ col = 0; row++; }
-          guard++;
-        }
-        occupied.add(keyOf(col,row));
-        maxRow=Math.max(maxRow,row);
-        placed.push({ ...entry, pos: snapPos(col,row,entry.bounds), cell, index });
-      });
-
-      return { entries: placed, rows: maxRow + 1, cell };
-    }
-
-    function adaptLayoutToViewport(){
-      const width=Math.max(1, canvas.clientWidth||1);
-      const height=Math.max(1, canvas.clientHeight||1);
-      const prev=plan.layout.viewport;
-      if(!prev || !prev.width || !prev.height){
-        plan.layout.viewport={width,height};
-        lastCanvasSize={width,height};
-        return;
-      }
-      if(prev.width===width && prev.height===height){
-        lastCanvasSize={width,height};
-        return;
-      }
-      const sx=width/prev.width;
-      const sy=height/prev.height;
-      Object.keys(plan.layout.tables||{}).forEach(id=>{
-        const p=plan.layout.tables[id];
-        if(!p) return;
-        plan.layout.tables[id]={ x: Math.round(p.x*sx), y: Math.round(p.y*sy) };
-      });
-      plan.layout.viewport={width,height};
-      lastCanvasSize={width,height};
-    }
-
-    // ============ RENDER ============
     function render(){
-      canvas.innerHTML='';
-      adaptLayoutToViewport();
-      updateStats();
-      renderSidebar();
-
-      const baseEntries=(plan.tables||[]).map((t,i)=>{
-        const capacity=Math.max(1, Number(t.capacity||1));
-        const bounds=clusterBounds(capacity);
-        return { t, i, capacity, bounds, pos: plan.layout.tables[t.id] || null };
-      });
-
+      canvas.innerHTML=''; adaptLayoutToViewport(); updateStats(); renderSidebar();
+      const baseEntries=(plan.tables||[]).map((t,i)=>{ const capacity=Math.max(1, Number(t.capacity||1)); const bounds=clusterBounds(capacity); return { t, i, capacity, bounds, pos: plan.layout.tables[t.id] || null }; });
       const cell=baseEntries.length ? layoutCellSpec(baseEntries) : { width:TABLE_SIZE, height:TABLE_SIZE, gapX:48, gapY:48 };
-      const entries=baseEntries.map(({t,i,capacity,bounds,pos})=>({
-        t, i, capacity, bounds,
-        pos: clampTablePos(pos || defaultTablePos(i,bounds,cell), bounds),
-      }));
-
-      const resolvedLayout=resolveTableOverlaps(entries);
-      const resolved=resolvedLayout.entries;
-      const contentHeight=Math.max(canvas.clientHeight || 1, 48 + resolvedLayout.rows * (resolvedLayout.cell.height + resolvedLayout.cell.gapY));
-      canvas.style.minHeight=contentHeight + 'px';
-      plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
-
+      const entries=baseEntries.map(({t,i,capacity,bounds,pos})=>({ t, i, capacity, bounds, pos: clampTablePos(pos || defaultTablePos(i,bounds,cell), bounds) }));
+      const resolvedLayout=resolveTableOverlaps(entries); const resolved=resolvedLayout.entries; const contentHeight=Math.max(canvas.clientHeight || 1, 48 + resolvedLayout.rows * (resolvedLayout.cell.height + resolvedLayout.cell.gapY)); canvas.style.minHeight=contentHeight + 'px'; plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
       resolved.forEach(({t, capacity, bounds, pos})=>{
         plan.layout.tables[t.id]=clampTablePos(pos, bounds);
-
-        const cluster=document.createElement('div');
-        cluster.className='table-cluster';
-        cluster.style.left=pos.x+'px';
-        cluster.style.top=pos.y+'px';
-        cluster.style.width=bounds.width+'px';
-        cluster.style.height=bounds.height+'px';
-
-        const table=document.createElement('div');
-        table.className='round-table';
-        table.style.left=(CLUSTER_PADDING + bounds.offsetX)+'px';
-        table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px';
-        const ratio=Math.min(100, Math.round(((t.guests||[]).length/Math.max(1,capacity))*100));
-        table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${(t.guests||[]).length}/${capacity}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`;
-        drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); autoSave(); });
-        cluster.appendChild(table);
-
+        const cluster=document.createElement('div'); cluster.className='table-cluster'; cluster.style.left=pos.x+'px'; cluster.style.top=pos.y+'px'; cluster.style.width=bounds.width+'px'; cluster.style.height=bounds.height+'px';
+        const table=document.createElement('div'); table.className='round-table'; table.style.left=(CLUSTER_PADDING + bounds.offsetX)+'px'; table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px'; const ratio=Math.min(100, Math.round((((t.guests||[]).filter(Boolean).length)/Math.max(1,capacity))*100)); table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${((t.guests||[]).filter(Boolean).length)}/${capacity}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`; drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); autoSave(); }); cluster.appendChild(table);
         for(let seatIndex=0; seatIndex<capacity; seatIndex++){
-          const guest=(t.guests||[])[seatIndex] || null;
-          const seat=seatLayout(seatIndex, capacity, guest||{name:'',regime:''});
-          const slot=document.createElement('div');
-          slot.className='seat-slot';
-          slot.dataset.tableId=t.id;
-          slot.dataset.seatIndex=String(seatIndex);
-          slot.style.left=(seat.left + bounds.offsetX)+'px';
-          slot.style.top=(seat.top + bounds.offsetY)+'px';
-          slot.style.width=seat.width+'px';
-          slot.style.height=seat.height+'px';
-          cluster.appendChild(slot);
-          if(!guest) continue;
-
-          const chip=document.createElement('div');
-          chip.className=`guest-chip ${normType(guest.type)}`;
-          chip.style.left=(seat.left + bounds.offsetX)+'px';
-          chip.style.top=(seat.top + bounds.offsetY)+'px';
-          chip.style.width=seat.width+'px';
-          const regime=(guest.regime||'').trim();
-          const type=normType(guest.type);
-          const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`;
-          chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`;
-          
-          // Setup drag from table to sidebar (to unplace) or another seat
-          setupDragFromTable(chip, guest, t.id, seatIndex);
-          
-          cluster.appendChild(chip);
+          const guest=(t.guests||[])[seatIndex] || null; const seat=seatLayout(seatIndex, capacity, guest||{name:'',regime:''}); const slot=document.createElement('div'); slot.className='seat-slot'; slot.dataset.tableId=t.id; slot.dataset.seatIndex=String(seatIndex); slot.style.left=(seat.left + bounds.offsetX)+'px'; slot.style.top=(seat.top + bounds.offsetY)+'px'; slot.style.width=seat.width+'px'; slot.style.height=seat.height+'px'; cluster.appendChild(slot); if(!guest) continue;
+          const chip=document.createElement('div'); chip.className=`guest-chip ${normType(guest.type)}`; chip.style.left=(seat.left + bounds.offsetX)+'px'; chip.style.top=(seat.top + bounds.offsetY)+'px'; chip.style.width=seat.width+'px'; const regime=(guest.regime||'').trim(); const type=normType(guest.type); const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`; chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`; setupDragFromTable(chip, guest, t.id, seatIndex); cluster.appendChild(chip);
         }
         canvas.appendChild(cluster);
       });
     }
 
-
-
-    function renameTable(tableId, value){
-      const t=(plan.tables||[]).find(x=>x.id===tableId);
-      if(!t) return;
-      t.name=String(value||'').trim() || t.name || 'Table';
-      render();
-      autoSave();
-    }
-
-    function drag(handle, cluster, bounds, onDrop){
-      let sx=0, sy=0, ox=0, oy=0, down=false;
-      handle.addEventListener('pointerdown', e=>{
-        if(e.target.tagName==='INPUT') return;
-        down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(cluster.style.left,10)||0; oy=parseInt(cluster.style.top,10)||0; handle.setPointerCapture(e.pointerId);
-      });
-      handle.addEventListener('pointermove', e=>{
-        if(!down) return;
-        const nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy);
-        const clamped=clampTablePos({x:nx,y:ny}, bounds);
-        cluster.style.left=clamped.x+'px';
-        cluster.style.top=clamped.y+'px';
-      });
-      handle.addEventListener('pointerup', ()=>{
-        if(!down) return;
-        down=false;
-        onDrop(parseInt(cluster.style.left,10)||0, parseInt(cluster.style.top,10)||0);
-      });
-    }
-
-    // Auto-save
+    function renameTable(tableId, value){ const t=(plan.tables||[]).find(x=>x.id===tableId); if(!t) return; t.name=String(value||'').trim() || t.name || 'Table'; render(); autoSave(); }
+    function drag(handle, cluster, bounds, onDrop){ let sx=0, sy=0, ox=0, oy=0, down=false; handle.addEventListener('pointerdown', e=>{ if(e.target.tagName==='INPUT') return; down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(cluster.style.left,10)||0; oy=parseInt(cluster.style.top,10)||0; handle.setPointerCapture(e.pointerId); }); handle.addEventListener('pointermove', e=>{ if(!down) return; const nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy); const clamped=clampTablePos({x:nx,y:ny}, bounds); cluster.style.left=clamped.x+'px'; cluster.style.top=clamped.y+'px'; }); handle.addEventListener('pointerup', ()=>{ if(!down) return; down=false; onDrop(parseInt(cluster.style.left,10)||0, parseInt(cluster.style.top,10)||0); }); }
     let saveTimeout = null;
-    
-    async function autoSave(){
-      if(saveTimeout) clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(async () => {
-        try {
-          await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)});
-          showSaveIndicator();
-        } catch(e){ console.error('Auto-save failed:', e); }
-      }, 800);
-    }
-    function showSaveIndicator(){
-      const btn = document.querySelector('.toolbar .save-indicator');
-      if(btn){ btn.classList.add('saving'); setTimeout(()=>btn.classList.remove('saving'),600); }
-    }
-
-    async function saveLayout(){
-      await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)});
-      showSaveIndicator();
-    }
+    async function autoSave(){ if(saveTimeout) clearTimeout(saveTimeout); saveTimeout = setTimeout(async () => { try { await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)}); showSaveIndicator(); } catch(e){ console.error('Auto-save failed:', e); } }, 800); }
+    function showSaveIndicator(){ const btn = document.querySelector('.toolbar .save-indicator'); if(btn){ btn.classList.add('saving'); setTimeout(()=>btn.classList.remove('saving'),600); } }
+    async function saveLayout(){ await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)}); showSaveIndicator(); }
     function resetLayout(){ plan.layout={tables:{},guests:{}}; plan.stagingGuests=[]; render(); }
-    
-    window.addEventListener('resize', ()=>requestAnimationFrame(render));
-    window.addEventListener('focus', ()=>load());
-    load();
+    window.addEventListener('resize', ()=>requestAnimationFrame(render)); window.addEventListener('focus', ()=>load()); load();
   </script>
 </body>
 </html>
