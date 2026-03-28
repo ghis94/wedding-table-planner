@@ -123,12 +123,12 @@
     .alert-card.error { background: #fef2f2; color: #991b1b; }
     .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
     .table {
-      padding: 18px;
-      border-radius: 24px;
+      padding: 16px;
+      border-radius: 22px;
       border: 1px solid var(--line-soft);
       background: linear-gradient(180deg, var(--surface-strong), var(--surface));
       box-shadow: var(--shadow-sm);
-      min-height: 160px;
+      min-height: 120px;
       position: relative;
       overflow: hidden;
     }
@@ -146,14 +146,15 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      align-items: flex-start;
-      margin-bottom: 12px;
+      align-items: center;
+      margin-bottom: 10px;
     }
     .table-head input {
-      max-width: 200px;
-      min-height: 42px;
+      max-width: 180px;
+      min-height: 38px;
+      padding: 8px 10px;
       font-family: 'Cormorant Garamond', serif;
-      font-size: 1.35rem;
+      font-size: 1.2rem;
       font-weight: 600;
     }
     .table-kpis { display: grid; gap: 8px; color: var(--text-muted); font-size: 13px; margin-bottom: 14px; }
@@ -306,9 +307,12 @@
           <div class="wedding-section-title">
             <div>
               <h3>Plan de table</h3>
-              <p class="text-sm text-muted">Tout est plus homogène : filtres, cartes, densité visuelle, progression et lecture des tables.</p>
+              <p class="text-sm text-muted">Version plus compacte et plus efficace : lecture rapide, actions plus nettes, moins de lourdeur visuelle.</p>
             </div>
-            <button class="ghost" onclick="undoLastAction()">↩ Annuler</button>
+            <div class="row">
+              <button class="ghost" onclick="window.location.href='postcards.html'">💌 Cartes</button>
+              <button class="ghost" onclick="undoLastAction()">↩ Annuler</button>
+            </div>
           </div>
           <div class="filters">
             <select id="guestFilterPlaced" onchange="renderAll()">
@@ -652,8 +656,9 @@
         const adultCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='adulte').length;
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
-        const ratio=Math.min(100, Math.round(((t.guests.length||0)/Math.max(1,Number(t.capacity||1)))*100));
-        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div><div class="table-kpis"><div>Capacité : <input type="number" min="1" value="${t.capacity}" style="width:88px;display:inline-flex" onchange="setCap('${t.id}',this.value)"></div><div>Places : ${t.guests.length}/${t.capacity}</div><div>Adultes : ${adultCount} • Enfants : ${childCount} • Bébés : ${babyCount}</div></div><div class="progress"><span style="width:${ratio}%"></span></div><div class="row" style="margin:12px 0 10px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
+        const seated=(t.guests||[]).length;
+        const ratio=Math.min(100, Math.round((seated/Math.max(1,Number(t.capacity||1)))*100));
+        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><div class="row"><span class="tag">${seated}/${t.capacity}</span><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div></div><div class="table-kpis"><div>Adultes ${adultCount} · Enfants ${childCount} · Bébés ${babyCount}</div><div>Capacité <input type="number" min="1" value="${t.capacity}" style="width:76px;display:inline-flex" onchange="setCap('${t.id}',this.value)"></div></div><div class="progress"><span style="width:${ratio}%"></span></div><div class="row" style="margin:10px 0 6px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
         visibleGuests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
           const diet=normalizeDietLabel(g.regime);
