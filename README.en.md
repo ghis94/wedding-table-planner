@@ -48,10 +48,10 @@ Real-world seating planning gets messy very quickly:
 - organize by table,
 - keep the visual plan synchronized with admin data.
 
-### Staff and day-of views
-- look up a guest and find their table quickly,
-- use a lightweight mobile-friendly staff view,
+### Day-of and printed materials
 - access a cleaner operational day-of screen,
+- generate printable table cards,
+- prepare elegant display materials for the event,
 - print summaries when needed.
 
 ---
@@ -64,7 +64,6 @@ Real-world seating planning gets messy very quickly:
 | `/login.html` | Admin login |
 | `/admin.html` | Main management panel |
 | `/visual.html` | Visual seating plan |
-| `/staff.html` | Staff lookup view |
 | `/day-of.html` | Day-of operational view |
 
 ---
@@ -78,7 +77,7 @@ Real-world seating planning gets messy very quickly:
 - CSV guest import
 - catering CSV export
 - full config import/export
-- mobile staff lookup
+- printable table cards
 - printable day-of screen
 - light / dark / system themes
 

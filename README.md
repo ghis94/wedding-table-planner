@@ -48,10 +48,10 @@ Dans la vraie vie, le plan de table devient vite pénible :
 - travail par tables,
 - synchronisation avec l’administration.
 
-### Vue staff et jour J
-- recherche rapide d’un invité → table,
-- vue mobile simple pour le staff,
+### Vue jour J et supports imprimés
 - vue opérationnelle plus lisible pour le jour J,
+- cartes de table imprimables,
+- supports plus élégants pour l’affichage et l’organisation,
 - impression possible si nécessaire.
 
 ---
@@ -64,7 +64,6 @@ Dans la vraie vie, le plan de table devient vite pénible :
 | `/login.html` | Connexion admin |
 | `/admin.html` | Gestion centrale |
 | `/visual.html` | Plan visuel |
-| `/staff.html` | Recherche staff |
 | `/day-of.html` | Vue opérationnelle jour J |
 
 ---
@@ -78,7 +77,7 @@ Dans la vraie vie, le plan de table devient vite pénible :
 - import CSV invités
 - export traiteur CSV
 - export / import complet de la configuration
-- vue staff mobile
+- cartes de table imprimables
 - vue jour J imprimable
 - thèmes light / dark / system
 

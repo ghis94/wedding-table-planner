@@ -3,115 +3,137 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cartes de tables — Wedding Table Planner</title>
+  <title>Cartes de table — Wedding Table Planner</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .postcard-shell { display:grid; gap:24px; }
-    .postcard-toolbar {
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Great+Vibes&family=Inter:wght@400;500;600&display=swap');
+
+    .postcards-page { display:grid; gap:24px; }
+    .postcards-toolbar {
       display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-      padding:16px 18px; border-radius:22px; background:linear-gradient(180deg,var(--surface-strong),var(--surface));
-      border:1px solid var(--line-soft); box-shadow:var(--shadow-sm);
+      padding:16px 18px; border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,250,245,.86), rgba(249,240,231,.72));
+      border:1px solid rgba(187,151,118,.18);
+      box-shadow: var(--shadow-sm);
     }
-    .postcard-grid {
+    .postcards-grid {
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 340px));
-      gap: 22px;
-      justify-content: center;
+      grid-template-columns: repeat(auto-fit, minmax(10cm, 10cm));
+      gap: 20px;
+      justify-content:center;
     }
-    .postcard {
+    .place-card {
       position:relative;
-      min-height: 480px;
-      padding: 26px 24px 22px;
-      border-radius: 28px;
+      width:10cm;
+      min-height:15cm;
+      padding:1.15cm 0.95cm 0.9cm;
+      border-radius:26px;
       overflow:hidden;
-      border:1px solid rgba(181,136,99,.24);
-      box-shadow: 0 24px 60px rgba(92,63,39,.16);
-      display:flex;
-      flex-direction:column;
+      border:1px solid rgba(195,157,121,.24);
+      box-shadow: 0 24px 70px rgba(109, 80, 53, .16);
+      background: linear-gradient(180deg, rgba(252,246,239,.98), rgba(241,226,213,.94));
       page-break-inside: avoid;
       break-inside: avoid;
       isolation:isolate;
     }
-    .postcard::before,
-    .postcard::after {
+    .place-card::before {
       content:'';
       position:absolute;
-      inset:auto;
+      inset:0;
+      background:
+        radial-gradient(circle at 82% 12%, rgba(191,150,115,.16), transparent 18%),
+        radial-gradient(circle at 16% 88%, rgba(173,129,98,.10), transparent 20%),
+        linear-gradient(180deg, rgba(255,255,255,.22), transparent 18%);
       pointer-events:none;
-      opacity:.9;
       z-index:0;
     }
-    .postcard::before {
-      width:180px; height:180px; left:-28px; bottom:-36px;
-      background: radial-gradient(circle, rgba(191,148,105,.22), transparent 68%);
-      filter: blur(4px);
+    .botanical,
+    .botanical-bottom {
+      position:absolute;
+      pointer-events:none;
+      z-index:0;
+      opacity:.72;
     }
-    .postcard::after {
-      width:190px; height:210px; right:-32px; top:-34px;
-      background:
-        radial-gradient(circle at 20% 30%, rgba(255,255,255,.30), transparent 26%),
-        radial-gradient(circle at 48% 44%, rgba(166,106,74,.18), transparent 22%),
-        radial-gradient(circle at 62% 68%, rgba(117,87,60,.14), transparent 16%),
-        radial-gradient(circle at 76% 24%, rgba(181,136,99,.16), transparent 14%);
-      transform: rotate(16deg);
+    .botanical {
+      right:-8px; top:-2px; width:138px; height:210px;
     }
-    .postcard-inner { position:relative; z-index:1; display:flex; flex-direction:column; height:100%; }
-    .postcard-mark {
-      display:inline-flex; align-items:center; gap:8px; margin-bottom:14px;
-      color:#9c6f49; font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:800;
+    .botanical-bottom {
+      left:-10px; bottom:-8px; width:146px; height:220px; transform: scaleX(-1) rotate(-8deg);
+      opacity:.54;
     }
-    .postcard-mark::before,
-    .postcard-mark::after {
-      content:''; width:22px; height:1px; background:currentColor; opacity:.45;
+    .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; min-height:100%; }
+    .card-eyebrow {
+      text-align:center;
+      color:#b28a63;
+      text-transform:uppercase;
+      letter-spacing:.22em;
+      font-size:10px;
+      font-weight:700;
+      margin-bottom:14px;
     }
-    .postcard-title {
+    .card-title {
+      margin: 8px 0 6px;
+      font-family:'Great Vibes', cursive;
+      font-size: clamp(2.3rem, 4vw, 3.2rem);
+      line-height:1.04;
+      text-align:center;
+      color:#ab7b4c;
+      font-weight:400;
+    }
+    .card-divider {
+      width:72px; height:1px; margin: 10px auto 18px;
+      background: linear-gradient(90deg, transparent, rgba(173,129,98,.68), transparent);
+    }
+    .card-subtitle {
+      text-align:center;
+      margin-bottom:18px;
       font-family:'Cormorant Garamond', serif;
-      font-size: clamp(2rem, 4vw, 2.6rem);
-      line-height:1;
-      color:#9a6f3d;
-      text-align:center;
-      margin: 8px 0 10px;
-      text-shadow: 0 1px 0 rgba(255,255,255,.36);
+      font-size:1.05rem;
+      letter-spacing:.06em;
+      color:#8a6446;
     }
-    .postcard-subtitle {
-      text-align:center;
-      color: rgba(90,67,49,.74);
-      font-size:13px;
-      margin-bottom:22px;
+    .guest-list {
+      display:grid;
+      gap:9px;
+      margin-top:10px;
     }
-    .guest-stack { display:grid; gap:10px; margin-top: 8px; }
-    .guest-line {
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    .guest-item {
       padding: 10px 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.34);
-      border: 1px solid rgba(169,125,92,.14);
-      backdrop-filter: blur(4px);
+      text-align:center;
+      border-radius:14px;
+      background: rgba(255,255,255,.38);
+      border: 1px solid rgba(187,151,118,.16);
+      color:#5c4332;
+      font-size:15px;
+      line-height:1.35;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.28);
     }
-    .guest-name { color:#5f4635; font-weight:600; }
-    .guest-meta { color:#9b7a60; font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
-    .postcard-footer {
-      margin-top:auto; padding-top:18px; display:flex; justify-content:space-between; align-items:center; gap:10px;
-      border-top:1px solid rgba(158,118,88,.18);
-      color:#8e6a4f; font-size:12px;
+    .card-footer {
+      margin-top:auto;
+      padding-top:20px;
+      text-align:center;
+      color:#a07b5b;
+      font-size:11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
     }
-    .postcard-count {
-      display:inline-flex; padding:7px 12px; border-radius:999px; background:rgba(255,255,255,.34); border:1px solid rgba(169,125,92,.18);
-      color:#7f5b42; font-weight:700;
+    .theme-nude { background: linear-gradient(180deg, rgba(252,246,239,.98), rgba(239,225,212,.95)); }
+    .theme-sand { background: linear-gradient(180deg, rgba(251,246,240,.98), rgba(233,222,210,.95)); }
+    .theme-blush { background: linear-gradient(180deg, rgba(250,242,238,.98), rgba(236,220,214,.95)); }
+    .theme-linen { background: linear-gradient(180deg, rgba(248,242,235,.98), rgba(232,220,208,.95)); }
+    .theme-clay { background: linear-gradient(180deg, rgba(249,240,233,.98), rgba(229,210,196,.95)); }
+
+    .empty-state {
+      padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
     }
-    .theme-nude { background: linear-gradient(180deg, #f6ede4, #ecd9c8); }
-    .theme-sand { background: linear-gradient(180deg, #f5eee7, #e6d7cb); }
-    .theme-rose { background: linear-gradient(180deg, #f4e8e4, #e7d1cb); }
-    .theme-clay { background: linear-gradient(180deg, #f2e4db, #ddc1b1); }
-    .theme-ivory { background: linear-gradient(180deg, #faf4ec, #efe3d4); }
-    .theme-linen { background: linear-gradient(180deg, #f4efe9, #e9ddd1); }
 
     @media print {
-      body::before, .wedding-header, .postcard-toolbar, .crumbs { display:none !important; }
+      @page { size: 10cm 15cm; margin: 0; }
+      body::before, .wedding-header, .postcards-toolbar, .crumbs, .hero { display:none !important; }
       body { background:#fff !important; }
       .wrap { max-width:none; padding:0 !important; }
-      .postcard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12mm; }
-      .postcard { box-shadow:none !important; }
+      .postcards-grid { display:block; }
+      .place-card { width:10cm; min-height:15cm; border-radius:0; box-shadow:none; margin:0; page-break-after:always; }
     }
   </style>
 </head>
@@ -120,56 +142,64 @@
   <script src="header.js" defer></script>
   <div class="wrap">
     <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="postcards.html">Cartes</a></div>
-    <div class="postcard-shell">
+    <div class="postcards-page">
       <section class="hero">
         <h1>Cartes de table</h1>
-        <p>Des cartes portrait élégantes, pensées pour l’impression ou la présentation, avec une ambiance nude, dorée et fleurs séchées.</p>
+        <p>Des cartes portrait 10×15 pensées pour un présentoir : ambiance nude, typographie élégante, touches dorées et fleurs séchées discrètes.</p>
       </section>
-      <div class="postcard-toolbar">
-        <div class="muted">Une carte par table, format portrait, lisible et décoratif.</div>
+      <div class="postcards-toolbar">
+        <div class="muted">Format portrait élégant pour annoncer la place des invités.</div>
         <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
           <button onclick="window.print()">Imprimer</button>
           <button class="ghost" onclick="load()">Rafraîchir</button>
         </div>
       </div>
-      <div id="cards" class="postcard-grid"></div>
+      <div id="cards" class="postcards-grid"></div>
     </div>
   </div>
 
   <script>
-    const themes = ['theme-nude','theme-sand','theme-rose','theme-clay','theme-ivory','theme-linen'];
-    function typeOf(g){ const t=String(g?.type||'').toLowerCase(); if(['bebe','bébé','baby','infant'].includes(t)) return 'Bébé'; if(['enfant','child','kids','kid'].includes(t)) return 'Enfant'; return 'Adulte'; }
+    const themes = ['theme-nude','theme-sand','theme-blush','theme-linen','theme-clay'];
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+    function floralSvg(cls='') {
+      return `
+        <svg class="${cls}" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M68 248C74 213 78 181 77 149C76 121 67 92 48 63" stroke="#B88D66" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>
+          <path d="M80 231C102 201 112 171 112 136C112 104 103 73 84 44" stroke="#9A6F4E" stroke-width="1.9" stroke-linecap="round" opacity=".45"/>
+          <path d="M41 86C26 83 16 72 12 54C27 58 38 66 45 80" fill="#DAB9A1" opacity=".7"/>
+          <path d="M34 118C18 117 8 109 3 93C20 96 31 104 38 113" fill="#E6CAB7" opacity=".62"/>
+          <path d="M98 62C112 55 121 42 124 24C111 28 100 37 94 51" fill="#C89A72" opacity=".58"/>
+          <path d="M120 104C136 98 146 85 150 68C135 72 124 82 117 95" fill="#D9B296" opacity=".55"/>
+          <circle cx="85" cy="40" r="10" fill="#E7D0BF" opacity=".65"/>
+          <circle cx="49" cy="78" r="8" fill="#E2C3AD" opacity=".56"/>
+          <circle cx="117" cy="92" r="8" fill="#D1A684" opacity=".52"/>
+          <circle cx="25" cy="110" r="7" fill="#EAD6C7" opacity=".58"/>
+        </svg>`;
+    }
     async function load(){
-      const r=await fetch('/api/plan');
-      if(!r.ok){ document.getElementById('cards').innerHTML = '<div class="card">Connexion requise.</div>'; return; }
-      const plan=await r.json();
-      const cards=document.getElementById('cards');
-      const tables=(plan.tables||[]).filter(Boolean);
-      if(!tables.length){ cards.innerHTML = '<div class="card text-center muted">Aucune table disponible.</div>'; return; }
-      cards.innerHTML='';
+      const r = await fetch('/api/plan');
+      if(!r.ok){ document.getElementById('cards').innerHTML = '<div class="empty-state">Connexion requise.</div>'; return; }
+      const plan = await r.json();
+      const cards = document.getElementById('cards');
+      const tables = (plan.tables || []).filter(Boolean);
+      if(!tables.length){ cards.innerHTML = '<div class="empty-state">Aucune table disponible.</div>'; return; }
+      cards.innerHTML = '';
       tables.forEach((table, index) => {
-        const guests=(table.guests||[]).filter(Boolean);
-        const theme = themes[index % themes.length];
-        const el=document.createElement('article');
-        el.className=`postcard ${theme}`;
+        const guests = (table.guests || []).filter(Boolean);
+        const el = document.createElement('article');
+        el.className = `place-card ${themes[index % themes.length]}`;
         el.innerHTML = `
-          <div class="postcard-inner">
-            <div class="postcard-mark">Mariage • Table</div>
-            <div class="postcard-title">${escapeHtml(table.name || 'Table')}</div>
-            <div class="postcard-subtitle">Disposition des invités</div>
-            <div class="guest-stack">
-              ${guests.length ? guests.map(g => `
-                <div class="guest-line">
-                  <span class="guest-name">${escapeHtml(g.name || 'Invité')}</span>
-                  <span class="guest-meta">${escapeHtml(typeOf(g))}</span>
-                </div>
-              `).join('') : '<div class="guest-line"><span class="guest-name">Aucun invité</span><span class="guest-meta">Vide</span></div>'}
+          ${floralSvg('botanical')}
+          ${floralSvg('botanical-bottom')}
+          <div class="card-inner">
+            <div class="card-eyebrow">Mariage</div>
+            <div class="card-title">${escapeHtml(table.name || 'Table')}</div>
+            <div class="card-divider"></div>
+            <div class="card-subtitle">Votre table</div>
+            <div class="guest-list">
+              ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
             </div>
-            <div class="postcard-footer">
-              <span>Wedding Table Planner</span>
-              <span class="postcard-count">${guests.length} invité${guests.length > 1 ? 's' : ''}</span>
-            </div>
+            <div class="card-footer">Avec amour & célébration</div>
           </div>`;
         cards.appendChild(el);
       });

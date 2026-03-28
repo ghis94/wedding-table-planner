@@ -2,79 +2,12 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content="0; url=admin.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Staff mobile — Wedding Table Planner</title>
-  <link rel="stylesheet" href="styles.css" />
-  <style>
-    .staff-shell { max-width: 860px; margin: 0 auto; }
-    .search-card { margin-top: 18px; }
-    .search-input { font-size: 15px; }
-    .result-card { margin-top: 14px; }
-    .table-name { font:600 1.2rem/1.2 'Cormorant Garamond',serif; color:var(--accent-strong); margin-bottom:6px; }
-    .info { font-size:13px; color:var(--text-muted); }
-    .info strong { color:var(--text); }
-  </style>
+  <title>Redirection — Wedding Table Planner</title>
+  <script>window.location.replace('admin.html');</script>
 </head>
 <body>
-  <script src="theme.js"></script>
-  <script src="header.js" defer></script>
-  <div class="wrap staff-shell">
-    <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="postcards.html">Cartes</a> · <a href="day-of.html">Jour J</a> · <a href="staff.html">Staff</a></div>
-    <section class="hero">
-      <h1>📱 Staff mobile</h1>
-      <p>Recherche rapide d’un invité pour retrouver sa table en quelques secondes, avec une interface mobile enfin cohérente avec le reste de l’outil.</p>
-    </section>
-
-    <div class="card search-card">
-      <label for="q">Rechercher un invité</label>
-      <input id="q" class="search-input" placeholder="Ex : Martin" />
-    </div>
-
-    <div id="results"></div>
-  </div>
-
-  <script>
-    let plan={tables:[]};
-
-    function typeOf(g){
-      const t=String(g?.type||'').toLowerCase();
-      if(['bebe','bébé','baby','infant','toddlers','toddler'].includes(t)) return 'bebe';
-      if(['enfant','child','kids','kid'].includes(t)) return 'enfant';
-      return 'adulte';
-    }
-
-    function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte'); }
-    function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
-
-    function render(){
-      const q=String(document.getElementById('q').value||'').trim().toLowerCase();
-      const out=[];
-      (plan.tables||[]).forEach(t=>{
-        (t.guests||[]).filter(Boolean).forEach(g=>{
-          if(!q || String(g.name||'').toLowerCase().includes(q)) out.push({table:t, guest:g});
-        });
-      });
-      const c=document.getElementById('results');
-      c.innerHTML='';
-      if(!out.length){ c.innerHTML = '<div class="card result-card text-center muted">Aucun invité trouvé.</div>'; return; }
-      out.forEach(({table,guest})=>{
-        const typ=typeOf(guest);
-        const d=document.createElement('div');
-        d.className='card result-card';
-        d.innerHTML=`<div class="table-name">${escapeHtml(guest.name)}</div><div class="row"><span class="badge ${typ}">${typeLabel(typ)}</span></div><div class="info" style="margin-top:10px">Table : <strong>${escapeHtml(table.name)}</strong></div>${guest.regime ? `<div class="info">Régime : <strong>${escapeHtml(guest.regime)}</strong></div>` : ''}${guest.adminNotes ? `<div class="info">Notes : <strong>${escapeHtml(guest.adminNotes)}</strong></div>` : ''}`;
-        c.appendChild(d);
-      });
-    }
-
-    async function load(){
-      const r=await fetch('/api/plan');
-      plan=await r.json();
-      render();
-    }
-
-    document.getElementById('q').addEventListener('input', render);
-    load();
-    setInterval(load, 5000);
-  </script>
+  <p>Redirection vers l’administration… <a href="admin.html">Continuer</a></p>
 </body>
 </html>

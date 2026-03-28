@@ -5,7 +5,6 @@
   const navLinks = [
     { href: 'index.html', label: 'Accueil', icon: '🏠' },
     { href: 'admin.html', label: 'Admin', icon: '📋' },
-    { href: 'staff.html', label: 'Staff', icon: '📱' },
     { href: 'visual.html', label: 'Plan visuel', icon: '🗺️' },
     { href: 'postcards.html', label: 'Cartes', icon: '💌' },
     { href: 'day-of.html', label: 'Jour J', icon: '💍' },
