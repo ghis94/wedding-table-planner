@@ -1,84 +1,92 @@
 # Wedding Table Planner
 
-A polished, practical wedding seating planner built for the whole event workflow — from RSVP collection to table assignments, staff lookup, and day-of operations.
+[English version](README.en.md)
 
-It is designed to stay **simple enough to use under pressure** while still being **visual, elegant, and operationally useful**.
+Un planificateur de tables de mariage visuel, simple à déployer, agréable à utiliser et pensé pour les vrais moments de friction : RSVP, placement des invités, contraintes alimentaires, vue staff et organisation du jour J.
 
----
-
-## Why this project exists
-
-Most wedding planning tools are either:
-- too generic,
-- too bloated,
-- or not built for the actual moment when people need to place guests, adjust tables, handle dietary constraints, and answer staff questions quickly.
-
-**Wedding Table Planner** focuses on the part that gets stressful in real life:
-- who is coming,
-- where everyone sits,
-- what the team needs to know,
-- and how to keep the whole thing manageable.
+L’objectif n’est pas de faire un énorme SaaS mariage générique.
+L’objectif est de résoudre **très bien** le problème du plan de table, avec une interface claire et un workflow utile sur le terrain.
 
 ---
 
-## What it does
+## Pourquoi ce projet existe
 
-### Guest RSVP flow
-- collect RSVP responses from guests,
-- capture attendance,
-- track adults / children,
-- store dietary restrictions, allergies, and optional messages.
+Dans la vraie vie, le plan de table devient vite pénible :
+- qui vient vraiment,
+- combien d’adultes / d’enfants,
+- où placer chacun,
+- comment gérer les régimes,
+- comment répondre vite aux questions du staff,
+- comment garder une vue propre la veille et le jour J.
 
-### Admin seating workflow
-- manage guests and tables from a central admin view,
-- assign and move guests quickly,
-- import guests from CSV,
-- export plan data,
-- update guest details and staff notes.
-
-### Visual seating plan
-- work on a visual room/table layout,
-- drag guests around between tables,
-- maintain a readable seating overview,
-- sync layout decisions with the admin plan.
-
-### Staff + day-of views
-- look up a guest and find their table fast,
-- use a simpler mobile-friendly view for staff,
-- access a cleaner operational view for the wedding day,
-- print a usable summary when needed.
+**Wedding Table Planner** se concentre sur cette partie-là, avec une approche pragmatique :
+- visuelle,
+- simple,
+- exploitable,
+- et assez élégante pour ne pas ressembler à un outil bricolé.
 
 ---
 
-## Main views
+## Ce que l’application permet
 
-| Page | Purpose |
+### RSVP invités
+- collecte des réponses RSVP,
+- suivi de la présence,
+- gestion adultes / enfants,
+- capture des allergies, régimes et messages.
+
+### Administration du plan de table
+- gestion des invités et des tables,
+- placement rapide,
+- import CSV,
+- export du plan,
+- fiches invité avec notes staff.
+
+### Plan visuel
+- vue plus graphique de la salle,
+- déplacement des invités,
+- travail par tables,
+- synchronisation avec l’administration.
+
+### Vue staff et jour J
+- recherche rapide d’un invité → table,
+- vue mobile simple pour le staff,
+- vue opérationnelle plus lisible pour le jour J,
+- impression possible si nécessaire.
+
+---
+
+## Pages principales
+
+| Page | Usage |
 |---|---|
-| `/` or `/index.html` | RSVP page for guests |
-| `/login.html` | Admin login |
-| `/admin.html` | Main control panel for guests, tables, imports, exports |
-| `/visual.html` | Visual seating plan |
-| `/staff.html` | Fast guest lookup for staff |
-| `/day-of.html` | Operational day-of view |
+| `/` ou `/index.html` | RSVP invités |
+| `/login.html` | Connexion admin |
+| `/admin.html` | Gestion centrale |
+| `/visual.html` | Plan visuel |
+| `/staff.html` | Recherche staff |
+| `/day-of.html` | Vue opérationnelle jour J |
 
 ---
 
-## Highlights
+## Fonctionnalités clés
 
-- RSVP intake
-- seating plan management
-- visual table layout
-- guest metadata (diet, notes, phone, status)
-- import/export workflow
-- staff lookup page
-- printable day-of page
-- light / dark / system theme support
+- gestion RSVP
+- plan de table admin
+- plan visuel des tables
+- fiches invité (régimes, notes, téléphone, statut)
+- import CSV invités
+- export traiteur CSV
+- export / import complet de la configuration
+- vue staff mobile
+- vue jour J imprimable
+- thèmes light / dark / system
 
 ---
 
-## Quick start
+## Lancement rapide
 
-### Local
+### En local
 
 ```bash
 cd wedding-table-planner
@@ -86,127 +94,115 @@ npm install
 node server.js
 ```
 
-Then open:
+Puis ouvrir :
 
 - `http://localhost:8090/`
 - `http://localhost:8090/login.html`
 
-### Docker
+### Avec Docker
 
 ```bash
 docker compose up -d --build
 ```
 
-Then open:
+Puis ouvrir :
 
-- `http://<your-server>:8090/`
-- `http://<your-server>:8090/login.html`
+- `http://<serveur>:8090/`
+- `http://<serveur>:8090/login.html`
 
 ---
 
-## Default admin credentials
+## Variables importantes
 
-By default, the app warns when insecure defaults are still in use.
-
-Important environment variables:
+Le projet utilise notamment :
 
 - `ADMIN_USER`
 - `ADMIN_PASS`
 - `SESSION_SECRET`
 
-If you expose this app beyond local/private usage, **change them immediately**.
+Si tu exposes l’application hors usage local/privé, **change-les immédiatement**.
 
 ---
 
 ## Import / export
 
-### CSV import
-Accepted formats include:
+### Import CSV
+Formats acceptés :
 
 - `prenom,nom,type`
 - `first_name,last_name,type`
 - `name,type`
 
-Supported guest types:
+Types supportés :
 - `adulte`
 - `enfant`
 - `bebe`
 
-### Full config export/import
-The admin panel supports complete export/import for:
-- RSVP data
-- plan data
-- table assignments
-- layout state
+### Export complet
+L’admin permet d’exporter / réimporter :
+- les RSVP,
+- le plan,
+- les placements,
+- l’état de layout.
 
-### Catering export
-A CSV export is available for catering-oriented workflows, including:
-- table grouping,
-- guest types,
-- totals,
-- dietary information.
+### Export traiteur
+Export CSV orienté opérationnel avec :
+- tables,
+- invités,
+- types,
+- totaux,
+- régimes / allergies.
 
 ---
 
-## Tech stack
+## Stack technique
 
 - **Node.js**
 - **Express**
 - **SQLite** via `better-sqlite3`
-- **Vanilla HTML / CSS / JavaScript**
+- **HTML / CSS / JavaScript vanilla**
 - **Docker Compose**
 
-No heavy frontend framework, which keeps the app lightweight and easy to run almost anywhere.
+Le projet reste volontairement léger : pas de framework frontend lourd, donc plus simple à lire, adapter et déployer.
 
 ---
 
-## Project goals
+## Direction du projet
 
-This project aims to be:
+Wedding Table Planner cherche à être :
 
-- **fast to use**,
-- **easy to deploy**,
-- **clear under pressure**,
-- **pleasant enough to trust during a real event**.
+- **rapide à prendre en main**,
+- **simple à déployer**,
+- **lisible sous pression**,
+- **agréable à utiliser en situation réelle**.
 
-It is not trying to be a giant all-in-one wedding SaaS.
-It is trying to be a focused tool that solves the seating problem well.
-
----
-
-## Current direction
-
-The project is being actively refined around:
-- stronger visual polish,
-- better visual hierarchy,
-- tighter admin/visual synchronization,
-- smoother event-day usability,
-- improved GitHub and product presentation.
+Ce n’est pas une suite mariage tout-en-un.
+C’est un outil ciblé pour le **placement des invités et l’exploitation du plan de table**.
 
 ---
 
-## Possible next steps
+## Pistes d’évolution
 
-- better automatic visual audits
-- stronger browser-based UI testing
-- richer table layout presets
-- improved mobile interactions
-- photo-ready screenshots / demo assets
-- guest grouping helpers (families, households, sides)
-
----
-
-## Contributing
-
-If you want to improve the project, useful areas include:
-- UI polish,
-- accessibility,
-- browser automation/testing,
-- data import/export robustness,
-- operational wedding-day workflows.
+- audits visuels automatiques plus poussés
+- tests navigateur plus riches
+- presets de disposition de salle
+- interactions mobiles améliorées
+- gestion de groupes / familles / foyers
+- captures produit plus propres pour la démo
 
 ---
 
-## License
+## Contribution
 
-Add the license you want to use here.
+Les contributions utiles incluent notamment :
+- amélioration UX/UI,
+- accessibilité,
+- robustesse import/export,
+- tests navigateur,
+- workflows staff / jour J.
+
+---
+
+## Licence
+
+Ajoute ici la licence du projet.
