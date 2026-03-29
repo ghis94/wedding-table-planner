@@ -193,10 +193,10 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const eyebrowSize = isVeryDense ? 11 : (isDense ? 12 : 13);
   const subtitleSize = isVeryDense ? 15 : (isDense ? 17 : 18);
   const summarySize = isVeryDense ? 12 : (isDense ? 13 : 14);
-  const guestFontSize = isVeryDense ? 20 : (isDense ? 22 : 26);
-  const guestLineHeight = isVeryDense ? 28 : (isDense ? 32 : 38);
-  const guestGap = isVeryDense ? 14 : (isDense ? 16 : 18);
-  const listTop = isVeryDense ? 430 : (isDense ? 490 : 560);
+  const guestFontSize = isVeryDense ? 19 : (isDense ? 22 : 25);
+  const guestLineHeight = isVeryDense ? 28 : (isDense ? 33 : 38);
+  const guestGap = isVeryDense ? 10 : (isDense ? 12 : 14);
+  const listTop = isVeryDense ? 408 : (isDense ? 452 : 500);
   const footerSize = isVeryDense ? 11 : (isDense ? 12 : 13);
   const footerY = height - (isVeryDense ? 54 : 66);
   const listWidth = width - padX * 2;
@@ -206,7 +206,7 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const rows = twoCols ? Math.ceil(count / 2) : count;
   const totalListHeight = rows ? rows * guestLineHeight + (rows - 1) * guestGap : guestLineHeight;
   const maxListHeight = footerY - 30 - listTop;
-  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(390, footerY - 30 - totalListHeight) : listTop;
+  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(360, footerY - 30 - totalListHeight) : listTop;
 
   const guestBoxes = guests.map((guest, index) => {
     const col = twoCols ? (index % 2) : 0;
@@ -254,11 +254,11 @@ function buildCardSvg(table, themeName = 'theme-nude') {
     <circle cx="500" cy="${frameY + frameH}" r="11" fill="#ffffff" fill-opacity="0.5" stroke="${theme.frame}" stroke-opacity="0.9"/>
     <rect x="${safeX}" y="${safeY}" width="${safeW}" height="${safeH}" rx="18" fill="none" stroke="${theme.frame}" stroke-opacity="0.38" stroke-dasharray="10 8"/>
 
-    <text x="500" y="${padTop}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${eyebrowSize}" font-weight="700" fill="${theme.label}">MARIAGE</text>
-    <text x="500" y="${padTop + 92}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${titleSize}" font-style="italic" fill="${theme.title}">${escapeHtml(table.name || 'Table')}</text>
-    <line x1="426" x2="574" y1="${padTop + 138}" y2="${padTop + 138}" stroke="${theme.accent}" stroke-width="1.2"/>
-    <text x="500" y="${padTop + 178}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${subtitleSize}" fill="${theme.label}">Votre table</text>
-    <text x="500" y="${padTop + 214}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${summarySize}" font-weight="600" fill="${theme.label}">${escapeHtml(summaryText)}</text>
+    <text x="500" y="${padTop}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${eyebrowSize}" font-weight="700" fill="${theme.label}">Mariage</text>
+    <text x="500" y="${padTop + 88}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${titleSize}" font-style="italic" fill="${theme.title}">${escapeHtml(table.name || 'Table')}</text>
+    <line x1="430" x2="570" y1="${padTop + 132}" y2="${padTop + 132}" stroke="${theme.accent}" stroke-width="1.2"/>
+    <text x="500" y="${padTop + 170}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${subtitleSize}" fill="${theme.label}">Votre table</text>
+    <text x="500" y="${padTop + 206}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${summarySize}" font-weight="600" fill="${theme.label}">${escapeHtml(summaryText)}</text>
 
     ${guestBoxes || `<g><text x="500" y="${adjustedListTop}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${guestFontSize}" font-style="italic" font-weight="600" fill="#5c4332">Table en préparation</text></g>`}
 

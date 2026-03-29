@@ -221,6 +221,13 @@
       letter-spacing:.01em;
       text-wrap:balance;
     }
+    .guest-list.no-frames .guest-item {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+      border-radius: 0;
+    }
     .place-card.is-dense {
       padding:.76cm .7cm .58cm;
     }
@@ -429,9 +436,9 @@
           <div class="card-divider"></div>
           <div class="card-subtitle">Votre table</div>
           <div class="guest-summary">${guests.length ? `${guests.length} invité${guests.length > 1 ? 's' : ''}` : 'Placement en cours'}</div>
-          <div class="guest-list">
-            ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
-          </div>
+            <div class="guest-list no-frames">
+              ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
+            </div>
           <div class="card-footer">Avec amour & célébration</div>
         </div>`;
     }
