@@ -257,8 +257,9 @@
       body::before, .wedding-header, .postcards-toolbar, .crumbs, .hero { display:none !important; }
       body { background:#fff !important; margin:0 !important; }
       .wrap { max-width:none; padding:0 !important; margin:0 !important; }
-      .postcards-grid { display:block; }
-      .place-card { width:10cm !important; height:15cm !important; border-radius:0; box-shadow:none; margin:0; page-break-after:always; }
+      .postcards-grid { display:block; width:10cm !important; }
+      .place-card { width:10cm !important; height:15cm !important; border-radius:0; box-shadow:none; margin:0; page-break-after:always; break-after:page; }
+      .place-card:last-child { page-break-after:auto; break-after:auto; }
       .print-safe-area { display:block !important; }
     }
   </style>
