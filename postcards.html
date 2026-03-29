@@ -202,9 +202,11 @@
       gap:6px;
       margin-top:4px;
       align-content:start;
+      justify-content:stretch;
       align-self:stretch;
       padding: 0 2px;
       flex:1;
+      height:100%;
     }
     .guest-item {
       padding: 6px 9px;
@@ -213,8 +215,8 @@
       background: var(--chip-bg);
       border: 1px solid var(--frame-color);
       color:#5c4332;
-      font-size:12px;
-      line-height:1.16;
+      font-size:14px;
+      line-height:1.12;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
       font-family:'Cormorant Garamond', serif;
       font-weight:600;
@@ -225,7 +227,7 @@
       background: transparent;
       border: 0;
       box-shadow: none;
-      padding: 0;
+      padding: 2px 0;
       border-radius: 0;
     }
     .place-card.is-dense {
@@ -236,8 +238,8 @@
     .place-card.is-dense .card-divider { margin: 6px auto 10px; }
     .place-card.is-dense .card-subtitle { margin-bottom:6px; font-size:.82rem; }
     .place-card.is-dense .guest-summary { margin-bottom:6px; font-size:9px; }
-    .place-card.is-dense .guest-list { gap:5px; }
-    .place-card.is-dense .guest-item { padding:5px 8px; font-size:11px; line-height:1.08; }
+    .place-card.is-dense .guest-list { gap:6px; }
+    .place-card.is-dense .guest-item { padding:2px 0; font-size:13px; line-height:1.1; }
     .place-card.is-dense .card-footer { padding-top:8px; font-size:9px; }
 
     .place-card.is-very-dense {
@@ -249,8 +251,8 @@
     .place-card.is-very-dense .card-divider { width:60px; margin: 5px auto 8px; }
     .place-card.is-very-dense .card-subtitle { margin-bottom:5px; font-size:.72rem; }
     .place-card.is-very-dense .guest-summary { margin-bottom:5px; font-size:8px; }
-    .place-card.is-very-dense .guest-list { gap:4px; }
-    .place-card.is-very-dense .guest-item { padding:4px 7px; font-size:10px; line-height:1.02; }
+    .place-card.is-very-dense .guest-list { gap:5px; }
+    .place-card.is-very-dense .guest-item { padding:1px 0; font-size:11px; line-height:1.04; }
     .place-card.is-very-dense .card-footer { padding-top:6px; font-size:8px; letter-spacing:.16em; }
     .place-card.is-two-columns .guest-list {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -259,10 +261,26 @@
       row-gap:4px;
     }
     .place-card.is-two-columns .guest-item {
-      padding:4px 6px;
-      font-size:10px;
-      line-height:1.04;
+      padding:1px 0;
+      font-size:11px;
+      line-height:1.05;
       min-width:0;
+    }
+    .place-card.has-few-guests .guest-list {
+      align-content:center;
+      gap:12px;
+    }
+    .place-card.has-few-guests .guest-item {
+      font-size:18px;
+      line-height:1.08;
+    }
+    .place-card.has-medium-guests .guest-list {
+      align-content:center;
+      gap:9px;
+    }
+    .place-card.has-medium-guests .guest-item {
+      font-size:16px;
+      line-height:1.1;
     }
     .card-footer {
       margin-top:auto;
@@ -408,6 +426,11 @@
     function layoutClass(count) {
       return count >= 16 ? 'is-two-columns' : '';
     }
+    function guestDensityClass(count) {
+      if (count <= 6) return 'has-few-guests';
+      if (count <= 10) return 'has-medium-guests';
+      return '';
+    }
     function initThemeSelect() {
       const select = document.getElementById('themeSelect');
       if (!select) return;
@@ -460,7 +483,7 @@
           .slice()
           .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
         const el = document.createElement('article');
-        el.className = `place-card ${currentTheme} ${densityClass(guests.length)} ${layoutClass(guests.length)}`.trim();
+        el.className = `place-card ${currentTheme} ${densityClass(guests.length)} ${layoutClass(guests.length)} ${guestDensityClass(guests.length)}`.trim();
         el.innerHTML = buildCardMarkup(table, guests);
         cards.appendChild(el);
       });
