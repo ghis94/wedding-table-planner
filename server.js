@@ -193,10 +193,12 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const eyebrowSize = isVeryDense ? 11 : (isDense ? 12 : 13);
   const subtitleSize = isVeryDense ? 15 : (isDense ? 17 : 18);
   const summarySize = isVeryDense ? 12 : (isDense ? 13 : 14);
-  const guestFontSize = isVeryDense ? 19 : (isDense ? 22 : 25);
-  const guestLineHeight = isVeryDense ? 28 : (isDense ? 33 : 38);
-  const guestGap = isVeryDense ? 10 : (isDense ? 12 : 14);
-  const listTop = isVeryDense ? 408 : (isDense ? 452 : 500);
+  const hasFewGuests = count <= 6;
+  const hasMediumGuests = count > 6 && count <= 10;
+  const guestFontSize = hasFewGuests ? 30 : (hasMediumGuests ? 26 : (isVeryDense ? 19 : (isDense ? 22 : 25)));
+  const guestLineHeight = hasFewGuests ? 42 : (hasMediumGuests ? 36 : (isVeryDense ? 28 : (isDense ? 33 : 38)));
+  const guestGap = hasFewGuests ? 18 : (hasMediumGuests ? 14 : (isVeryDense ? 10 : (isDense ? 12 : 14)));
+  const listTop = hasFewGuests ? 470 : (hasMediumGuests ? 450 : (isVeryDense ? 408 : (isDense ? 452 : 500)));
   const footerSize = isVeryDense ? 11 : (isDense ? 12 : 13);
   const footerY = height - (isVeryDense ? 54 : 66);
   const listWidth = width - padX * 2;
@@ -206,7 +208,8 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const rows = twoCols ? Math.ceil(count / 2) : count;
   const totalListHeight = rows ? rows * guestLineHeight + (rows - 1) * guestGap : guestLineHeight;
   const maxListHeight = footerY - 30 - listTop;
-  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(360, footerY - 30 - totalListHeight) : listTop;
+  const centeredTop = hasFewGuests || hasMediumGuests ? Math.max(listTop, Math.round((footerY + listTop - totalListHeight) / 2)) : listTop;
+  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(360, footerY - 30 - totalListHeight) : centeredTop;
 
   const guestBoxes = guests.map((guest, index) => {
     const col = twoCols ? (index % 2) : 0;
