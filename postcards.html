@@ -22,6 +22,11 @@
       align-items:center;
       flex-wrap:wrap;
     }
+    .export-hint {
+      width:100%;
+      font-size:12px;
+      color: var(--text-muted);
+    }
     .postcards-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(10cm, 10cm));
@@ -294,8 +299,11 @@
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
             <button onclick="window.print()">Imprimer</button>
+            <button class="ghost" onclick="exportCurrentCardSet('png')">Exporter PNG</button>
+            <button class="ghost" onclick="exportCurrentCardSet('jpg')">Exporter JPG</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
+          <div class="export-hint">Export image calibré pour une sortie photo 10×15 (1000×1500 px par carte).</div>
         </div>
       </div>
       <div id="cards" class="postcards-grid"></div>
@@ -368,6 +376,7 @@
     ];
     const allThemeOptions = themeGroups.flatMap(group => group.options);
     let currentTheme = localStorage.getItem('postcards-theme') || 'theme-nude';
+    let lastPlan = { tables: [] };
 
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     function floralSvg(cls='') {
@@ -409,10 +418,109 @@
       localStorage.setItem('postcards-theme', currentTheme);
       load();
     }
+    function getThemeLabel(theme) {
+      return allThemeOptions.find(([value]) => value === theme)?.[1] || theme;
+    }
+    function buildCardMarkup(table, guests) {
+      return `
+        ${floralSvg('botanical')}
+        ${floralSvg('botanical-bottom')}
+        <div class="card-frame"></div>
+        <div class="print-safe-area"></div>
+        <div class="card-inner">
+          <div class="card-eyebrow">Mariage</div>
+          <div class="card-title">${escapeHtml(table.name || 'Table')}</div>
+          <div class="card-divider"></div>
+          <div class="card-subtitle">Votre table</div>
+          <div class="guest-summary">${guests.length ? `${guests.length} invité${guests.length > 1 ? 's' : ''}` : 'Placement en cours'}</div>
+          <div class="guest-list">
+            ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
+          </div>
+          <div class="card-footer">Avec amour & célébration</div>
+        </div>`;
+    }
+    async function cardToImageDataUrl(table, format = 'png', quality = 0.96) {
+      const guests = (table.guests || [])
+        .filter(Boolean)
+        .slice()
+        .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
+      const width = 1000;
+      const height = 1500;
+      const cardClass = `place-card ${currentTheme} ${densityClass(guests.length)} ${layoutClass(guests.length)}`.trim();
+      const styles = Array.from(document.querySelectorAll('style')).map(s => s.textContent).join('\n');
+      const html = `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:transparent;}${styles}</style></head><body><article class="${cardClass}" style="width:${width}px;height:${height}px;border-radius:0;box-shadow:none;margin:0">${buildCardMarkup(table, guests)}</article></body></html>`;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      try {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.left = '-99999px';
+        iframe.style.top = '0';
+        iframe.style.width = width + 'px';
+        iframe.style.height = height + 'px';
+        iframe.style.opacity = '0';
+        document.body.appendChild(iframe);
+
+        await new Promise((resolve, reject) => {
+          iframe.onload = () => resolve();
+          iframe.onerror = reject;
+          iframe.src = url;
+        });
+
+        await new Promise(r => setTimeout(r, 350));
+
+        const svg = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+            <foreignObject width="100%" height="100%">${new XMLSerializer().serializeToString(iframe.contentDocument.documentElement)}</foreignObject>
+          </svg>`;
+        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        try {
+          const img = new Image();
+          await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = svgUrl;
+          });
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          return canvas.toDataURL(format === 'jpg' ? 'image/jpeg' : 'image/png', quality);
+        } finally {
+          URL.revokeObjectURL(svgUrl);
+        }
+      } finally {
+        URL.revokeObjectURL(url);
+        document.querySelectorAll('iframe').forEach(frame => {
+          if (frame.style.left === '-99999px') frame.remove();
+        });
+      }
+    }
+    function downloadDataUrl(dataUrl, filename) {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = filename;
+      a.click();
+    }
+    async function exportCurrentCardSet(format = 'png') {
+      const tables = (lastPlan.tables || []).filter(Boolean);
+      if (!tables.length) return alert('Aucune carte à exporter.');
+      for (const table of tables) {
+        const safeName = String(table.name || 'table').toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || 'table';
+        const dataUrl = await cardToImageDataUrl(table, format);
+        downloadDataUrl(dataUrl, `${safeName}.${format === 'jpg' ? 'jpg' : 'png'}`);
+        await new Promise(r => setTimeout(r, 180));
+      }
+    }
     async function load(){
       const r = await fetch('/api/plan');
       if(!r.ok){ document.getElementById('cards').innerHTML = '<div class="empty-state">Connexion requise.</div>'; return; }
       const plan = await r.json();
+      lastPlan = plan;
       const cards = document.getElementById('cards');
       const tables = (plan.tables || []).filter(Boolean);
       if(!tables.length){ cards.innerHTML = '<div class="empty-state">Aucune table disponible.</div>'; return; }
@@ -424,22 +532,7 @@
           .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
         const el = document.createElement('article');
         el.className = `place-card ${currentTheme} ${densityClass(guests.length)} ${layoutClass(guests.length)}`.trim();
-        el.innerHTML = `
-          ${floralSvg('botanical')}
-          ${floralSvg('botanical-bottom')}
-          <div class="card-frame"></div>
-          <div class="print-safe-area"></div>
-          <div class="card-inner">
-            <div class="card-eyebrow">Mariage</div>
-            <div class="card-title">${escapeHtml(table.name || 'Table')}</div>
-            <div class="card-divider"></div>
-            <div class="card-subtitle">Votre table</div>
-            <div class="guest-summary">${guests.length ? `${guests.length} invité${guests.length > 1 ? 's' : ''}` : 'Placement en cours'}</div>
-            <div class="guest-list">
-              ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
-            </div>
-            <div class="card-footer">Avec amour & célébration</div>
-          </div>`;
+        el.innerHTML = buildCardMarkup(table, guests);
         cards.appendChild(el);
       });
     }
