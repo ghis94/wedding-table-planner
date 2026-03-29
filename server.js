@@ -7,6 +7,8 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const { parse } = require('csv-parse/sync');
+const { Resvg } = require('@resvg/resvg-js');
+const zlib = require('zlib');
 
 const app = express();
 const PORT = process.env.PORT || 8090;
@@ -108,6 +110,243 @@ function sanitizePlan(input = {}) {
       guests: layout.guests && typeof layout.guests === 'object' ? layout.guests : {},
     },
   };
+}
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+const CARD_THEMES = {
+  'theme-nude': { bgStart:'#fdf6ef', bgEnd:'#ebd9c8', title:'#ab7b4c', accent:'#bb8d67', label:'#8a6446', chipBg:'#fffaf7', frame:'#c8a98a' },
+  'theme-sand': { bgStart:'#fbf4eb', bgEnd:'#decbb6', title:'#9d6f4c', accent:'#b38864', label:'#7d5f49', chipBg:'#fffaf5', frame:'#c0a07f' },
+  'theme-blush': { bgStart:'#fbf0f0', bgEnd:'#e6c7ca', title:'#b06f7e', accent:'#c68e98', label:'#8f5f68', chipBg:'#fff9fa', frame:'#d3a0ab' },
+  'theme-linen': { bgStart:'#f8f2ea', bgEnd:'#d8c8b8', title:'#9a775f', accent:'#b59278', label:'#7b624f', chipBg:'#fffbf8', frame:'#bea186' },
+  'theme-clay': { bgStart:'#f8ece5', bgEnd:'#d9b49d', title:'#a45f43', accent:'#bc7d60', label:'#824f3c', chipBg:'#fff8f5', frame:'#c78969' },
+  'theme-champagne': { bgStart:'#fbf7eb', bgEnd:'#e4d1a8', title:'#b58a3c', accent:'#caab63', label:'#866b3e', chipBg:'#fffdf8', frame:'#d1b06e' },
+  'theme-ivory': { bgStart:'#fffdf8', bgEnd:'#e7ddcf', title:'#8f765c', accent:'#ac937b', label:'#6f6255', chipBg:'#ffffff', frame:'#cab8a5' },
+  'theme-rosewater': { bgStart:'#fcf1f3', bgEnd:'#e9c8d3', title:'#b56f8e', accent:'#cb8fad', label:'#8d5d72', chipBg:'#fff9fb', frame:'#d8a0b9' },
+  'theme-sage': { bgStart:'#f2f6ef', bgEnd:'#cad7c1', title:'#708261', accent:'#91a37f', label:'#59694d', chipBg:'#fbfffa', frame:'#9fb193' },
+  'theme-olive': { bgStart:'#f3f2ea', bgEnd:'#d2cfb1', title:'#7c7a46', accent:'#9f9a62', label:'#615f3b', chipBg:'#fffef8', frame:'#afaa79' },
+  'theme-eucalyptus': { bgStart:'#eef6f2', bgEnd:'#bfd8ce', title:'#4f8371', accent:'#73aa96', label:'#44685b', chipBg:'#f9fffc', frame:'#8db8a8' },
+  'theme-forest-mist': { bgStart:'#eef3ef', bgEnd:'#bccbbd', title:'#5f765f', accent:'#7e9880', label:'#4f6150', chipBg:'#fbfffb', frame:'#95aa97' },
+  'theme-dusty-blue': { bgStart:'#eff5fb', bgEnd:'#c7d7e6', title:'#6486a8', accent:'#86a8cb', label:'#536d86', chipBg:'#f9fcff', frame:'#9ab6cf' },
+  'theme-powder-blue': { bgStart:'#f2f8fd', bgEnd:'#d4e3f1', title:'#7395b8', accent:'#94b5d5', label:'#5b7591', chipBg:'#fbfdff', frame:'#a6c2dd' },
+  'theme-slate-blue': { bgStart:'#f0f3fb', bgEnd:'#c8d0e6', title:'#6879a0', accent:'#8797bf', label:'#55617f', chipBg:'#fafbff', frame:'#9dabc9' },
+  'theme-french-blue': { bgStart:'#eef5fc', bgEnd:'#bfd6ef', title:'#4f79ac', accent:'#729fd5', label:'#486586', chipBg:'#f9fcff', frame:'#8eb4de' },
+  'theme-lavender': { bgStart:'#f4f0fb', bgEnd:'#d9cceb', title:'#8770a8', accent:'#a68bc9', label:'#6c5b86', chipBg:'#fcfbff', frame:'#baa6d6' },
+  'theme-mauve': { bgStart:'#f7f0f6', bgEnd:'#ddc3db', title:'#946483', accent:'#b884ab', label:'#765369', chipBg:'#fffafe', frame:'#c79cbc' },
+  'theme-lilac': { bgStart:'#f7f3fd', bgEnd:'#ddd1f1', title:'#8b77b5', accent:'#ab95d5', label:'#705f92', chipBg:'#fcfbff', frame:'#bcaade' },
+  'theme-peach': { bgStart:'#fdf1e6', bgEnd:'#f0c9b0', title:'#c57d4f', accent:'#dd9b6a', label:'#965f40', chipBg:'#fff9f5', frame:'#e1a97e' },
+  'theme-apricot': { bgStart:'#fbf1e9', bgEnd:'#ebccb2', title:'#bb8357', accent:'#d29d74', label:'#936647', chipBg:'#fffaf6', frame:'#d8ae89' },
+  'theme-coral': { bgStart:'#fcf0ec', bgEnd:'#ecbdb5', title:'#c1695b', accent:'#d88c7f', label:'#95584e', chipBg:'#fff9f7', frame:'#df9f96' },
+  'theme-terracotta': { bgStart:'#f8ece7', bgEnd:'#d89e87', title:'#b65e41', accent:'#ce7b5d', label:'#874938', chipBg:'#fff8f5', frame:'#d48c73' },
+  'theme-rust': { bgStart:'#f7ece7', bgEnd:'#cf9887', title:'#a4543e', accent:'#bf755d', label:'#7f4333', chipBg:'#fff8f6', frame:'#c98571' },
+  'theme-cinnamon': { bgStart:'#f8f1ec', bgEnd:'#d8b5a2', title:'#986248', accent:'#b87f62', label:'#754c3a', chipBg:'#fffaf7', frame:'#c99379' },
+  'theme-espresso': { bgStart:'#efe5df', bgEnd:'#b79282', title:'#6d473a', accent:'#8d6657', label:'#553a31', chipBg:'#fff9f7', frame:'#a88474' },
+  'theme-charcoal': { bgStart:'#f0efef', bgEnd:'#c7c2c0', title:'#5f5753', accent:'#7d736f', label:'#4e4845', chipBg:'#ffffff', frame:'#9d9491' },
+  'theme-minimal-black': { bgStart:'#f5f5f3', bgEnd:'#d6d2ce', title:'#292624', accent:'#5f5752', label:'#46403c', chipBg:'#ffffff', frame:'#807871' },
+  'theme-gold-foil': { bgStart:'#fbf7eb', bgEnd:'#dfc27d', title:'#a67a19', accent:'#d7b04f', label:'#7b6223', chipBg:'#fffdf8', frame:'#d8b45a' },
+  'theme-garden-party': { bgStart:'#f2f8ef', bgEnd:'#c7dcb2', title:'#658a56', accent:'#86b075', label:'#4f6a45', chipBg:'#fcfffb', frame:'#9cc38a' },
+  'theme-modern-serif': { bgStart:'#faf8f4', bgEnd:'#d8d0c7', title:'#655b54', accent:'#8a7c72', label:'#564d47', chipBg:'#ffffff', frame:'#b1a59a' },
+};
+
+function getCardTheme(theme) {
+  return CARD_THEMES[theme] || CARD_THEMES['theme-nude'];
+}
+
+function densityClass(count) {
+  if (count >= 15) return 'is-very-dense';
+  if (count >= 11) return 'is-dense';
+  return '';
+}
+
+function layoutClass(count) {
+  return count >= 16 ? 'is-two-columns' : '';
+}
+
+function safeFileName(value, fallback = 'table') {
+  return String(value || fallback).toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || fallback;
+}
+
+function buildCardSvg(table, themeName = 'theme-nude') {
+  const theme = getCardTheme(themeName);
+  const guests = (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
+  const count = guests.length;
+  const density = densityClass(count);
+  const isDense = density === 'is-dense';
+  const isVeryDense = density === 'is-very-dense';
+  const twoCols = layoutClass(count) === 'is-two-columns';
+  const width = 1000;
+  const height = 1500;
+
+  const padX = isVeryDense ? 62 : (isDense ? 70 : 78);
+  const padTop = isVeryDense ? 66 : (isDense ? 76 : 86);
+  const padBottom = isVeryDense ? 50 : (isDense ? 58 : 68);
+  const frameInset = isVeryDense ? 8 : 10;
+  const safeInset = 22;
+  const titleSize = isVeryDense ? 44 : (isDense ? 54 : 64);
+  const eyebrowSize = isVeryDense ? 11 : (isDense ? 12 : 13);
+  const subtitleSize = isVeryDense ? 15 : (isDense ? 17 : 18);
+  const summarySize = isVeryDense ? 12 : (isDense ? 13 : 14);
+  const guestFontSize = isVeryDense ? 16 : (isDense ? 18 : 20);
+  const guestLineHeight = isVeryDense ? 20 : (isDense ? 23 : 26);
+  const guestBoxHeight = isVeryDense ? 28 : (isDense ? 34 : 40);
+  const guestGap = isVeryDense ? 8 : (isDense ? 10 : 12);
+  const listTop = isVeryDense ? 310 : (isDense ? 356 : 392);
+  const footerSize = isVeryDense ? 11 : (isDense ? 12 : 13);
+  const footerY = height - (isVeryDense ? 42 : 52);
+  const listWidth = width - padX * 2;
+  const colGap = twoCols ? 18 : 0;
+  const colWidth = twoCols ? Math.floor((listWidth - colGap) / 2) : listWidth;
+
+  const rows = twoCols ? Math.ceil(count / 2) : count;
+  const totalListHeight = rows ? rows * guestBoxHeight + (rows - 1) * guestGap : guestBoxHeight;
+  const maxListHeight = footerY - 30 - listTop;
+  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(272, footerY - 30 - totalListHeight) : listTop;
+
+  const guestBoxes = guests.map((guest, index) => {
+    const col = twoCols ? (index % 2) : 0;
+    const row = twoCols ? Math.floor(index / 2) : index;
+    const x = padX + col * (colWidth + colGap);
+    const y = adjustedListTop + row * (guestBoxHeight + guestGap);
+    return `
+      <g>
+        <rect x="${x}" y="${y}" width="${colWidth}" height="${guestBoxHeight}" rx="${guestBoxHeight / 2}" fill="${theme.chipBg}" stroke="${theme.frame}" stroke-opacity="0.65"/>
+        <text x="${x + colWidth / 2}" y="${y + guestBoxHeight / 2 + guestFontSize * 0.34}" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="${guestFontSize}" font-weight="600" fill="#5c4332">${escapeHtml(guest.name || 'Invité')}</text>
+      </g>`;
+  }).join('');
+
+  const summaryText = count ? `${count} invité${count > 1 ? 's' : ''}` : 'Placement en cours';
+  const frameX = frameInset * 4;
+  const frameY = frameInset * 4;
+  const frameW = width - frameX * 2;
+  const frameH = height - frameY * 2;
+  const safeX = safeInset * 4;
+  const safeY = safeInset * 4;
+  const safeW = width - safeX * 2;
+  const safeH = height - safeY * 2;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${theme.bgStart}"/>
+        <stop offset="100%" stop-color="${theme.bgEnd}"/>
+      </linearGradient>
+      <radialGradient id="glowTop" cx="82%" cy="12%" r="24%">
+        <stop offset="0%" stop-color="${theme.accent}" stop-opacity="0.18"/>
+        <stop offset="100%" stop-color="${theme.accent}" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="glowBottom" cx="16%" cy="88%" r="26%">
+        <stop offset="0%" stop-color="${theme.label}" stop-opacity="0.12"/>
+        <stop offset="100%" stop-color="${theme.label}" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="1000" height="1500" fill="url(#bg)"/>
+    <rect width="1000" height="1500" fill="url(#glowTop)"/>
+    <rect width="1000" height="1500" fill="url(#glowBottom)"/>
+
+    <rect x="${frameX}" y="${frameY}" width="${frameW}" height="${frameH}" rx="22" fill="none" stroke="${theme.frame}" stroke-opacity="0.7"/>
+    <circle cx="500" cy="${frameY}" r="11" fill="#ffffff" fill-opacity="0.5" stroke="${theme.frame}" stroke-opacity="0.9"/>
+    <circle cx="500" cy="${frameY + frameH}" r="11" fill="#ffffff" fill-opacity="0.5" stroke="${theme.frame}" stroke-opacity="0.9"/>
+    <rect x="${safeX}" y="${safeY}" width="${safeW}" height="${safeH}" rx="18" fill="none" stroke="${theme.frame}" stroke-opacity="0.38" stroke-dasharray="10 8"/>
+
+    <text x="500" y="${padTop}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${eyebrowSize}" font-weight="700" letter-spacing="4" fill="${theme.label}">MARIAGE</text>
+    <text x="500" y="${padTop + 84}" text-anchor="middle" font-family="Allura, Great Vibes, cursive" font-size="${titleSize}" fill="${theme.title}">${escapeHtml(table.name || 'Table')}</text>
+    <line x1="426" x2="574" y1="${padTop + 112}" y2="${padTop + 112}" stroke="${theme.accent}" stroke-width="1.2"/>
+    <text x="500" y="${padTop + 150}" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="${subtitleSize}" letter-spacing="3" fill="${theme.label}">VOTRE TABLE</text>
+    <text x="500" y="${padTop + 182}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${summarySize}" font-weight="600" letter-spacing="2" fill="${theme.label}">${escapeHtml(summaryText.toUpperCase())}</text>
+
+    ${guestBoxes || `<g><rect x="${padX}" y="${adjustedListTop}" width="${listWidth}" height="${guestBoxHeight}" rx="${guestBoxHeight / 2}" fill="${theme.chipBg}" stroke="${theme.frame}" stroke-opacity="0.65"/><text x="500" y="${adjustedListTop + guestBoxHeight / 2 + guestFontSize * 0.34}" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="${guestFontSize}" font-weight="600" fill="#5c4332">Table en préparation</text></g>`}
+
+    <text x="500" y="${footerY}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${footerSize}" font-weight="600" letter-spacing="3" fill="${theme.label}">AVEC AMOUR &amp; CÉLÉBRATION</text>
+  </svg>`;
+}
+
+function buildZip(files) {
+  const records = [];
+  let offset = 0;
+  const chunks = [];
+
+  for (const file of files) {
+    const nameBuf = Buffer.from(file.name);
+    const dataBuf = Buffer.isBuffer(file.data) ? file.data : Buffer.from(file.data);
+    const compressed = zlib.deflateRawSync(dataBuf);
+    const crc = crc32(dataBuf);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0, 6);
+    local.writeUInt16LE(8, 8);
+    local.writeUInt16LE(0, 10);
+    local.writeUInt16LE(0, 12);
+    local.writeUInt32LE(crc >>> 0, 14);
+    local.writeUInt32LE(compressed.length, 18);
+    local.writeUInt32LE(dataBuf.length, 22);
+    local.writeUInt16LE(nameBuf.length, 26);
+    local.writeUInt16LE(0, 28);
+    chunks.push(local, nameBuf, compressed);
+    records.push({ nameBuf, crc, compressedSize: compressed.length, size: dataBuf.length, offset });
+    offset += local.length + nameBuf.length + compressed.length;
+  }
+
+  const centralChunks = [];
+  let centralSize = 0;
+  for (const record of records) {
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0, 8);
+    central.writeUInt16LE(8, 10);
+    central.writeUInt16LE(0, 12);
+    central.writeUInt16LE(0, 14);
+    central.writeUInt32LE(record.crc >>> 0, 16);
+    central.writeUInt32LE(record.compressedSize, 20);
+    central.writeUInt32LE(record.size, 24);
+    central.writeUInt16LE(record.nameBuf.length, 28);
+    central.writeUInt16LE(0, 30);
+    central.writeUInt16LE(0, 32);
+    central.writeUInt16LE(0, 34);
+    central.writeUInt16LE(0, 36);
+    central.writeUInt32LE(0, 38);
+    central.writeUInt32LE(record.offset, 42);
+    centralChunks.push(central, record.nameBuf);
+    centralSize += central.length + record.nameBuf.length;
+  }
+
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(0, 4);
+  end.writeUInt16LE(0, 6);
+  end.writeUInt16LE(records.length, 8);
+  end.writeUInt16LE(records.length, 10);
+  end.writeUInt32LE(centralSize, 12);
+  end.writeUInt32LE(offset, 16);
+  end.writeUInt16LE(0, 20);
+
+  return Buffer.concat([...chunks, ...centralChunks, end]);
+}
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+    table[i] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(buffer) {
+  let crc = 0xffffffff;
+  for (const byte of buffer) crc = CRC_TABLE[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 db.exec(`CREATE TABLE IF NOT EXISTS rsvps (
@@ -374,6 +613,33 @@ app.get('/api/export/caterer.csv', requireAdmin, (_req, res) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="traiteur-${new Date().toISOString().slice(0,10)}.csv"`);
     res.send(lines.join('\n'));
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/postcards/export', requireAdmin, (req, res) => {
+  try {
+    const format = String(req.query.format || 'png').toLowerCase() === 'jpg' ? 'jpg' : 'png';
+    const theme = cleanText(req.query.theme || 'theme-nude', 80) || 'theme-nude';
+    const planRow = db.prepare('SELECT data FROM plan WHERE id=1').get();
+    const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
+    const tables = (plan.tables || []).filter(Boolean);
+    if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
+
+    const files = tables.map((table) => {
+      const svg = buildCardSvg(table, theme);
+      const resvg = new Resvg(svg, { fitTo: { mode: 'width', value: 1000 } });
+      const pngBuffer = resvg.render().asPng();
+      const fileName = `${safeFileName(table.name, 'table')}.${format}`;
+      return { name: fileName, data: pngBuffer };
+    });
+
+    const zipBuffer = buildZip(files);
+    const archiveName = `wedding-cards-${safeFileName(theme, 'theme')}-${format}.zip`;
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${archiveName}"`);
+    res.send(zipBuffer);
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }
