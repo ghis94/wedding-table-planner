@@ -16,6 +16,12 @@
       border:1px solid rgba(187,151,118,.18);
       box-shadow: var(--shadow-sm);
     }
+    .toolbar-controls {
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
     .postcards-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(10cm, 10cm));
@@ -92,21 +98,37 @@
       pointer-events:none;
       z-index:0;
     }
-    .print-size-badge {
-      position:absolute;
-      right:16px;
-      bottom:14px;
-      padding:4px 7px;
-      border-radius:999px;
-      background: rgba(255,255,255,.48);
-      border:1px solid rgba(191,150,115,.18);
-      color:#a07b5b;
-      font-size:8px;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      z-index:1;
-      pointer-events:none;
-    }
+    .theme-nude { --card-bg-start: rgba(252,246,239,.98); --card-bg-end: rgba(239,225,212,.95); --title-color:#ab7b4c; --accent-line: rgba(173,129,98,.68); --label-color:#8a6446; }
+    .theme-sand { --card-bg-start: rgba(251,246,240,.98); --card-bg-end: rgba(233,222,210,.95); --title-color:#a17655; --accent-line: rgba(160,124,94,.64); --label-color:#84654d; }
+    .theme-blush { --card-bg-start: rgba(250,242,238,.98); --card-bg-end: rgba(236,220,214,.95); --title-color:#b07c76; --accent-line: rgba(184,128,120,.6); --label-color:#8e6661; }
+    .theme-linen { --card-bg-start: rgba(248,242,235,.98); --card-bg-end: rgba(232,220,208,.95); --title-color:#9d7b5c; --accent-line: rgba(155,120,92,.62); --label-color:#7f654d; }
+    .theme-clay { --card-bg-start: rgba(249,240,233,.98); --card-bg-end: rgba(229,210,196,.95); --title-color:#a56a50; --accent-line: rgba(171,108,82,.62); --label-color:#845946; }
+    .theme-champagne { --card-bg-start: rgba(252,248,240,.98); --card-bg-end: rgba(239,231,214,.95); --title-color:#b89157; --accent-line: rgba(184,145,87,.66); --label-color:#8c734c; }
+    .theme-ivory { --card-bg-start: rgba(255,252,247,.99); --card-bg-end: rgba(241,235,226,.96); --title-color:#9b7b5b; --accent-line: rgba(155,123,91,.58); --label-color:#7b6752; }
+    .theme-rosewater { --card-bg-start: rgba(252,243,243,.98); --card-bg-end: rgba(240,224,225,.95); --title-color:#ba7d89; --accent-line: rgba(186,125,137,.58); --label-color:#94666f; }
+    .theme-sage { --card-bg-start: rgba(244,247,241,.98); --card-bg-end: rgba(225,233,221,.95); --title-color:#7b8d6b; --accent-line: rgba(123,141,107,.58); --label-color:#627155; }
+    .theme-olive { --card-bg-start: rgba(243,242,235,.98); --card-bg-end: rgba(225,224,209,.95); --title-color:#7a7a54; --accent-line: rgba(122,122,84,.58); --label-color:#676748; }
+    .theme-eucalyptus { --card-bg-start: rgba(240,246,243,.98); --card-bg-end: rgba(219,232,226,.95); --title-color:#5f8b79; --accent-line: rgba(95,139,121,.58); --label-color:#537261; }
+    .theme-forest-mist { --card-bg-start: rgba(238,243,238,.98); --card-bg-end: rgba(214,224,214,.95); --title-color:#667b69; --accent-line: rgba(102,123,105,.58); --label-color:#556658; }
+    .theme-dusty-blue { --card-bg-start: rgba(242,246,250,.98); --card-bg-end: rgba(219,228,236,.95); --title-color:#6d87a1; --accent-line: rgba(109,135,161,.58); --label-color:#5b6f83; }
+    .theme-powder-blue { --card-bg-start: rgba(244,248,252,.98); --card-bg-end: rgba(225,234,243,.95); --title-color:#7a96b3; --accent-line: rgba(122,150,179,.56); --label-color:#617994; }
+    .theme-slate-blue { --card-bg-start: rgba(241,243,249,.98); --card-bg-end: rgba(218,223,235,.95); --title-color:#6e789a; --accent-line: rgba(110,120,154,.58); --label-color:#5d6581; }
+    .theme-french-blue { --card-bg-start: rgba(239,245,251,.98); --card-bg-end: rgba(215,227,242,.95); --title-color:#587ba5; --accent-line: rgba(88,123,165,.58); --label-color:#4f6887; }
+    .theme-lavender { --card-bg-start: rgba(246,242,250,.98); --card-bg-end: rgba(229,221,240,.95); --title-color:#8d79a8; --accent-line: rgba(141,121,168,.58); --label-color:#75638b; }
+    .theme-mauve { --card-bg-start: rgba(247,240,246,.98); --card-bg-end: rgba(229,215,228,.95); --title-color:#9a6d8f; --accent-line: rgba(154,109,143,.58); --label-color:#7f5e77; }
+    .theme-lilac { --card-bg-start: rgba(248,244,252,.98); --card-bg-end: rgba(229,222,243,.95); --title-color:#927fb6; --accent-line: rgba(146,127,182,.58); --label-color:#78679a; }
+    .theme-peach { --card-bg-start: rgba(252,244,236,.98); --card-bg-end: rgba(241,223,211,.95); --title-color:#c5855d; --accent-line: rgba(197,133,93,.58); --label-color:#9a6e50; }
+    .theme-apricot { --card-bg-start: rgba(252,245,238,.98); --card-bg-end: rgba(240,225,212,.95); --title-color:#c28b63; --accent-line: rgba(194,139,99,.58); --label-color:#9a7357; }
+    .theme-coral { --card-bg-start: rgba(252,241,237,.98); --card-bg-end: rgba(240,219,213,.95); --title-color:#c46f62; --accent-line: rgba(196,111,98,.58); --label-color:#986057; }
+    .theme-terracotta { --card-bg-start: rgba(248,238,233,.98); --card-bg-end: rgba(231,209,198,.95); --title-color:#b9684e; --accent-line: rgba(185,104,78,.58); --label-color:#8d5747; }
+    .theme-rust { --card-bg-start: rgba(247,238,234,.98); --card-bg-end: rgba(228,208,198,.95); --title-color:#a85b45; --accent-line: rgba(168,91,69,.58); --label-color:#824a3a; }
+    .theme-cinnamon { --card-bg-start: rgba(248,241,236,.98); --card-bg-end: rgba(230,214,205,.95); --title-color:#9f6d55; --accent-line: rgba(159,109,85,.58); --label-color:#7d5947; }
+    .theme-espresso { --card-bg-start: rgba(243,236,232,.98); --card-bg-end: rgba(222,208,200,.95); --title-color:#7d5a49; --accent-line: rgba(125,90,73,.58); --label-color:#65493d; }
+    .theme-charcoal { --card-bg-start: rgba(241,239,238,.98); --card-bg-end: rgba(219,214,212,.95); --title-color:#68615f; --accent-line: rgba(104,97,95,.58); --label-color:#56514f; }
+    .theme-minimal-black { --card-bg-start: rgba(245,245,244,.98); --card-bg-end: rgba(230,229,227,.95); --title-color:#2f2b29; --accent-line: rgba(47,43,41,.46); --label-color:#4f4742; }
+    .theme-gold-foil { --card-bg-start: rgba(251,247,238,.98); --card-bg-end: rgba(238,229,210,.95); --title-color:#bb9456; --accent-line: rgba(187,148,86,.72); --label-color:#8a7147; }
+    .theme-garden-party { --card-bg-start: rgba(244,248,241,.98); --card-bg-end: rgba(226,235,219,.95); --title-color:#6e9271; --accent-line: rgba(110,146,113,.6); --label-color:#5c775e; }
+    .theme-modern-serif { --card-bg-start: rgba(250,248,245,.98); --card-bg-end: rgba(234,229,223,.95); --title-color:#6d6158; --accent-line: rgba(109,97,88,.56); --label-color:#5e544d; }
     .card-inner {
       position:relative;
       z-index:1;
@@ -227,11 +249,18 @@
       letter-spacing:.22em;
       text-transform:uppercase;
     }
-    .theme-nude { background: linear-gradient(180deg, rgba(252,246,239,.98), rgba(239,225,212,.95)); }
-    .theme-sand { background: linear-gradient(180deg, rgba(251,246,240,.98), rgba(233,222,210,.95)); }
-    .theme-blush { background: linear-gradient(180deg, rgba(250,242,238,.98), rgba(236,220,214,.95)); }
-    .theme-linen { background: linear-gradient(180deg, rgba(248,242,235,.98), rgba(232,220,208,.95)); }
-    .theme-clay { background: linear-gradient(180deg, rgba(249,240,233,.98), rgba(229,210,196,.95)); }
+    .place-card {
+      --card-bg-start: rgba(252,246,239,.98);
+      --card-bg-end: rgba(241,226,213,.94);
+      --title-color:#ab7b4c;
+      --accent-line: rgba(173,129,98,.68);
+      --label-color:#8a6446;
+      background: linear-gradient(180deg, var(--card-bg-start), var(--card-bg-end));
+    }
+    .card-title { color: var(--title-color); }
+    .card-divider { background: linear-gradient(90deg, transparent, var(--accent-line), transparent); }
+    .card-subtitle,
+    .guest-summary { color: var(--label-color); }
 
     .empty-state {
       padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
@@ -245,8 +274,7 @@
       .wrap { max-width:none; padding:0 !important; margin:0 !important; }
       .postcards-grid { display:block; }
       .place-card { width:10cm !important; height:15cm !important; border-radius:0; box-shadow:none; margin:0; page-break-after:always; }
-      .print-safe-area,
-      .print-size-badge { display:block !important; }
+      .print-safe-area { display:block !important; }
     }
   </style>
 </head>
@@ -262,9 +290,12 @@
       </section>
       <div class="postcards-toolbar">
         <div class="muted">Format portrait élégant pour annoncer la place des invités.</div>
-        <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
+        <div class="toolbar-controls">
+          <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
+          <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
           <button onclick="window.print()">Imprimer</button>
           <button class="ghost" onclick="load()">Rafraîchir</button>
+          </div>
         </div>
       </div>
       <div id="cards" class="postcards-grid"></div>
@@ -272,7 +303,40 @@
   </div>
 
   <script>
-    const themes = ['theme-nude','theme-sand','theme-blush','theme-linen','theme-clay'];
+    const themeOptions = [
+      ['theme-nude', 'Nude signature'],
+      ['theme-sand', 'Sand'],
+      ['theme-blush', 'Blush'],
+      ['theme-linen', 'Linen'],
+      ['theme-clay', 'Clay'],
+      ['theme-champagne', 'Champagne'],
+      ['theme-ivory', 'Ivory'],
+      ['theme-rosewater', 'Rosewater'],
+      ['theme-sage', 'Sage'],
+      ['theme-olive', 'Olive'],
+      ['theme-eucalyptus', 'Eucalyptus'],
+      ['theme-forest-mist', 'Forest mist'],
+      ['theme-dusty-blue', 'Dusty blue'],
+      ['theme-powder-blue', 'Powder blue'],
+      ['theme-slate-blue', 'Slate blue'],
+      ['theme-french-blue', 'French blue'],
+      ['theme-lavender', 'Lavender'],
+      ['theme-mauve', 'Mauve'],
+      ['theme-lilac', 'Lilac'],
+      ['theme-peach', 'Peach'],
+      ['theme-apricot', 'Apricot'],
+      ['theme-coral', 'Coral'],
+      ['theme-terracotta', 'Terracotta'],
+      ['theme-rust', 'Rust'],
+      ['theme-cinnamon', 'Cinnamon'],
+      ['theme-espresso', 'Espresso'],
+      ['theme-charcoal', 'Charcoal'],
+      ['theme-minimal-black', 'Minimal black'],
+      ['theme-gold-foil', 'Gold foil'],
+      ['theme-garden-party', 'Garden party'],
+      ['theme-modern-serif', 'Modern serif']
+    ];
+    let currentTheme = localStorage.getItem('postcards-theme') || 'theme-nude';
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     function floralSvg(cls='') {
       return `
@@ -297,6 +361,18 @@
     function layoutClass(count) {
       return count >= 16 ? 'is-two-columns' : '';
     }
+    function initThemeSelect() {
+      const select = document.getElementById('themeSelect');
+      if (!select) return;
+      select.innerHTML = themeOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
+      if (!themeOptions.some(([value]) => value === currentTheme)) currentTheme = 'theme-nude';
+      select.value = currentTheme;
+    }
+    function applyTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('postcards-theme', currentTheme);
+      load();
+    }
     async function load(){
       const r = await fetch('/api/plan');
       if(!r.ok){ document.getElementById('cards').innerHTML = '<div class="empty-state">Connexion requise.</div>'; return; }
@@ -311,7 +387,7 @@
           .slice()
           .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
         const el = document.createElement('article');
-        el.className = `place-card ${themes[index % themes.length]} ${densityClass(guests.length)} ${layoutClass(guests.length)}`.trim();
+        el.className = `place-card ${currentTheme} ${densityClass(guests.length)} ${layoutClass(guests.length)}`.trim();
         el.innerHTML = `
           ${floralSvg('botanical')}
           ${floralSvg('botanical-bottom')}
@@ -328,13 +404,10 @@
             </div>
             <div class="card-footer">Avec amour & célébration</div>
           </div>`;
-        const badge = document.createElement('div');
-        badge.className = 'print-size-badge';
-        badge.textContent = '10×15 cm';
-        el.appendChild(badge);
         cards.appendChild(el);
       });
     }
+    initThemeSelect();
     load();
   </script>
 </body>
