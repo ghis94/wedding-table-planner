@@ -193,13 +193,12 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const eyebrowSize = isVeryDense ? 11 : (isDense ? 12 : 13);
   const subtitleSize = isVeryDense ? 15 : (isDense ? 17 : 18);
   const summarySize = isVeryDense ? 12 : (isDense ? 13 : 14);
-  const guestFontSize = isVeryDense ? 18 : (isDense ? 20 : 24);
-  const guestLineHeight = isVeryDense ? 24 : (isDense ? 28 : 34);
-  const guestBoxHeight = isVeryDense ? 30 : (isDense ? 38 : 46);
-  const guestGap = isVeryDense ? 12 : (isDense ? 14 : 16);
-  const listTop = isVeryDense ? 382 : (isDense ? 430 : 480);
+  const guestFontSize = isVeryDense ? 20 : (isDense ? 22 : 26);
+  const guestLineHeight = isVeryDense ? 28 : (isDense ? 32 : 38);
+  const guestGap = isVeryDense ? 14 : (isDense ? 16 : 18);
+  const listTop = isVeryDense ? 430 : (isDense ? 490 : 560);
   const footerSize = isVeryDense ? 11 : (isDense ? 12 : 13);
-  const footerY = height - (isVeryDense ? 42 : 52);
+  const footerY = height - (isVeryDense ? 54 : 66);
   const listWidth = width - padX * 2;
   const colGap = twoCols ? 18 : 0;
   const colWidth = twoCols ? Math.floor((listWidth - colGap) / 2) : listWidth;
@@ -207,7 +206,7 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const rows = twoCols ? Math.ceil(count / 2) : count;
   const totalListHeight = rows ? rows * guestLineHeight + (rows - 1) * guestGap : guestLineHeight;
   const maxListHeight = footerY - 30 - listTop;
-  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(330, footerY - 30 - totalListHeight) : listTop;
+  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(390, footerY - 30 - totalListHeight) : listTop;
 
   const guestBoxes = guests.map((guest, index) => {
     const col = twoCols ? (index % 2) : 0;
@@ -216,7 +215,7 @@ function buildCardSvg(table, themeName = 'theme-nude') {
     const y = adjustedListTop + row * (guestLineHeight + guestGap);
     return `
       <g>
-        <text x="${x + colWidth / 2}" y="${y}" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="${guestFontSize}" font-style="italic" font-weight="600" fill="#5c4332">${escapeHtml(guest.name || 'Invité')}</text>
+        <text x="${x + colWidth / 2}" y="${y}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${guestFontSize}" font-style="italic" font-weight="600" fill="#5c4332">${escapeHtml(guest.name || 'Invité')}</text>
       </g>`;
   }).join('');
 
@@ -255,15 +254,15 @@ function buildCardSvg(table, themeName = 'theme-nude') {
     <circle cx="500" cy="${frameY + frameH}" r="11" fill="#ffffff" fill-opacity="0.5" stroke="${theme.frame}" stroke-opacity="0.9"/>
     <rect x="${safeX}" y="${safeY}" width="${safeW}" height="${safeH}" rx="18" fill="none" stroke="${theme.frame}" stroke-opacity="0.38" stroke-dasharray="10 8"/>
 
-    <text x="500" y="${padTop}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${eyebrowSize}" font-weight="700" letter-spacing="4" fill="${theme.label}">MARIAGE</text>
-    <text x="500" y="${padTop + 84}" text-anchor="middle" font-family="Allura, Great Vibes, cursive" font-size="${titleSize}" fill="${theme.title}">${escapeHtml(table.name || 'Table')}</text>
-    <line x1="426" x2="574" y1="${padTop + 112}" y2="${padTop + 112}" stroke="${theme.accent}" stroke-width="1.2"/>
-    <text x="500" y="${padTop + 150}" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="${subtitleSize}" letter-spacing="3" fill="${theme.label}">VOTRE TABLE</text>
-    <text x="500" y="${padTop + 182}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${summarySize}" font-weight="600" letter-spacing="2" fill="${theme.label}">${escapeHtml(summaryText.toUpperCase())}</text>
+    <text x="500" y="${padTop}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${eyebrowSize}" font-weight="700" fill="${theme.label}">MARIAGE</text>
+    <text x="500" y="${padTop + 92}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${titleSize}" font-style="italic" fill="${theme.title}">${escapeHtml(table.name || 'Table')}</text>
+    <line x1="426" x2="574" y1="${padTop + 138}" y2="${padTop + 138}" stroke="${theme.accent}" stroke-width="1.2"/>
+    <text x="500" y="${padTop + 178}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${subtitleSize}" fill="${theme.label}">Votre table</text>
+    <text x="500" y="${padTop + 214}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${summarySize}" font-weight="600" fill="${theme.label}">${escapeHtml(summaryText)}</text>
 
-    ${guestBoxes || `<g><text x="500" y="${adjustedListTop}" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="${guestFontSize}" font-style="italic" font-weight="600" fill="#5c4332">Table en préparation</text></g>`}
+    ${guestBoxes || `<g><text x="500" y="${adjustedListTop}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${guestFontSize}" font-style="italic" font-weight="600" fill="#5c4332">Table en préparation</text></g>`}
 
-    <text x="500" y="${footerY}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${footerSize}" font-weight="600" letter-spacing="3" fill="${theme.label}">AVEC AMOUR &amp; CÉLÉBRATION</text>
+    <text x="500" y="${footerY}" text-anchor="middle" dominant-baseline="middle" font-family="Georgia, Times New Roman, serif" font-size="${footerSize}" font-weight="600" fill="${theme.label}">Avec amour &amp; célébration</text>
   </svg>`;
 }
 
