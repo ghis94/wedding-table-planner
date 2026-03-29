@@ -303,39 +303,70 @@
   </div>
 
   <script>
-    const themeOptions = [
-      ['theme-nude', 'Nude signature'],
-      ['theme-sand', 'Sand'],
-      ['theme-blush', 'Blush'],
-      ['theme-linen', 'Linen'],
-      ['theme-clay', 'Clay'],
-      ['theme-champagne', 'Champagne'],
-      ['theme-ivory', 'Ivory'],
-      ['theme-rosewater', 'Rosewater'],
-      ['theme-sage', 'Sage'],
-      ['theme-olive', 'Olive'],
-      ['theme-eucalyptus', 'Eucalyptus'],
-      ['theme-forest-mist', 'Forest mist'],
-      ['theme-dusty-blue', 'Dusty blue'],
-      ['theme-powder-blue', 'Powder blue'],
-      ['theme-slate-blue', 'Slate blue'],
-      ['theme-french-blue', 'French blue'],
-      ['theme-lavender', 'Lavender'],
-      ['theme-mauve', 'Mauve'],
-      ['theme-lilac', 'Lilac'],
-      ['theme-peach', 'Peach'],
-      ['theme-apricot', 'Apricot'],
-      ['theme-coral', 'Coral'],
-      ['theme-terracotta', 'Terracotta'],
-      ['theme-rust', 'Rust'],
-      ['theme-cinnamon', 'Cinnamon'],
-      ['theme-espresso', 'Espresso'],
-      ['theme-charcoal', 'Charcoal'],
-      ['theme-minimal-black', 'Minimal black'],
-      ['theme-gold-foil', 'Gold foil'],
-      ['theme-garden-party', 'Garden party'],
-      ['theme-modern-serif', 'Modern serif']
+    const themeGroups = [
+      {
+        label: 'Signature & neutres',
+        options: [
+          ['theme-nude', 'Nude signature'],
+          ['theme-sand', 'Sand'],
+          ['theme-linen', 'Linen'],
+          ['theme-ivory', 'Ivory'],
+          ['theme-champagne', 'Champagne'],
+          ['theme-modern-serif', 'Modern serif']
+        ]
+      },
+      {
+        label: 'Floraux & romantiques',
+        options: [
+          ['theme-blush', 'Blush'],
+          ['theme-rosewater', 'Rosewater'],
+          ['theme-lavender', 'Lavender'],
+          ['theme-mauve', 'Mauve'],
+          ['theme-lilac', 'Lilac'],
+          ['theme-garden-party', 'Garden party']
+        ]
+      },
+      {
+        label: 'Verts naturels',
+        options: [
+          ['theme-sage', 'Sage'],
+          ['theme-olive', 'Olive'],
+          ['theme-eucalyptus', 'Eucalyptus'],
+          ['theme-forest-mist', 'Forest mist']
+        ]
+      },
+      {
+        label: 'Bleus doux',
+        options: [
+          ['theme-dusty-blue', 'Dusty blue'],
+          ['theme-powder-blue', 'Powder blue'],
+          ['theme-slate-blue', 'Slate blue'],
+          ['theme-french-blue', 'French blue']
+        ]
+      },
+      {
+        label: 'Terracotta & soleil',
+        options: [
+          ['theme-peach', 'Peach'],
+          ['theme-apricot', 'Apricot'],
+          ['theme-coral', 'Coral'],
+          ['theme-clay', 'Clay'],
+          ['theme-terracotta', 'Terracotta'],
+          ['theme-rust', 'Rust'],
+          ['theme-cinnamon', 'Cinnamon']
+        ]
+      },
+      {
+        label: 'Luxe & contrastes',
+        options: [
+          ['theme-espresso', 'Espresso'],
+          ['theme-charcoal', 'Charcoal'],
+          ['theme-minimal-black', 'Minimal black'],
+          ['theme-gold-foil', 'Gold foil']
+        ]
+      }
     ];
+    const allThemeOptions = themeGroups.flatMap(group => group.options);
     let currentTheme = localStorage.getItem('postcards-theme') || 'theme-nude';
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     function floralSvg(cls='') {
@@ -364,8 +395,12 @@
     function initThemeSelect() {
       const select = document.getElementById('themeSelect');
       if (!select) return;
-      select.innerHTML = themeOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join('');
-      if (!themeOptions.some(([value]) => value === currentTheme)) currentTheme = 'theme-nude';
+      select.innerHTML = themeGroups.map(group => `
+        <optgroup label="${group.label}">
+          ${group.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+        </optgroup>
+      `).join('');
+      if (!allThemeOptions.some(([value]) => value === currentTheme)) currentTheme = 'theme-nude';
       select.value = currentTheme;
     }
     function applyTheme(theme) {
