@@ -193,11 +193,11 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const eyebrowSize = isVeryDense ? 11 : (isDense ? 12 : 13);
   const subtitleSize = isVeryDense ? 15 : (isDense ? 17 : 18);
   const summarySize = isVeryDense ? 12 : (isDense ? 13 : 14);
-  const guestFontSize = isVeryDense ? 16 : (isDense ? 18 : 20);
-  const guestLineHeight = isVeryDense ? 20 : (isDense ? 23 : 26);
-  const guestBoxHeight = isVeryDense ? 28 : (isDense ? 34 : 40);
-  const guestGap = isVeryDense ? 8 : (isDense ? 10 : 12);
-  const listTop = isVeryDense ? 310 : (isDense ? 356 : 392);
+  const guestFontSize = isVeryDense ? 18 : (isDense ? 20 : 24);
+  const guestLineHeight = isVeryDense ? 24 : (isDense ? 28 : 34);
+  const guestBoxHeight = isVeryDense ? 30 : (isDense ? 38 : 46);
+  const guestGap = isVeryDense ? 12 : (isDense ? 14 : 16);
+  const listTop = isVeryDense ? 382 : (isDense ? 430 : 480);
   const footerSize = isVeryDense ? 11 : (isDense ? 12 : 13);
   const footerY = height - (isVeryDense ? 42 : 52);
   const listWidth = width - padX * 2;
@@ -205,19 +205,18 @@ function buildCardSvg(table, themeName = 'theme-nude') {
   const colWidth = twoCols ? Math.floor((listWidth - colGap) / 2) : listWidth;
 
   const rows = twoCols ? Math.ceil(count / 2) : count;
-  const totalListHeight = rows ? rows * guestBoxHeight + (rows - 1) * guestGap : guestBoxHeight;
+  const totalListHeight = rows ? rows * guestLineHeight + (rows - 1) * guestGap : guestLineHeight;
   const maxListHeight = footerY - 30 - listTop;
-  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(272, footerY - 30 - totalListHeight) : listTop;
+  const adjustedListTop = totalListHeight > maxListHeight ? Math.max(330, footerY - 30 - totalListHeight) : listTop;
 
   const guestBoxes = guests.map((guest, index) => {
     const col = twoCols ? (index % 2) : 0;
     const row = twoCols ? Math.floor(index / 2) : index;
     const x = padX + col * (colWidth + colGap);
-    const y = adjustedListTop + row * (guestBoxHeight + guestGap);
+    const y = adjustedListTop + row * (guestLineHeight + guestGap);
     return `
       <g>
-        <rect x="${x}" y="${y}" width="${colWidth}" height="${guestBoxHeight}" rx="${guestBoxHeight / 2}" fill="${theme.chipBg}" stroke="${theme.frame}" stroke-opacity="0.65"/>
-        <text x="${x + colWidth / 2}" y="${y + guestBoxHeight / 2 + guestFontSize * 0.34}" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="${guestFontSize}" font-weight="600" fill="#5c4332">${escapeHtml(guest.name || 'Invité')}</text>
+        <text x="${x + colWidth / 2}" y="${y}" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="${guestFontSize}" font-style="italic" font-weight="600" fill="#5c4332">${escapeHtml(guest.name || 'Invité')}</text>
       </g>`;
   }).join('');
 
@@ -262,7 +261,7 @@ function buildCardSvg(table, themeName = 'theme-nude') {
     <text x="500" y="${padTop + 150}" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="${subtitleSize}" letter-spacing="3" fill="${theme.label}">VOTRE TABLE</text>
     <text x="500" y="${padTop + 182}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${summarySize}" font-weight="600" letter-spacing="2" fill="${theme.label}">${escapeHtml(summaryText.toUpperCase())}</text>
 
-    ${guestBoxes || `<g><rect x="${padX}" y="${adjustedListTop}" width="${listWidth}" height="${guestBoxHeight}" rx="${guestBoxHeight / 2}" fill="${theme.chipBg}" stroke="${theme.frame}" stroke-opacity="0.65"/><text x="500" y="${adjustedListTop + guestBoxHeight / 2 + guestFontSize * 0.34}" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="${guestFontSize}" font-weight="600" fill="#5c4332">Table en préparation</text></g>`}
+    ${guestBoxes || `<g><text x="500" y="${adjustedListTop}" text-anchor="middle" font-family="Georgia, Times New Roman, serif" font-size="${guestFontSize}" font-style="italic" font-weight="600" fill="#5c4332">Table en préparation</text></g>`}
 
     <text x="500" y="${footerY}" text-anchor="middle" font-family="Inter, sans-serif" font-size="${footerSize}" font-weight="600" letter-spacing="3" fill="${theme.label}">AVEC AMOUR &amp; CÉLÉBRATION</text>
   </svg>`;
