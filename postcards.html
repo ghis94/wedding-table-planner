@@ -183,6 +183,18 @@
     .place-card.is-very-dense .guest-list { gap:4px; }
     .place-card.is-very-dense .guest-item { padding:4px 7px; font-size:10px; line-height:1.02; }
     .place-card.is-very-dense .card-footer { padding-top:6px; font-size:8px; letter-spacing:.16em; }
+    .place-card.is-two-columns .guest-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items:start;
+      column-gap:6px;
+      row-gap:4px;
+    }
+    .place-card.is-two-columns .guest-item {
+      padding:4px 6px;
+      font-size:10px;
+      line-height:1.04;
+      min-width:0;
+    }
     .card-footer {
       margin-top:auto;
       padding-top:14px;
@@ -257,6 +269,9 @@
       if (count >= 11) return 'is-dense';
       return '';
     }
+    function layoutClass(count) {
+      return count >= 16 ? 'is-two-columns' : '';
+    }
     async function load(){
       const r = await fetch('/api/plan');
       if(!r.ok){ document.getElementById('cards').innerHTML = '<div class="empty-state">Connexion requise.</div>'; return; }
@@ -271,7 +286,7 @@
           .slice()
           .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
         const el = document.createElement('article');
-        el.className = `place-card ${themes[index % themes.length]} ${densityClass(guests.length)}`.trim();
+        el.className = `place-card ${themes[index % themes.length]} ${densityClass(guests.length)} ${layoutClass(guests.length)}`.trim();
         el.innerHTML = `
           ${floralSvg('botanical')}
           ${floralSvg('botanical-bottom')}
