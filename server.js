@@ -173,6 +173,31 @@ function safeFileName(value, fallback = 'table') {
   return String(value || fallback).toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '') || fallback;
 }
 
+function findChromiumBinary() {
+  const candidates = [
+    process.env.CHROMIUM_PATH,
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/google-chrome',
+    '/snap/bin/chromium',
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+
+  const commandCandidates = ['chromium', 'chromium-browser', 'google-chrome'];
+  for (const cmd of commandCandidates) {
+    try {
+      const resolved = execFileSync('bash', ['-lc', `command -v ${cmd}`], { encoding: 'utf8' }).trim();
+      if (resolved && fs.existsSync(resolved)) return resolved;
+    } catch {}
+  }
+
+  return null;
+}
+
 function buildCardHtml(table, themeName = 'theme-nude') {
   const guests = (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
   const count = guests.length;
@@ -648,12 +673,17 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
     const tables = (plan.tables || []).filter(Boolean);
     if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
 
+    const chromiumPath = findChromiumBinary();
+    if (!chromiumPath) {
+      return res.status(500).json({ ok: false, error: 'Chromium introuvable sur le serveur pour l’export cartes.' });
+    }
+
     const tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-cards-'));
     const files = tables.map((table, index) => {
       const htmlPath = path.join(tmpBase, `card-${index}.html`);
       const pngPath = path.join(tmpBase, `card-${index}.png`);
       fs.writeFileSync(htmlPath, buildCardHtml(table, theme), 'utf8');
-      execFileSync('/usr/bin/chromium', [
+      execFileSync(chromiumPath, [
         '--headless=new',
         '--disable-gpu',
         '--hide-scrollbars',
