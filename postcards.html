@@ -30,15 +30,25 @@
       align-items:start;
     }
     .place-card {
+      --card-bg-start:#fdf6ef;
+      --card-bg-end:#ebd9c8;
+      --title-color:#ab7b4c;
+      --accent-line:#bb8d67;
+      --label-color:#8a6446;
+      --chip-bg:rgba(255,255,255,.46);
+      --frame-color:rgba(191,150,115,.18);
+      --ornament-top: rgba(191,150,115,.16);
+      --ornament-bottom: rgba(173,129,98,.10);
+      --overlay-highlight: rgba(255,255,255,.22);
       position:relative;
       width:10cm;
       height:15cm;
       padding:.86cm .78cm .68cm;
       border-radius:28px;
       overflow:hidden;
-      border:1px solid rgba(195,157,121,.24);
+      border:1px solid var(--frame-color);
       box-shadow: 0 24px 70px rgba(109, 80, 53, .16);
-      background: linear-gradient(180deg, rgba(252,246,239,.98), rgba(241,226,213,.94));
+      background: linear-gradient(180deg, var(--card-bg-start), var(--card-bg-end));
       page-break-inside: avoid;
       break-inside: avoid;
       isolation:isolate;
@@ -50,9 +60,9 @@
       position:absolute;
       inset:0;
       background:
-        radial-gradient(circle at 82% 12%, rgba(191,150,115,.16), transparent 18%),
-        radial-gradient(circle at 16% 88%, rgba(173,129,98,.10), transparent 20%),
-        linear-gradient(180deg, rgba(255,255,255,.22), transparent 18%);
+        radial-gradient(circle at 82% 12%, var(--ornament-top), transparent 18%),
+        radial-gradient(circle at 16% 88%, var(--ornament-bottom), transparent 20%),
+        linear-gradient(180deg, var(--overlay-highlight), transparent 18%);
       pointer-events:none;
       z-index:0;
     }
@@ -74,7 +84,7 @@
       position:absolute;
       inset: 10px;
       border-radius:22px;
-      border:1px solid rgba(191,150,115,.18);
+      border:1px solid var(--frame-color);
       pointer-events:none;
       z-index:0;
     }
@@ -84,7 +94,7 @@
       position:absolute;
       width:22px;
       height:22px;
-      border:1px solid rgba(191,150,115,.34);
+      border:1px solid color-mix(in srgb, var(--frame-color) 140%, white 0%);
       border-radius:50%;
       background: rgba(255,255,255,.3);
     }
@@ -93,42 +103,44 @@
     .print-safe-area {
       position:absolute;
       inset: 22px;
-      border: 1px dashed rgba(191,150,115,.16);
+      border: 1px dashed var(--frame-color);
       border-radius: 18px;
       pointer-events:none;
       z-index:0;
     }
-    .theme-nude { --card-bg-start: rgba(252,246,239,.98); --card-bg-end: rgba(239,225,212,.95); --title-color:#ab7b4c; --accent-line: rgba(173,129,98,.68); --label-color:#8a6446; }
-    .theme-sand { --card-bg-start: rgba(251,246,240,.98); --card-bg-end: rgba(233,222,210,.95); --title-color:#a17655; --accent-line: rgba(160,124,94,.64); --label-color:#84654d; }
-    .theme-blush { --card-bg-start: rgba(250,242,238,.98); --card-bg-end: rgba(236,220,214,.95); --title-color:#b07c76; --accent-line: rgba(184,128,120,.6); --label-color:#8e6661; }
-    .theme-linen { --card-bg-start: rgba(248,242,235,.98); --card-bg-end: rgba(232,220,208,.95); --title-color:#9d7b5c; --accent-line: rgba(155,120,92,.62); --label-color:#7f654d; }
-    .theme-clay { --card-bg-start: rgba(249,240,233,.98); --card-bg-end: rgba(229,210,196,.95); --title-color:#a56a50; --accent-line: rgba(171,108,82,.62); --label-color:#845946; }
-    .theme-champagne { --card-bg-start: rgba(252,248,240,.98); --card-bg-end: rgba(239,231,214,.95); --title-color:#b89157; --accent-line: rgba(184,145,87,.66); --label-color:#8c734c; }
-    .theme-ivory { --card-bg-start: rgba(255,252,247,.99); --card-bg-end: rgba(241,235,226,.96); --title-color:#9b7b5b; --accent-line: rgba(155,123,91,.58); --label-color:#7b6752; }
-    .theme-rosewater { --card-bg-start: rgba(252,243,243,.98); --card-bg-end: rgba(240,224,225,.95); --title-color:#ba7d89; --accent-line: rgba(186,125,137,.58); --label-color:#94666f; }
-    .theme-sage { --card-bg-start: rgba(244,247,241,.98); --card-bg-end: rgba(225,233,221,.95); --title-color:#7b8d6b; --accent-line: rgba(123,141,107,.58); --label-color:#627155; }
-    .theme-olive { --card-bg-start: rgba(243,242,235,.98); --card-bg-end: rgba(225,224,209,.95); --title-color:#7a7a54; --accent-line: rgba(122,122,84,.58); --label-color:#676748; }
-    .theme-eucalyptus { --card-bg-start: rgba(240,246,243,.98); --card-bg-end: rgba(219,232,226,.95); --title-color:#5f8b79; --accent-line: rgba(95,139,121,.58); --label-color:#537261; }
-    .theme-forest-mist { --card-bg-start: rgba(238,243,238,.98); --card-bg-end: rgba(214,224,214,.95); --title-color:#667b69; --accent-line: rgba(102,123,105,.58); --label-color:#556658; }
-    .theme-dusty-blue { --card-bg-start: rgba(242,246,250,.98); --card-bg-end: rgba(219,228,236,.95); --title-color:#6d87a1; --accent-line: rgba(109,135,161,.58); --label-color:#5b6f83; }
-    .theme-powder-blue { --card-bg-start: rgba(244,248,252,.98); --card-bg-end: rgba(225,234,243,.95); --title-color:#7a96b3; --accent-line: rgba(122,150,179,.56); --label-color:#617994; }
-    .theme-slate-blue { --card-bg-start: rgba(241,243,249,.98); --card-bg-end: rgba(218,223,235,.95); --title-color:#6e789a; --accent-line: rgba(110,120,154,.58); --label-color:#5d6581; }
-    .theme-french-blue { --card-bg-start: rgba(239,245,251,.98); --card-bg-end: rgba(215,227,242,.95); --title-color:#587ba5; --accent-line: rgba(88,123,165,.58); --label-color:#4f6887; }
-    .theme-lavender { --card-bg-start: rgba(246,242,250,.98); --card-bg-end: rgba(229,221,240,.95); --title-color:#8d79a8; --accent-line: rgba(141,121,168,.58); --label-color:#75638b; }
-    .theme-mauve { --card-bg-start: rgba(247,240,246,.98); --card-bg-end: rgba(229,215,228,.95); --title-color:#9a6d8f; --accent-line: rgba(154,109,143,.58); --label-color:#7f5e77; }
-    .theme-lilac { --card-bg-start: rgba(248,244,252,.98); --card-bg-end: rgba(229,222,243,.95); --title-color:#927fb6; --accent-line: rgba(146,127,182,.58); --label-color:#78679a; }
-    .theme-peach { --card-bg-start: rgba(252,244,236,.98); --card-bg-end: rgba(241,223,211,.95); --title-color:#c5855d; --accent-line: rgba(197,133,93,.58); --label-color:#9a6e50; }
-    .theme-apricot { --card-bg-start: rgba(252,245,238,.98); --card-bg-end: rgba(240,225,212,.95); --title-color:#c28b63; --accent-line: rgba(194,139,99,.58); --label-color:#9a7357; }
-    .theme-coral { --card-bg-start: rgba(252,241,237,.98); --card-bg-end: rgba(240,219,213,.95); --title-color:#c46f62; --accent-line: rgba(196,111,98,.58); --label-color:#986057; }
-    .theme-terracotta { --card-bg-start: rgba(248,238,233,.98); --card-bg-end: rgba(231,209,198,.95); --title-color:#b9684e; --accent-line: rgba(185,104,78,.58); --label-color:#8d5747; }
-    .theme-rust { --card-bg-start: rgba(247,238,234,.98); --card-bg-end: rgba(228,208,198,.95); --title-color:#a85b45; --accent-line: rgba(168,91,69,.58); --label-color:#824a3a; }
-    .theme-cinnamon { --card-bg-start: rgba(248,241,236,.98); --card-bg-end: rgba(230,214,205,.95); --title-color:#9f6d55; --accent-line: rgba(159,109,85,.58); --label-color:#7d5947; }
-    .theme-espresso { --card-bg-start: rgba(243,236,232,.98); --card-bg-end: rgba(222,208,200,.95); --title-color:#7d5a49; --accent-line: rgba(125,90,73,.58); --label-color:#65493d; }
-    .theme-charcoal { --card-bg-start: rgba(241,239,238,.98); --card-bg-end: rgba(219,214,212,.95); --title-color:#68615f; --accent-line: rgba(104,97,95,.58); --label-color:#56514f; }
-    .theme-minimal-black { --card-bg-start: rgba(245,245,244,.98); --card-bg-end: rgba(230,229,227,.95); --title-color:#2f2b29; --accent-line: rgba(47,43,41,.46); --label-color:#4f4742; }
-    .theme-gold-foil { --card-bg-start: rgba(251,247,238,.98); --card-bg-end: rgba(238,229,210,.95); --title-color:#bb9456; --accent-line: rgba(187,148,86,.72); --label-color:#8a7147; }
-    .theme-garden-party { --card-bg-start: rgba(244,248,241,.98); --card-bg-end: rgba(226,235,219,.95); --title-color:#6e9271; --accent-line: rgba(110,146,113,.6); --label-color:#5c775e; }
-    .theme-modern-serif { --card-bg-start: rgba(250,248,245,.98); --card-bg-end: rgba(234,229,223,.95); --title-color:#6d6158; --accent-line: rgba(109,97,88,.56); --label-color:#5e544d; }
+
+    .theme-nude { --card-bg-start:#fdf6ef; --card-bg-end:#ebd9c8; --title-color:#ab7b4c; --accent-line:#bb8d67; --label-color:#8a6446; --chip-bg:rgba(255,255,255,.46); --frame-color:rgba(191,150,115,.18); --ornament-top:rgba(191,150,115,.16); --ornament-bottom:rgba(173,129,98,.10); }
+    .theme-sand { --card-bg-start:#fbf4eb; --card-bg-end:#decbb6; --title-color:#9d6f4c; --accent-line:#b38864; --label-color:#7d5f49; --chip-bg:rgba(255,252,248,.44); --frame-color:rgba(176,140,108,.2); --ornament-top:rgba(188,150,112,.18); --ornament-bottom:rgba(154,117,83,.12); }
+    .theme-blush { --card-bg-start:#fbf0f0; --card-bg-end:#e6c7ca; --title-color:#b06f7e; --accent-line:#c68e98; --label-color:#8f5f68; --chip-bg:rgba(255,248,249,.42); --frame-color:rgba(190,132,142,.22); --ornament-top:rgba(202,146,156,.18); --ornament-bottom:rgba(177,120,129,.12); }
+    .theme-linen { --card-bg-start:#f8f2ea; --card-bg-end:#d8c8b8; --title-color:#9a775f; --accent-line:#b59278; --label-color:#7b624f; --chip-bg:rgba(255,251,247,.42); --frame-color:rgba(179,146,114,.2); --ornament-top:rgba(188,156,126,.18); --ornament-bottom:rgba(152,122,94,.12); }
+    .theme-clay { --card-bg-start:#f8ece5; --card-bg-end:#d9b49d; --title-color:#a45f43; --accent-line:#bc7d60; --label-color:#824f3c; --chip-bg:rgba(255,249,246,.4); --frame-color:rgba(181,116,88,.22); --ornament-top:rgba(191,126,98,.18); --ornament-bottom:rgba(165,97,69,.12); }
+    .theme-champagne { --card-bg-start:#fbf7eb; --card-bg-end:#e4d1a8; --title-color:#b58a3c; --accent-line:#caab63; --label-color:#866b3e; --chip-bg:rgba(255,252,246,.46); --frame-color:rgba(196,164,89,.24); --ornament-top:rgba(212,180,98,.18); --ornament-bottom:rgba(173,143,69,.12); }
+    .theme-ivory { --card-bg-start:#fffdf8; --card-bg-end:#e7ddcf; --title-color:#8f765c; --accent-line:#ac937b; --label-color:#6f6255; --chip-bg:rgba(255,255,255,.48); --frame-color:rgba(172,147,123,.18); --ornament-top:rgba(195,172,145,.16); --ornament-bottom:rgba(158,135,111,.1); }
+    .theme-rosewater { --card-bg-start:#fcf1f3; --card-bg-end:#e9c8d3; --title-color:#b56f8e; --accent-line:#cb8fad; --label-color:#8d5d72; --chip-bg:rgba(255,248,251,.43); --frame-color:rgba(198,136,167,.22); --ornament-top:rgba(212,149,179,.18); --ornament-bottom:rgba(177,117,145,.12); }
+    .theme-sage { --card-bg-start:#f2f6ef; --card-bg-end:#cad7c1; --title-color:#708261; --accent-line:#91a37f; --label-color:#59694d; --chip-bg:rgba(251,255,250,.42); --frame-color:rgba(125,145,108,.22); --ornament-top:rgba(144,165,126,.18); --ornament-bottom:rgba(104,127,89,.12); }
+    .theme-olive { --card-bg-start:#f3f2ea; --card-bg-end:#d2cfb1; --title-color:#7c7a46; --accent-line:#9f9a62; --label-color:#615f3b; --chip-bg:rgba(255,255,249,.42); --frame-color:rgba(143,139,86,.22); --ornament-top:rgba(160,157,99,.18); --ornament-bottom:rgba(120,116,65,.12); }
+    .theme-eucalyptus { --card-bg-start:#eef6f2; --card-bg-end:#bfd8ce; --title-color:#4f8371; --accent-line:#73aa96; --label-color:#44685b; --chip-bg:rgba(248,255,252,.42); --frame-color:rgba(98,149,128,.22); --ornament-top:rgba(114,170,147,.18); --ornament-bottom:rgba(76,128,109,.12); }
+    .theme-forest-mist { --card-bg-start:#eef3ef; --card-bg-end:#bccbbd; --title-color:#5f765f; --accent-line:#7e9880; --label-color:#4f6150; --chip-bg:rgba(250,255,250,.4); --frame-color:rgba(112,140,114,.22); --ornament-top:rgba(130,157,132,.18); --ornament-bottom:rgba(92,115,94,.12); }
+    .theme-dusty-blue { --card-bg-start:#eff5fb; --card-bg-end:#c7d7e6; --title-color:#6486a8; --accent-line:#86a8cb; --label-color:#536d86; --chip-bg:rgba(248,252,255,.44); --frame-color:rgba(111,145,180,.22); --ornament-top:rgba(132,167,203,.18); --ornament-bottom:rgba(91,121,151,.12); }
+    .theme-powder-blue { --card-bg-start:#f2f8fd; --card-bg-end:#d4e3f1; --title-color:#7395b8; --accent-line:#94b5d5; --label-color:#5b7591; --chip-bg:rgba(249,253,255,.44); --frame-color:rgba(128,165,199,.2); --ornament-top:rgba(149,184,214,.18); --ornament-bottom:rgba(107,140,171,.12); }
+    .theme-slate-blue { --card-bg-start:#f0f3fb; --card-bg-end:#c8d0e6; --title-color:#6879a0; --accent-line:#8797bf; --label-color:#55617f; --chip-bg:rgba(248,250,255,.42); --frame-color:rgba(111,126,171,.22); --ornament-top:rgba(136,152,191,.18); --ornament-bottom:rgba(92,106,144,.12); }
+    .theme-french-blue { --card-bg-start:#eef5fc; --card-bg-end:#bfd6ef; --title-color:#4f79ac; --accent-line:#729fd5; --label-color:#486586; --chip-bg:rgba(248,252,255,.44); --frame-color:rgba(92,132,183,.22); --ornament-top:rgba(114,161,214,.18); --ornament-bottom:rgba(79,115,157,.12); }
+    .theme-lavender { --card-bg-start:#f4f0fb; --card-bg-end:#d9cceb; --title-color:#8770a8; --accent-line:#a68bc9; --label-color:#6c5b86; --chip-bg:rgba(252,249,255,.42); --frame-color:rgba(145,123,178,.22); --ornament-top:rgba(166,142,201,.18); --ornament-bottom:rgba(122,103,154,.12); }
+    .theme-mauve { --card-bg-start:#f7f0f6; --card-bg-end:#ddc3db; --title-color:#946483; --accent-line:#b884ab; --label-color:#765369; --chip-bg:rgba(255,249,254,.42); --frame-color:rgba(164,112,149,.22); --ornament-top:rgba(183,132,170,.18); --ornament-bottom:rgba(142,95,130,.12); }
+    .theme-lilac { --card-bg-start:#f7f3fd; --card-bg-end:#ddd1f1; --title-color:#8b77b5; --accent-line:#ab95d5; --label-color:#705f92; --chip-bg:rgba(252,250,255,.42); --frame-color:rgba(145,125,189,.22); --ornament-top:rgba(170,149,213,.18); --ornament-bottom:rgba(120,104,157,.12); }
+    .theme-peach { --card-bg-start:#fdf1e6; --card-bg-end:#f0c9b0; --title-color:#c57d4f; --accent-line:#dd9b6a; --label-color:#965f40; --chip-bg:rgba(255,249,245,.42); --frame-color:rgba(201,133,87,.22); --ornament-top:rgba(219,153,104,.18); --ornament-bottom:rgba(186,112,69,.12); }
+    .theme-apricot { --card-bg-start:#fbf1e9; --card-bg-end:#ebccb2; --title-color:#bb8357; --accent-line:#d29d74; --label-color:#936647; --chip-bg:rgba(255,250,245,.42); --frame-color:rgba(193,141,97,.22); --ornament-top:rgba(208,158,116,.18); --ornament-bottom:rgba(176,122,79,.12); }
+    .theme-coral { --card-bg-start:#fcf0ec; --card-bg-end:#ecbdb5; --title-color:#c1695b; --accent-line:#d88c7f; --label-color:#95584e; --chip-bg:rgba(255,249,247,.42); --frame-color:rgba(197,112,97,.22); --ornament-top:rgba(214,141,129,.18); --ornament-bottom:rgba(185,102,90,.12); }
+    .theme-terracotta { --card-bg-start:#f8ece7; --card-bg-end:#d89e87; --title-color:#b65e41; --accent-line:#ce7b5d; --label-color:#874938; --chip-bg:rgba(255,248,245,.4); --frame-color:rgba(185,102,74,.22); --ornament-top:rgba(206,122,91,.18); --ornament-bottom:rgba(168,91,67,.12); }
+    .theme-rust { --card-bg-start:#f7ece7; --card-bg-end:#cf9887; --title-color:#a4543e; --accent-line:#bf755d; --label-color:#7f4333; --chip-bg:rgba(255,248,246,.4); --frame-color:rgba(168,91,69,.24); --ornament-top:rgba(190,117,95,.18); --ornament-bottom:rgba(149,78,60,.12); }
+    .theme-cinnamon { --card-bg-start:#f8f1ec; --card-bg-end:#d8b5a2; --title-color:#986248; --accent-line:#b87f62; --label-color:#754c3a; --chip-bg:rgba(255,250,247,.42); --frame-color:rgba(154,103,79,.22); --ornament-top:rgba(185,127,98,.18); --ornament-bottom:rgba(136,91,70,.12); }
+    .theme-espresso { --card-bg-start:#efe5df; --card-bg-end:#b79282; --title-color:#6d473a; --accent-line:#8d6657; --label-color:#553a31; --chip-bg:rgba(255,249,247,.34); --frame-color:rgba(117,79,64,.24); --ornament-top:rgba(145,102,84,.16); --ornament-bottom:rgba(103,69,57,.1); }
+    .theme-charcoal { --card-bg-start:#f0efef; --card-bg-end:#c7c2c0; --title-color:#5f5753; --accent-line:#7d736f; --label-color:#4e4845; --chip-bg:rgba(255,255,255,.36); --frame-color:rgba(104,97,95,.22); --ornament-top:rgba(124,116,113,.14); --ornament-bottom:rgba(88,82,79,.1); }
+    .theme-minimal-black { --card-bg-start:#f5f5f3; --card-bg-end:#d6d2ce; --title-color:#292624; --accent-line:#5f5752; --label-color:#46403c; --chip-bg:rgba(255,255,255,.36); --frame-color:rgba(52,47,44,.22); --ornament-top:rgba(95,87,82,.12); --ornament-bottom:rgba(54,49,46,.08); }
+    .theme-gold-foil { --card-bg-start:#fbf7eb; --card-bg-end:#dfc27d; --title-color:#a67a19; --accent-line:#d7b04f; --label-color:#7b6223; --chip-bg:rgba(255,252,245,.44); --frame-color:rgba(184,145,67,.24); --ornament-top:rgba(214,177,78,.18); --ornament-bottom:rgba(160,122,44,.12); }
+    .theme-garden-party { --card-bg-start:#f2f8ef; --card-bg-end:#c7dcb2; --title-color:#658a56; --accent-line:#86b075; --label-color:#4f6a45; --chip-bg:rgba(251,255,249,.42); --frame-color:rgba(113,156,92,.22); --ornament-top:rgba(136,176,115,.18); --ornament-bottom:rgba(96,128,79,.12); }
+    .theme-modern-serif { --card-bg-start:#faf8f4; --card-bg-end:#d8d0c7; --title-color:#655b54; --accent-line:#8a7c72; --label-color:#564d47; --chip-bg:rgba(255,255,255,.4); --frame-color:rgba(109,97,88,.2); --ornament-top:rgba(138,124,114,.16); --ornament-bottom:rgba(103,92,84,.1); }
+
     .card-inner {
       position:relative;
       z-index:1;
@@ -141,7 +153,7 @@
     }
     .card-eyebrow {
       text-align:center;
-      color:#b28a63;
+      color: color-mix(in srgb, var(--label-color) 82%, white 18%);
       text-transform:uppercase;
       letter-spacing:.28em;
       font-size:9px;
@@ -154,14 +166,14 @@
       font-size: clamp(2.6rem, 3.6vw, 3.3rem);
       line-height:.95;
       text-align:center;
-      color:#ab7b4c;
+      color:var(--title-color);
       font-weight:400;
       text-wrap:balance;
       text-shadow: 0 1px 0 rgba(255,255,255,.55);
     }
     .card-divider {
       width:74px; height:1px; margin: 8px auto 12px;
-      background: linear-gradient(90deg, transparent, rgba(173,129,98,.68), transparent);
+      background: linear-gradient(90deg, transparent, var(--accent-line), transparent);
     }
     .card-subtitle {
       text-align:center;
@@ -170,13 +182,13 @@
       font-size:.9rem;
       letter-spacing:.16em;
       text-transform:uppercase;
-      color:#8a6446;
+      color:var(--label-color);
     }
     .guest-summary {
       text-align:center;
       margin-bottom:8px;
       font-size:10px;
-      color:#9b7656;
+      color:var(--label-color);
       letter-spacing:.1em;
       text-transform:uppercase;
     }
@@ -193,8 +205,8 @@
       padding: 6px 9px;
       text-align:center;
       border-radius:999px;
-      background: rgba(255,255,255,.34);
-      border: 1px solid rgba(187,151,118,.12);
+      background: var(--chip-bg);
+      border: 1px solid var(--frame-color);
       color:#5c4332;
       font-size:12px;
       line-height:1.16;
@@ -244,23 +256,11 @@
       margin-top:auto;
       padding-top:14px;
       text-align:center;
-      color:#a07b5b;
+      color: color-mix(in srgb, var(--label-color) 82%, white 18%);
       font-size:10px;
       letter-spacing:.22em;
       text-transform:uppercase;
     }
-    .place-card {
-      --card-bg-start: rgba(252,246,239,.98);
-      --card-bg-end: rgba(241,226,213,.94);
-      --title-color:#ab7b4c;
-      --accent-line: rgba(173,129,98,.68);
-      --label-color:#8a6446;
-      background: linear-gradient(180deg, var(--card-bg-start), var(--card-bg-end));
-    }
-    .card-title { color: var(--title-color); }
-    .card-divider { background: linear-gradient(90deg, transparent, var(--accent-line), transparent); }
-    .card-subtitle,
-    .guest-summary { color: var(--label-color); }
 
     .empty-state {
       padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
@@ -293,8 +293,8 @@
         <div class="toolbar-controls">
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
-          <button onclick="window.print()">Imprimer</button>
-          <button class="ghost" onclick="load()">Rafraîchir</button>
+            <button onclick="window.print()">Imprimer</button>
+            <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
         </div>
       </div>
@@ -368,6 +368,7 @@
     ];
     const allThemeOptions = themeGroups.flatMap(group => group.options);
     let currentTheme = localStorage.getItem('postcards-theme') || 'theme-nude';
+
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     function floralSvg(cls='') {
       return `
@@ -416,7 +417,7 @@
       const tables = (plan.tables || []).filter(Boolean);
       if(!tables.length){ cards.innerHTML = '<div class="empty-state">Aucune table disponible.</div>'; return; }
       cards.innerHTML = '';
-      tables.forEach((table, index) => {
+      tables.forEach((table) => {
         const guests = (table.guests || [])
           .filter(Boolean)
           .slice()
