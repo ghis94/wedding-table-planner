@@ -19,15 +19,16 @@
     .postcards-grid {
       display:grid;
       grid-template-columns: repeat(auto-fit, minmax(10cm, 10cm));
-      gap: 20px;
+      gap: 24px;
       justify-content:center;
+      align-items:start;
     }
     .place-card {
       position:relative;
       width:10cm;
       height:15cm;
-      padding:1.1cm 0.82cm 0.84cm;
-      border-radius:24px;
+      padding:1cm 0.86cm 0.8cm;
+      border-radius:28px;
       overflow:hidden;
       border:1px solid rgba(195,157,121,.24);
       box-shadow: 0 24px 70px rgba(109, 80, 53, .16);
@@ -36,6 +37,7 @@
       break-inside: avoid;
       isolation:isolate;
       box-sizing:border-box;
+      display:flex;
     }
     .place-card::before {
       content:'';
@@ -62,62 +64,108 @@
       left:-10px; bottom:-8px; width:146px; height:220px; transform: scaleX(-1) rotate(-8deg);
       opacity:.54;
     }
-    .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; min-height:100%; justify-content:flex-start; }
+    .card-frame {
+      position:absolute;
+      inset: 12px;
+      border-radius:22px;
+      border:1px solid rgba(191,150,115,.18);
+      pointer-events:none;
+      z-index:0;
+    }
+    .card-frame::before,
+    .card-frame::after {
+      content:'';
+      position:absolute;
+      width:22px;
+      height:22px;
+      border:1px solid rgba(191,150,115,.34);
+      border-radius:50%;
+      background: rgba(255,255,255,.3);
+    }
+    .card-frame::before { top:-11px; left:calc(50% - 11px); }
+    .card-frame::after { bottom:-11px; left:calc(50% - 11px); }
+    .card-inner {
+      position:relative;
+      z-index:1;
+      display:flex;
+      flex-direction:column;
+      min-height:100%;
+      width:100%;
+      justify-content:flex-start;
+      padding: .06cm 0;
+    }
     .card-eyebrow {
       text-align:center;
       color:#b28a63;
       text-transform:uppercase;
-      letter-spacing:.22em;
-      font-size:10px;
+      letter-spacing:.28em;
+      font-size:9px;
       font-weight:700;
-      margin-bottom:18px;
+      margin-bottom:14px;
     }
     .card-title {
-      margin: 8px 0 8px;
+      margin: 4px 0 6px;
       font-family:'Allura', 'Great Vibes', cursive;
-      font-size: clamp(2.7rem, 4vw, 3.55rem);
-      line-height:1;
+      font-size: clamp(3rem, 4.2vw, 3.9rem);
+      line-height:.95;
       text-align:center;
       color:#ab7b4c;
       font-weight:400;
+      text-wrap:balance;
+      text-shadow: 0 1px 0 rgba(255,255,255,.55);
     }
     .card-divider {
-      width:78px; height:1px; margin: 12px auto 22px;
+      width:86px; height:1px; margin: 10px auto 18px;
       background: linear-gradient(90deg, transparent, rgba(173,129,98,.68), transparent);
     }
     .card-subtitle {
       text-align:center;
-      margin-bottom:18px;
+      margin-bottom:14px;
       font-family:'Cormorant Garamond', serif;
       font-size:1rem;
-      letter-spacing:.12em;
+      letter-spacing:.18em;
+      text-transform:uppercase;
       color:#8a6446;
+    }
+    .guest-summary {
+      text-align:center;
+      margin-bottom:10px;
+      font-size:11px;
+      color:#9b7656;
+      letter-spacing:.1em;
+      text-transform:uppercase;
     }
     .guest-list {
       display:grid;
-      gap:7px;
-      margin-top:10px;
+      gap:8px;
+      margin-top:8px;
       align-content:start;
+      align-self:stretch;
       padding: 0 2px;
+      flex:1;
     }
     .guest-item {
-      padding: 8px 10px;
+      padding: 7px 10px;
       text-align:center;
-      border-radius:12px;
-      background: rgba(255,255,255,.30);
+      border-radius:999px;
+      background: rgba(255,255,255,.34);
       border: 1px solid rgba(187,151,118,.12);
       color:#5c4332;
-      font-size:14px;
-      line-height:1.28;
+      font-size:13px;
+      line-height:1.22;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
+      font-family:'Cormorant Garamond', serif;
+      font-weight:600;
+      letter-spacing:.01em;
+      text-wrap:balance;
     }
     .card-footer {
       margin-top:auto;
-      padding-top:18px;
+      padding-top:14px;
       text-align:center;
       color:#a07b5b;
       font-size:10px;
-      letter-spacing:.18em;
+      letter-spacing:.22em;
       text-transform:uppercase;
     }
     .theme-nude { background: linear-gradient(180deg, rgba(252,246,239,.98), rgba(239,225,212,.95)); }
@@ -189,17 +237,22 @@
       if(!tables.length){ cards.innerHTML = '<div class="empty-state">Aucune table disponible.</div>'; return; }
       cards.innerHTML = '';
       tables.forEach((table, index) => {
-        const guests = (table.guests || []).filter(Boolean);
+        const guests = (table.guests || [])
+          .filter(Boolean)
+          .slice()
+          .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
         const el = document.createElement('article');
         el.className = `place-card ${themes[index % themes.length]}`;
         el.innerHTML = `
           ${floralSvg('botanical')}
           ${floralSvg('botanical-bottom')}
+          <div class="card-frame"></div>
           <div class="card-inner">
             <div class="card-eyebrow">Mariage</div>
             <div class="card-title">${escapeHtml(table.name || 'Table')}</div>
             <div class="card-divider"></div>
             <div class="card-subtitle">Votre table</div>
+            <div class="guest-summary">${guests.length ? `${guests.length} invité${guests.length > 1 ? 's' : ''}` : 'Placement en cours'}</div>
             <div class="guest-list">
               ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
             </div>
