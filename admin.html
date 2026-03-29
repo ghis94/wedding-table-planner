@@ -147,29 +147,6 @@
     .alert-card.warn { background: #fff7ed; color: #9a3412; }
     .alert-card.error { background: #fef2f2; color: #991b1b; }
     .alert-card.info { background: #eff6ff; color: #1d4ed8; }
-    .recommendations {
-      display:grid;
-      gap:10px;
-      margin-bottom: 16px;
-    }
-    .recommendation-card {
-      padding: 14px 16px;
-      border-radius: 18px;
-      border: 1px solid var(--line-soft);
-      background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,.14));
-      box-shadow: var(--shadow-xs);
-    }
-    .recommendation-card strong {
-      display:block;
-      margin-bottom:4px;
-      color: var(--text);
-      font-size: 14px;
-    }
-    .recommendation-card p {
-      margin:0;
-      font-size:13px;
-      color: var(--text-muted);
-    }
     .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
     .table {
       padding: 14px;
@@ -489,7 +466,6 @@
             <div class="muted" style="display:flex;align-items:center;padding:0 6px">Drag & drop actif entre invités et tables</div>
           </div>
           <div id="alerts" class="alerts"></div>
-          <div id="recommendations" class="recommendations"></div>
           <div class="table-summary">
             <span>Glisser-déposer ou utiliser les actions rapides pour répartir les invités.</span>
             <span class="soft-count"><span id="tableCountInline">0</span> table(s)</span>
@@ -631,71 +607,15 @@
       const unplaced=guests.length;
       if(unplaced>0) alerts.push({level:'warn', text:`${unplaced} invité(s) non placé(s)`});
 
-      const mix = buildSeatingRecommendations();
-      if(mix.unbalancedTables.length){
-        mix.unbalancedTables.forEach(item=>alerts.push({level:'info', text:`${item.name} paraît déséquilibrée (${item.details})`}));
-      }
-      return alerts;
-    }
-
-    function buildSeatingRecommendations(){
-      const recommendations=[];
-      const unbalancedTables=[];
-      const allTables=(tables||[]).map(t=>({
-        ...t,
-        guests:(t.guests||[]).filter(Boolean)
-      }));
-
-      const sortedByLoad=[...allTables].sort((a,b)=>((b.guests?.length||0)/(Math.max(1, Number(b.capacity||1)))) - ((a.guests?.length||0)/(Math.max(1, Number(a.capacity||1)))));
-      const fullest=sortedByLoad[0];
-      const emptiest=[...sortedByLoad].reverse()[0];
-      if(fullest && emptiest && fullest.id !== emptiest.id){
-        const fullRatio=(fullest.guests.length/Math.max(1, Number(fullest.capacity||1)));
-        const emptyRatio=(emptiest.guests.length/Math.max(1, Number(emptiest.capacity||1)));
-        if(fullRatio - emptyRatio >= 0.45 && fullest.guests.length > 1){
-          recommendations.push({
-            title:'Rééquilibrer le remplissage',
-            text:`${fullest.name} est bien plus chargée que ${emptiest.name}. Déplacer 1 ou 2 invités allégerait l’ensemble.`
-          });
-        }
-      }
-
-      allTables.forEach(t=>{
-        const gs=t.guests||[];
-        if(!gs.length) return;
-        const adults=gs.filter(g=>normalizeType(g.type)==='adulte').length;
-        const children=gs.filter(g=>normalizeType(g.type)==='enfant').length;
-        const babies=gs.filter(g=>normalizeType(g.type)==='bebe').length;
-        const withRegime=gs.filter(g=>normalizeDietLabel(g.regime)).length;
-        const detail=[];
-        if(children + babies >= Math.max(3, gs.length - 1) && adults <= 1) detail.push('très orientée enfants');
-        if(adults >= Math.max(5, gs.length - 1) && children + babies === 0 && gs.length >= 6) detail.push('100% adultes');
-        if(withRegime >= Math.max(2, Math.ceil(gs.length*0.6))) detail.push('beaucoup de régimes spéciaux');
-        if(detail.length) unbalancedTables.push({ name:t.name, details:detail.join(' · ') });
+      tables.forEach(t=>{
+        const seated=(t.guests||[]).filter(Boolean).length;
+        const capacity=Math.max(1, Number(t.capacity||1));
+        const free=capacity-seated;
+        const fillRatio=seated/capacity;
+        if(seated>0 && fillRatio < 0.5) alerts.push({level:'info', text:`${t.name} est peu remplie (${seated}/${capacity})`});
+        if(free===1) alerts.push({level:'info', text:`${t.name} n’a plus qu’une seule place libre`});
       });
-
-      const unplacedAdults=guests.filter(g=>normalizeType(g.type)==='adulte').length;
-      const unplacedKids=guests.filter(g=>['enfant','bebe'].includes(normalizeType(g.type))).length;
-      if(unplacedAdults && unplacedKids){
-        recommendations.push({
-          title:'Répartition encore mixte à faire',
-          text:`Il reste ${unplacedAdults} adulte(s) et ${unplacedKids} enfant(s)/bébé(s) non placés. C’est le bon moment pour lisser les tables avant impression.`
-        });
-      } else if(guests.length >= 4) {
-        recommendations.push({
-          title:'Invités encore en attente',
-          text:`${guests.length} invités sont encore hors table. Une passe de finition évitera des cartes incomplètes.`
-        });
-      }
-
-      if(!recommendations.length && !unbalancedTables.length){
-        recommendations.push({
-          title:'Répartition globalement propre',
-          text:'Le plan paraît cohérent : charges stables, peu d’anomalies visibles et lecture prête pour une dernière vérification humaine.'
-        });
-      }
-
-      return { recommendations, unbalancedTables };
+      return alerts;
     }
 
     function renderAlerts(){
@@ -717,18 +637,6 @@
       return alerts.length;
     }
 
-    function renderRecommendations(){
-      const c=document.getElementById('recommendations');
-      if(!c) return;
-      const data=buildSeatingRecommendations();
-      c.innerHTML='';
-      (data.recommendations||[]).slice(0,3).forEach(item=>{
-        const d=document.createElement('div');
-        d.className='recommendation-card';
-        d.innerHTML=`<strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.text)}</p>`;
-        c.appendChild(d);
-      });
-    }
 
     function allGuestsList(){
       const seen = new Set();
@@ -980,7 +888,7 @@
     }
 
     function resetAll(){ if(!confirm('Réinitialiser le plan ?')) return; pushHistory(); guests=[]; tables=[]; markDirty(); renderAll(); }
-    function renderAll(){ renderGuests(); renderTables(); renderAlerts(); renderRecommendations(); updateStats(); updateSaveBadge(); }
+    function renderAll(){ renderGuests(); renderTables(); renderAlerts(); updateStats(); updateSaveBadge(); }
 
     window.addEventListener('beforeunload', (event)=>{ if(saveState==='dirty' || isSaving){ event.preventDefault(); event.returnValue=''; } });
 
