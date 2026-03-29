@@ -84,6 +84,29 @@
     }
     .card-frame::before { top:-11px; left:calc(50% - 11px); }
     .card-frame::after { bottom:-11px; left:calc(50% - 11px); }
+    .print-safe-area {
+      position:absolute;
+      inset: 22px;
+      border: 1px dashed rgba(191,150,115,.16);
+      border-radius: 18px;
+      pointer-events:none;
+      z-index:0;
+    }
+    .print-size-badge {
+      position:absolute;
+      right:16px;
+      bottom:14px;
+      padding:4px 7px;
+      border-radius:999px;
+      background: rgba(255,255,255,.48);
+      border:1px solid rgba(191,150,115,.18);
+      color:#a07b5b;
+      font-size:8px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      z-index:1;
+      pointer-events:none;
+    }
     .card-inner {
       position:relative;
       z-index:1;
@@ -222,6 +245,8 @@
       .wrap { max-width:none; padding:0 !important; margin:0 !important; }
       .postcards-grid { display:block; }
       .place-card { width:10cm !important; height:15cm !important; border-radius:0; box-shadow:none; margin:0; page-break-after:always; }
+      .print-safe-area,
+      .print-size-badge { display:block !important; }
     }
   </style>
 </head>
@@ -291,6 +316,7 @@
           ${floralSvg('botanical')}
           ${floralSvg('botanical-bottom')}
           <div class="card-frame"></div>
+          <div class="print-safe-area"></div>
           <div class="card-inner">
             <div class="card-eyebrow">Mariage</div>
             <div class="card-title">${escapeHtml(table.name || 'Table')}</div>
@@ -302,6 +328,10 @@
             </div>
             <div class="card-footer">Avec amour & célébration</div>
           </div>`;
+        const badge = document.createElement('div');
+        badge.className = 'print-size-badge';
+        badge.textContent = '10×15 cm';
+        el.appendChild(badge);
         cards.appendChild(el);
       });
     }
