@@ -279,11 +279,10 @@
         <div class="toolbar-controls">
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
-            <button onclick="window.print()">Imprimer</button>
-            <button class="ghost" onclick="exportPdf10x15()">Exporter PDF 10×15</button>
+            <button onclick="window.print()">Imprimer en 10×15</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
-          <div class="export-hint">Export universel : PDF 10×15, une carte par page.</div>
+          <div class="export-hint">Mode recommandé : impression directe en 10×15, une carte par page.</div>
         </div>
       </div>
       <div id="cards" class="postcards-grid"></div>
@@ -365,10 +364,6 @@
       currentTheme = theme;
       localStorage.setItem('postcards-theme', currentTheme);
       load();
-    }
-    async function exportPdf10x15() {
-      const url = `/api/postcards/export.pdf?theme=${encodeURIComponent(currentTheme)}`;
-      window.location.href = url;
     }
     async function load(){
       const r = await fetch('/api/plan');
