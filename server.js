@@ -706,6 +706,60 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
   }
 });
 
+app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
+  try {
+    const theme = cleanText(req.query.theme || 'theme-nude', 80) || 'theme-nude';
+    const chromiumPath = findChromiumBinary();
+    if (!chromiumPath) {
+      return res.status(500).json({ ok: false, error: 'Chromium introuvable sur le serveur pour générer le PDF cartes.' });
+    }
+
+    const tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
+    const htmlPath = path.join(tmpBase, 'cards.html');
+    const pdfPath = path.join(tmpBase, 'cards.pdf');
+
+    const planRow = db.prepare('SELECT data FROM plan WHERE id=1').get();
+    const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
+    const tables = (plan.tables || []).filter(Boolean);
+    if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
+
+    const cardsHtml = tables.map(table => buildCardHtml(table, theme).match(/<article class="place-card[\s\S]*?<\/article>/)?.[0] || '').join('');
+    const html = `<!doctype html>
+    <html lang="fr">
+    <head>
+      <meta charset="UTF-8" />
+      <style>
+        @page { size: 10cm 15cm; margin: 0; }
+        html, body { margin:0; padding:0; background:#fff; }
+        body { margin:0; }
+        .sheet { width:10cm; height:15cm; page-break-after:always; break-after:page; }
+        .sheet:last-child { page-break-after:auto; break-after:auto; }
+      </style>
+    </head>
+    <body>
+      ${cardsHtml.split(/(?=<article class="place-card)/).filter(Boolean).map(card => `<div class="sheet">${card}</div>`).join('')}
+    </body>
+    </html>`;
+
+    fs.writeFileSync(htmlPath, html, 'utf8');
+    execFileSync(chromiumPath, [
+      '--headless=new',
+      '--disable-gpu',
+      '--hide-scrollbars',
+      `--print-to-pdf=${pdfPath}`,
+      '--no-pdf-header-footer',
+      htmlPath.startsWith('/') ? `file://${htmlPath}` : htmlPath,
+    ], { stdio: 'ignore' });
+
+    const pdfBuffer = fs.readFileSync(pdfPath);
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-10x15.pdf"`);
+    res.send(pdfBuffer);
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.post('/api/config/import', requireAdmin, (req, res) => {
   try {
     const payload = req.body || {};
