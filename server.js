@@ -199,6 +199,7 @@ function findChromiumBinary() {
 }
 
 function buildCardHtml(table, themeName = 'theme-nude') {
+  const theme = getCardTheme(themeName);
   const guests = (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
   const count = guests.length;
   const classes = [
@@ -297,7 +298,7 @@ function buildCardHtml(table, themeName = 'theme-nude') {
     </style>
   </head>
   <body>
-    <article class="${classes}">
+    <article class="${classes}" style="background: linear-gradient(180deg, ${theme.bgStart}, ${theme.bgEnd}); --card-bg-start:${theme.bgStart}; --card-bg-end:${theme.bgEnd}; --title-color:${theme.title}; --accent-line:${theme.accent}; --label-color:${theme.label}; --frame-color:${theme.frame};">
       <svg class="botanical" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M68 248C74 213 78 181 77 149C76 121 67 92 48 63" stroke="#B88D66" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M80 231C102 201 112 171 112 136C112 104 103 73 84 44" stroke="#9A6F4E" stroke-width="1.9" stroke-linecap="round" opacity=".45"/><path d="M41 86C26 83 16 72 12 54C27 58 38 66 45 80" fill="#DAB9A1" opacity=".7"/><path d="M34 118C18 117 8 109 3 93C20 96 31 104 38 113" fill="#E6CAB7" opacity=".62"/><path d="M98 62C112 55 121 42 124 24C111 28 100 37 94 51" fill="#C89A72" opacity=".58"/><path d="M120 104C136 98 146 85 150 68C135 72 124 82 117 95" fill="#D9B296" opacity=".55"/><circle cx="85" cy="40" r="10" fill="#E7D0BF" opacity=".65"/><circle cx="49" cy="78" r="8" fill="#E2C3AD" opacity=".56"/><circle cx="117" cy="92" r="8" fill="#D1A684" opacity=".52"/><circle cx="25" cy="110" r="7" fill="#EAD6C7" opacity=".58"/></svg>
       <svg class="botanical-bottom" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M68 248C74 213 78 181 77 149C76 121 67 92 48 63" stroke="#B88D66" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M80 231C102 201 112 171 112 136C112 104 103 73 84 44" stroke="#9A6F4E" stroke-width="1.9" stroke-linecap="round" opacity=".45"/><path d="M41 86C26 83 16 72 12 54C27 58 38 66 45 80" fill="#DAB9A1" opacity=".7"/><path d="M34 118C18 117 8 109 3 93C20 96 31 104 38 113" fill="#E6CAB7" opacity=".62"/><path d="M98 62C112 55 121 42 124 24C111 28 100 37 94 51" fill="#C89A72" opacity=".58"/><path d="M120 104C136 98 146 85 150 68C135 72 124 82 117 95" fill="#D9B296" opacity=".55"/><circle cx="85" cy="40" r="10" fill="#E7D0BF" opacity=".65"/><circle cx="49" cy="78" r="8" fill="#E2C3AD" opacity=".56"/><circle cx="117" cy="92" r="8" fill="#D1A684" opacity=".52"/><circle cx="25" cy="110" r="7" fill="#EAD6C7" opacity=".58"/></svg>
       <div class="card-frame"></div>
