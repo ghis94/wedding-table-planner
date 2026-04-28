@@ -313,8 +313,8 @@
         <div class="hero-top">
           <div class="hero-copy">
             <div class="eyebrow">Wedding control · admin</div>
-            <h1>💍 Wedding Control</h1>
-            <p>Un cockpit plus propre pour piloter les invités, les tables, les imports et les incohérences sans lourdeur visuelle ni sensation d’outil bricolé.</p>
+            <h1>Wedding Table Studio</h1>
+            <p>Un atelier moderne pour centraliser RSVP, invités, tables, cohérence, import/export et supports jour J.</p>
           </div>
           <div class="hero-actions">
             <span class="metric-inline"><strong>Mode</strong> administration</span>
@@ -638,6 +638,11 @@
     }
 
 
+    function normalizePlanState(){
+      const placedIds = new Set((tables||[]).flatMap(t=>t.guests||[]).map(g=>g?.id).filter(Boolean));
+      guests = (guests||[]).filter(g => !g?.id || !placedIds.has(g.id));
+    }
+
     function allGuestsList(){
       const seen = new Set();
       const out = [];
@@ -842,6 +847,7 @@
       if(!force && saveState==='saved') return;
       isSaving = true; saveState='saving'; updateSaveBadge();
       try{
+        normalizePlanState();
         await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tables,guests})});
         saveState='saved'; updateSaveBadge(); if(notify) alert('Plan sauvegardé ✅');
       }catch(e){ saveState='dirty'; updateSaveBadge(); if(notify) alert('Échec de sauvegarde du plan'); throw e; }
@@ -893,10 +899,10 @@
     window.addEventListener('beforeunload', (event)=>{ if(saveState==='dirty' || isSaving){ event.preventDefault(); event.returnValue=''; } });
 
     (async function boot(){
-      try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; } catch(e){}
+      try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; normalizePlanState(); } catch(e){}
       saveState='saved'; renderAll();
       setInterval(async ()=>{
-        try{ const p = await api('/api/plan'); const newHash = JSON.stringify((p.tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); const curHash = JSON.stringify((tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); if(newHash !== curHash){ tables=p.tables||[]; guests=p.guests||guests; saveState='saved'; renderAll(); } }catch(_e){}
+        try{ const p = await api('/api/plan'); const newHash = JSON.stringify((p.tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); const curHash = JSON.stringify((tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); if(newHash !== curHash){ tables=p.tables||[]; guests=p.guests||guests; normalizePlanState(); saveState='saved'; renderAll(); } }catch(_e){}
       }, 3000);
     })();
   </script>

@@ -3,12 +3,12 @@
 
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
   const navLinks = [
-    { href: 'index.html', label: 'Accueil', icon: '🏠' },
-    { href: 'admin.html', label: 'Admin', icon: '📋' },
-    { href: 'visual.html', label: 'Plan visuel', icon: '🗺️' },
-    { href: 'postcards.html', label: 'Cartes', icon: '💌' },
-    { href: 'day-of.html', label: 'Jour J', icon: '💍' },
-    { href: 'login.html', label: 'Connexion', icon: '🔐' }
+    { href: 'index.html', label: 'RSVP', icon: '01' },
+    { href: 'admin.html', label: 'Atelier', icon: '02' },
+    { href: 'visual.html', label: 'Plan', icon: '03' },
+    { href: 'postcards.html', label: 'Cartes', icon: '04' },
+    { href: 'day-of.html', label: 'Jour J', icon: '05' },
+    { href: 'login.html', label: 'Login', icon: '↗' }
   ];
 
   function createHeader() {
@@ -27,10 +27,10 @@
 
     header.innerHTML = `
       <div class="wedding-header__brand">
-        <div class="brand-mark">✦</div>
+        <div class="brand-mark">W</div>
         <div>
-          <strong>Wedding Planner</strong>
-          <span>Organisation élégante, vue unifiée</span>
+          <strong>Wedding Table Studio</strong>
+          <span>RSVP · seating · jour J</span>
         </div>
       </div>
       <nav class="wedding-nav">${navHtml}</nav>

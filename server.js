@@ -17,7 +17,17 @@ const ADMIN_PASS = process.env.ADMIN_PASS || 'changeme';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change-this-session-secret';
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'wedding.db');
 const DEFAULT_ADMIN_PASS = 'changeme';
-const DEFAULT_SESSION_SECRET = 'change-this-session-secret';
+const DEFAULT_SESSION_SECRET='change-this-session-secret';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+if (IS_PRODUCTION && ADMIN_PASS === DEFAULT_ADMIN_PASS) {
+  console.error('[wedding-table-planner] Refusing to start in production with the default ADMIN_PASS.');
+  process.exit(1);
+}
+if (IS_PRODUCTION && SESSION_SECRET === DEFAULT_SESSION_SECRET) {
+  console.error('[wedding-table-planner] Refusing to start in production with the default SESSION_SECRET.');
+  process.exit(1);
+}
 
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 const db = new Database(DB_PATH);
@@ -100,7 +110,11 @@ function sanitizeTable(input = {}) {
 
 function sanitizePlan(input = {}) {
   const tables = Array.isArray(input.tables) ? input.tables.map(sanitizeTable) : [];
-  const guests = Array.isArray(input.guests) ? input.guests.map(sanitizeGuest) : [];
+  const placedGuestIds = new Set(
+    tables.flatMap(t => t.guests || []).map(g => g.id).filter(Boolean)
+  );
+  const guests = (Array.isArray(input.guests) ? input.guests.map(sanitizeGuest) : [])
+    .filter(g => !g.id || !placedGuestIds.has(g.id));
   const layout = input.layout && typeof input.layout === 'object' ? input.layout : {};
   return {
     tables,
@@ -119,6 +133,20 @@ function escapeHtml(value = '') {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function serverError(res, err, context = 'server') {
+  console.error(`[wedding-table-planner:${context}]`, err);
+  return res.status(500).json({ ok: false, error: 'Erreur serveur' });
+}
+
+function removeTempDir(dirPath) {
+  if (!dirPath) return;
+  try {
+    fs.rmSync(dirPath, { recursive: true, force: true });
+  } catch (err) {
+    console.warn(`[wedding-table-planner] Unable to remove temp dir ${dirPath}:`, err.message);
+  }
 }
 
 const CARD_THEMES = {
@@ -437,7 +465,7 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: 'lax',
-      secure: false,
+      secure: IS_PRODUCTION,
       maxAge: 1000 * 60 * 60 * 8,
     },
   })
@@ -666,6 +694,7 @@ app.get('/api/export/caterer.csv', requireAdmin, (_req, res) => {
 });
 
 app.get('/api/postcards/export', requireAdmin, (req, res) => {
+  let tmpBase;
   try {
     const format = String(req.query.format || 'png').toLowerCase() === 'jpg' ? 'jpg' : 'png';
     const theme = cleanText(req.query.theme || 'theme-nude', 80) || 'theme-nude';
@@ -679,7 +708,7 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
       return res.status(500).json({ ok: false, error: 'Chromium introuvable sur le serveur pour l’export cartes.' });
     }
 
-    const tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-cards-'));
+    tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-cards-'));
     const files = tables.map((table, index) => {
       const htmlPath = path.join(tmpBase, `card-${index}.html`);
       const pngPath = path.join(tmpBase, `card-${index}.png`);
@@ -703,11 +732,14 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${archiveName}"`);
     res.send(zipBuffer);
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    serverError(res, err, 'postcards-export');
+  } finally {
+    removeTempDir(tmpBase);
   }
 });
 
 app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
+  let tmpBase;
   try {
     const theme = cleanText(req.query.theme || 'theme-nude', 80) || 'theme-nude';
     const chromiumPath = findChromiumBinary();
@@ -715,7 +747,7 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
       return res.status(500).json({ ok: false, error: 'Chromium introuvable sur le serveur pour générer le PDF cartes.' });
     }
 
-    const tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
+    tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
     const htmlPath = path.join(tmpBase, 'cards.html');
     const pdfPath = path.join(tmpBase, 'cards.pdf');
 
@@ -757,7 +789,9 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-10x15.pdf"`);
     res.send(pdfBuffer);
   } catch (err) {
-    res.status(500).json({ ok: false, error: err.message });
+    serverError(res, err, 'postcards-export-pdf');
+  } finally {
+    removeTempDir(tmpBase);
   }
 });
 
@@ -794,11 +828,25 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
   }
 });
 
-app.get(['/admin.html', '/visual.html', '/day-of.html', '/staff.html'], requireAdmin);
+app.get(['/admin.html', '/visual.html', '/day-of.html', '/staff.html', '/postcards.html'], requireAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, path.basename(req.path)));
+});
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/index.html', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/login.html', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
-app.use(express.static(__dirname));
+
+const PUBLIC_STATIC_FILES = new Set([
+  '/styles.css',
+  '/theme.js',
+  '/header.js',
+  '/favicon.ico',
+]);
+
+app.use((req, res, next) => {
+  if (PUBLIC_STATIC_FILES.has(req.path)) return next();
+  return res.status(404).end();
+});
+app.use(express.static(__dirname, { index: false, dotfiles: 'deny' }));
 
 app.listen(PORT, () => {
   console.log(`wedding-table-planner listening on :${PORT}`);

@@ -5,7 +5,9 @@
   "description": "Site mariage: RSVP + plan de table avec SQLite, auth admin et import CSV",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "check": "node --check server.js && node --check header.js && node --check theme.js",
+    "test": "node --test tests/*.test.js"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
@@ -16,5 +18,6 @@
     "express-rate-limit": "^7.4.1",
     "express-session": "^1.18.1",
     "helmet": "^8.1.0"
+
   }
 }
