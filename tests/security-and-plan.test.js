@@ -94,6 +94,35 @@ test('admin login works with configured credentials', async () => {
   assert.ok(cookie.includes('wtp.sid='));
 });
 
+test('multiple named plans can be created and activated', async () => {
+  const listBefore = await request('/api/plans', { headers: { cookie } });
+  assert.equal(listBefore.status, 200);
+  const beforeData = listBefore.json();
+  assert.ok(beforeData.plans.length >= 1);
+  const initialActive = beforeData.activePlanId;
+
+  const create = await request('/api/plans', {
+    method: 'POST',
+    body: { name: 'Plan test', sourcePlanId: initialActive },
+    headers: { cookie },
+  });
+  assert.equal(create.status, 200);
+  const created = create.json();
+  assert.equal(created.plan.name, 'Plan test');
+  assert.equal(created.activePlanId, created.plan.id);
+
+  const listAfter = await request('/api/plans', { headers: { cookie } });
+  assert.equal(listAfter.status, 200);
+  assert.ok(listAfter.json().plans.some(p => p.id === created.plan.id && p.active));
+
+  const activate = await request(`/api/plans/${encodeURIComponent(initialActive)}/activate`, {
+    method: 'POST',
+    headers: { cookie },
+  });
+  assert.equal(activate.status, 200);
+  assert.equal(activate.json().activePlanId, initialActive);
+});
+
 test('sanitizePlan removes root guests already seated at a table', async () => {
   const duplicateGuest = { id: 'guest-1', name: 'Camille Test', type: 'adulte' };
   const plan = {

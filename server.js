@@ -441,11 +441,103 @@ CREATE TABLE IF NOT EXISTS plan (
   id INTEGER PRIMARY KEY CHECK(id=1),
   data TEXT,
   updatedAt TEXT
+);
+CREATE TABLE IF NOT EXISTS plan_variants (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  data TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT
 );`);
 
 const cols = db.prepare(`PRAGMA table_info(rsvps)`).all().map(c => c.name);
 if (!cols.includes('phone')) db.exec(`ALTER TABLE rsvps ADD COLUMN phone TEXT`);
 if (!cols.includes('adminNotes')) db.exec(`ALTER TABLE rsvps ADD COLUMN adminNotes TEXT`);
+
+
+const EMPTY_PLAN = { tables: [], guests: [], layout: { tables: {}, guests: {} } };
+const DEFAULT_PLAN_ID = 'default';
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function getSetting(key, fallback = null) {
+  const row = db.prepare('SELECT value FROM app_settings WHERE key = ?').get(key);
+  return row?.value || fallback;
+}
+
+function setSetting(key, value) {
+  db.prepare(`INSERT INTO app_settings(key, value)
+    VALUES(?, ?)
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value`).run(key, value);
+}
+
+function ensureDefaultPlanVariant() {
+  const count = db.prepare('SELECT COUNT(*) AS count FROM plan_variants').get().count;
+  if (count > 0) return;
+  const legacy = db.prepare('SELECT data, updatedAt FROM plan WHERE id=1').get();
+  const data = legacy?.data || JSON.stringify(EMPTY_PLAN);
+  const timestamp = legacy?.updatedAt || nowIso();
+  db.prepare(`INSERT INTO plan_variants(id, name, data, updatedAt, createdAt)
+    VALUES(?, ?, ?, ?, ?)`).run(DEFAULT_PLAN_ID, 'Plan principal', data, timestamp, timestamp);
+  setSetting('activePlanId', DEFAULT_PLAN_ID);
+}
+
+function getActivePlanId() {
+  ensureDefaultPlanVariant();
+  const configured = getSetting('activePlanId', DEFAULT_PLAN_ID);
+  const exists = db.prepare('SELECT id FROM plan_variants WHERE id = ?').get(configured);
+  if (exists) return configured;
+  const first = db.prepare('SELECT id FROM plan_variants ORDER BY createdAt LIMIT 1').get();
+  const fallback = first?.id || DEFAULT_PLAN_ID;
+  setSetting('activePlanId', fallback);
+  return fallback;
+}
+
+function listPlanVariants() {
+  ensureDefaultPlanVariant();
+  const activePlanId = getActivePlanId();
+  return db.prepare('SELECT id, name, updatedAt, createdAt FROM plan_variants ORDER BY datetime(createdAt), name').all()
+    .map(plan => ({ ...plan, active: plan.id === activePlanId }));
+}
+
+function getActivePlanRow() {
+  const activePlanId = getActivePlanId();
+  return db.prepare('SELECT id, name, data, updatedAt, createdAt FROM plan_variants WHERE id = ?').get(activePlanId);
+}
+
+function writeActivePlan(planData) {
+  const activePlanId = getActivePlanId();
+  const data = JSON.stringify(sanitizePlan(planData));
+  const updatedAt = nowIso();
+  db.prepare('UPDATE plan_variants SET data = ?, updatedAt = ? WHERE id = ?').run(data, updatedAt, activePlanId);
+  db.prepare(`INSERT INTO plan(id, data, updatedAt)
+    VALUES(1, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`).run(data, updatedAt);
+  return { data, updatedAt, activePlanId };
+}
+
+function createPlanVariant({ name, sourcePlanId }) {
+  ensureDefaultPlanVariant();
+  const id = crypto.randomUUID();
+  const cleanName = cleanText(name, 120) || `Plan ${listPlanVariants().length + 1}`;
+  const source = sourcePlanId
+    ? db.prepare('SELECT data FROM plan_variants WHERE id = ?').get(sourcePlanId)
+    : getActivePlanRow();
+  const data = source?.data || JSON.stringify(EMPTY_PLAN);
+  const timestamp = nowIso();
+  db.prepare(`INSERT INTO plan_variants(id, name, data, updatedAt, createdAt)
+    VALUES(?, ?, ?, ?, ?)`).run(id, cleanName, data, timestamp, timestamp);
+  setSetting('activePlanId', id);
+  return { id, name: cleanName, updatedAt: timestamp, createdAt: timestamp, active: true };
+}
+
+ensureDefaultPlanVariant();
 
 app.set('trust proxy', 1);
 app.use(
@@ -582,10 +674,42 @@ app.delete('/api/rsvp/:id', requireAdmin, (req, res) => {
   }
 });
 
+app.get('/api/plans', requireAdmin, (_req, res) => {
+  try {
+    res.json({ ok: true, plans: listPlanVariants(), activePlanId: getActivePlanId() });
+  } catch (err) {
+    serverError(res, err, 'plans-list');
+  }
+});
+
+app.post('/api/plans', requireAdmin, (req, res) => {
+  try {
+    const plan = createPlanVariant({ name: req.body?.name, sourcePlanId: req.body?.sourcePlanId });
+    res.json({ ok: true, plan, plans: listPlanVariants(), activePlanId: plan.id });
+  } catch (err) {
+    serverError(res, err, 'plans-create');
+  }
+});
+
+app.post('/api/plans/:id/activate', requireAdmin, (req, res) => {
+  try {
+    const id = cleanText(req.params.id, 80);
+    const plan = db.prepare('SELECT id, data, updatedAt FROM plan_variants WHERE id = ?').get(id);
+    if (!plan) return res.status(404).json({ ok: false, error: 'Plan introuvable' });
+    setSetting('activePlanId', id);
+    db.prepare(`INSERT INTO plan(id, data, updatedAt)
+      VALUES(1, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`).run(plan.data, plan.updatedAt || nowIso());
+    res.json({ ok: true, activePlanId: id, plans: listPlanVariants() });
+  } catch (err) {
+    serverError(res, err, 'plans-activate');
+  }
+});
+
 app.get('/api/plan', requireAdmin, (_req, res) => {
   try {
-    const row = db.prepare('SELECT data FROM plan WHERE id=1').get();
-    const data = row?.data ? sanitizePlan(JSON.parse(row.data)) : { tables: [], guests: [], layout: { tables: {}, guests: {} } };
+    const row = getActivePlanRow();
+    const data = row?.data ? sanitizePlan(JSON.parse(row.data)) : EMPTY_PLAN;
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -594,14 +718,8 @@ app.get('/api/plan', requireAdmin, (_req, res) => {
 
 app.post('/api/plan', requireAdmin, (req, res) => {
   try {
-    const sanitizedPlan = sanitizePlan(req.body || {});
-    const data = JSON.stringify(sanitizedPlan);
-    db.prepare(
-      `INSERT INTO plan(id, data, updatedAt)
-       VALUES(1, ?, ?)
-       ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`
-    ).run(data, new Date().toISOString());
-    res.json({ ok: true });
+    writeActivePlan(req.body || {});
+    res.json({ ok: true, activePlanId: getActivePlanId() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -632,7 +750,7 @@ app.post('/api/import-csv', requireAdmin, (req, res) => {
 app.get('/api/config/export', requireAdmin, (_req, res) => {
   try {
     const rsvps = db.prepare('SELECT * FROM rsvps ORDER BY datetime(createdAt) DESC').all();
-    const planRow = db.prepare('SELECT data, updatedAt FROM plan WHERE id=1').get();
+    const planRow = getActivePlanRow();
     const payload = {
       version: 1,
       exportedAt: new Date().toISOString(),
@@ -649,7 +767,7 @@ app.get('/api/config/export', requireAdmin, (_req, res) => {
 app.get('/api/export/caterer.csv', requireAdmin, (_req, res) => {
   try {
     const rsvps = db.prepare('SELECT * FROM rsvps').all();
-    const planRow = db.prepare('SELECT data FROM plan WHERE id=1').get();
+    const planRow = getActivePlanRow();
     const plan = planRow?.data ? JSON.parse(planRow.data) : { tables: [], guests: [] };
     const tables = plan.tables || [];
 
@@ -698,7 +816,7 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
   try {
     const format = String(req.query.format || 'png').toLowerCase() === 'jpg' ? 'jpg' : 'png';
     const theme = cleanText(req.query.theme || 'theme-nude', 80) || 'theme-nude';
-    const planRow = db.prepare('SELECT data FROM plan WHERE id=1').get();
+    const planRow = getActivePlanRow();
     const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
     const tables = (plan.tables || []).filter(Boolean);
     if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
@@ -751,7 +869,7 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
     const htmlPath = path.join(tmpBase, 'cards.html');
     const pdfPath = path.join(tmpBase, 'cards.pdf');
 
-    const planRow = db.prepare('SELECT data FROM plan WHERE id=1').get();
+    const planRow = getActivePlanRow();
     const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
     const tables = (plan.tables || []).filter(Boolean);
     if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
