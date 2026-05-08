@@ -100,17 +100,18 @@
     .atelier-tab:hover { transform:none; box-shadow:none; background: var(--accent-ghost); color: var(--text); }
     .atelier-tab.active { background: var(--text); color: var(--ivory); }
     .tab-panel[hidden] { display:none !important; }
-    .layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
-    body.admin-tab-guests .layout,
-    body.admin-tab-data .layout { grid-template-columns: minmax(0, 760px); }
-    body.admin-tab-guests .layout > main,
-    body.admin-tab-data .layout > main,
-    body.admin-tab-tables .layout > aside { display:none; }
-    body.admin-tab-guests [data-admin-section="data"],
-    body.admin-tab-data [data-admin-section]:not([data-admin-section="data"]) { display:none; }
-    body.admin-tab-tables .layout { display:block; }
-    .dashboard-grid { display:grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap:18px; align-items:start; }
-    @media (max-width: 900px) { .dashboard-grid { grid-template-columns:1fr; } }
+    .layout { display: grid; grid-template-columns: minmax(270px, 320px) minmax(0, 1fr); gap: 18px; align-items: start; }
+    .layout > aside { position: sticky; top: 132px; max-height: calc(100vh - 150px); overflow:auto; padding:14px; }
+    .layout > main { min-width:0; }
+    .atelier-tabs { display:none; }
+    .overview-banner { padding:16px 18px; }
+    .dashboard-grid { display:grid; grid-template-columns: minmax(0, 1fr) auto; gap:18px; align-items:center; }
+    .overview-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .overview-actions button { min-height:36px; padding:8px 12px; font-size:12px; }
+    .overview-alerts { margin-top:12px; display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:8px; }
+    .overview-alerts .alert-card { margin:0; padding:10px 12px; font-size:12px; }
+    @media (max-width: 1050px) { .layout { grid-template-columns:1fr; } .layout > aside { position:static; max-height:none; overflow:visible; } }
+    @media (max-width: 900px) { .dashboard-grid { grid-template-columns:1fr; } .overview-actions { justify-content:flex-start; } }
     .section-card {
       padding: 16px;
       border-radius: 22px;
@@ -129,7 +130,7 @@
     }
     .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .row.tight > * { flex: 1; }
-    .guest-list { display: grid; gap: 8px; max-height: 520px; overflow: auto; padding-right: 4px; }
+    .guest-list { display: grid; gap: 8px; max-height: 360px; overflow: auto; padding-right: 4px; }
     .guest {
       display: flex;
       justify-content: space-between;
@@ -390,26 +391,23 @@
         <button class="atelier-tab" data-tab="data" onclick="setAdminTab('data')">Imports / exports</button>
       </nav>
 
-      <section class="panel tab-panel" data-tab-panel="dashboard">
+      <section class="panel overview-banner" data-tab-panel="dashboard">
         <div class="dashboard-grid">
           <div>
-            <span class="section-kicker">Synthèse</span>
+            <span class="section-kicker">Vue d’ensemble</span>
             <h3>État du plan</h3>
-            <p class="text-sm text-muted">Les indicateurs principaux sont en haut. Les alertes ci-dessous résument ce qui mérite une vérification avant validation finale.</p>
+            <p class="text-sm text-muted">Synthèse toujours visible : surveille les alertes, puis modifie directement les invités à gauche et les tables à droite.</p>
           </div>
-          <div class="section-card">
-            <span class="section-kicker">Actions rapides</span>
-            <div class="compact-actions" style="margin-top:10px">
-              <button onclick="setAdminTab('guests')">Gérer les invités</button>
-              <button class="ghost" onclick="setAdminTab('tables')">Ajuster les tables</button>
-              <button class="ghost" onclick="setAdminTab('data')">Importer / exporter</button>
-            </div>
+          <div class="overview-actions">
+            <button class="ghost" onclick="document.getElementById('guestSearch')?.focus()">Chercher un invité</button>
+            <button class="ghost" onclick="addTable()">+ Table</button>
+            <button class="ghost" onclick="document.getElementById('planFile').click()">Importer plan</button>
           </div>
         </div>
-        <div id="alerts" class="alerts" style="margin-top:18px"></div>
+        <div id="alerts" class="overview-alerts"></div>
       </section>
 
-      <div class="layout tab-panel" data-tab-panel="workspace" hidden>
+      <div class="layout tab-panel" data-tab-panel="workspace">
         <aside class="panel stack">
           <section class="section-card glow-ring" data-admin-section="guests">
             <div class="section-head">
@@ -439,25 +437,6 @@
             </div>
             <input id="guestSearch" placeholder="Rechercher un invité" oninput="renderAll()" />
             <div id="guestSearchMeta" class="muted" style="margin-top:8px"></div>
-          </section>
-
-          <section class="section-card glow-ring" data-admin-section="data">
-            <div class="section-head">
-              <div class="split-note">
-                <span class="section-kicker">Données</span>
-                <h4>Imports & exports</h4>
-              </div>
-            </div>
-            <textarea id="csvInput" rows="4" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
-            <div class="muted" style="margin-top:8px">Colonnes acceptées : <code>prenom,nom,type</code>, <code>first_name,last_name,type</code> ou <code>name,type</code>.</div>
-            <div class="compact-actions" style="margin-top:10px">
-              <button onclick="importCsv()">Importer CSV invités</button>
-              <button class="ghost" onclick="exportJson()">Exporter plan JSON</button>
-              <button class="ghost" onclick="document.getElementById('planFile').click()">Importer plan JSON</button>
-              <button class="ghost" onclick="exportConfig()">Exporter config complète</button>
-              <button class="ghost" onclick="document.getElementById('configFile').click()">Importer config complète</button>
-              <button class="ghost" onclick="exportCatererCsv()">Exporter traiteur CSV</button>
-            </div>
           </section>
 
           <section class="section-card glow-ring" data-admin-section="guests">
@@ -497,6 +476,26 @@
               </div>
             </div>
           </section>
+
+          <section class="section-card glow-ring" data-admin-section="data">
+            <div class="section-head">
+              <div class="split-note">
+                <span class="section-kicker">Données</span>
+                <h4>Imports & exports</h4>
+              </div>
+            </div>
+            <textarea id="csvInput" rows="4" placeholder="prenom,nom,type&#10;Alice,Martin,adulte&#10;Lina,Martin,enfant"></textarea>
+            <div class="muted" style="margin-top:8px">Colonnes acceptées : <code>prenom,nom,type</code>, <code>first_name,last_name,type</code> ou <code>name,type</code>.</div>
+            <div class="compact-actions" style="margin-top:10px">
+              <button onclick="importCsv()">Importer CSV invités</button>
+              <button class="ghost" onclick="exportJson()">Exporter plan JSON</button>
+              <button class="ghost" onclick="document.getElementById('planFile').click()">Importer plan JSON</button>
+              <button class="ghost" onclick="exportConfig()">Exporter config complète</button>
+              <button class="ghost" onclick="document.getElementById('configFile').click()">Importer config complète</button>
+              <button class="ghost" onclick="exportCatererCsv()">Exporter traiteur CSV</button>
+            </div>
+          </section>
+
         </aside>
 
         <main class="panel">
@@ -560,8 +559,10 @@
       document.body.classList.remove('admin-tab-dashboard','admin-tab-guests','admin-tab-tables','admin-tab-data');
       document.body.classList.add(`admin-tab-${normalized}`);
       document.querySelectorAll('.atelier-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === normalized));
-      document.querySelector('[data-tab-panel="dashboard"]').hidden = normalized !== 'dashboard';
-      document.querySelector('[data-tab-panel="workspace"]').hidden = normalized === 'dashboard';
+      const dashboard = document.querySelector('[data-tab-panel="dashboard"]');
+      const workspace = document.querySelector('[data-tab-panel="workspace"]');
+      if (dashboard) dashboard.hidden = false;
+      if (workspace) workspace.hidden = false;
       localStorage.setItem('atelier-tab', normalized);
     }
 
