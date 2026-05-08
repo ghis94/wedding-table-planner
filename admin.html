@@ -73,7 +73,44 @@
     .save-state.dirty { background: #fff7ed; color: #9a3412; }
     .save-state.saving { background: #eff6ff; color: #1d4ed8; }
     .save-state.saved { background: #dcfce7; color: #166534; }
+    .atelier-tabs {
+      position: sticky;
+      top: 74px;
+      z-index: 19;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      width: fit-content;
+      padding:5px;
+      border-radius:999px;
+      border:1px solid var(--line-soft);
+      background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
+      box-shadow: var(--shadow-xs);
+      backdrop-filter: blur(16px);
+    }
+    .atelier-tab {
+      min-height: 36px;
+      padding: 8px 13px;
+      background: transparent;
+      color: var(--text-muted);
+      border: 0;
+      box-shadow: none;
+      font-size: 12px;
+    }
+    .atelier-tab:hover { transform:none; box-shadow:none; background: var(--accent-ghost); color: var(--text); }
+    .atelier-tab.active { background: var(--text); color: var(--ivory); }
+    .tab-panel[hidden] { display:none !important; }
     .layout { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
+    body.admin-tab-guests .layout,
+    body.admin-tab-data .layout { grid-template-columns: minmax(0, 760px); }
+    body.admin-tab-guests .layout > main,
+    body.admin-tab-data .layout > main,
+    body.admin-tab-tables .layout > aside { display:none; }
+    body.admin-tab-guests [data-admin-section="data"],
+    body.admin-tab-data [data-admin-section]:not([data-admin-section="data"]) { display:none; }
+    body.admin-tab-tables .layout { display:block; }
+    .dashboard-grid { display:grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap:18px; align-items:start; }
+    @media (max-width: 900px) { .dashboard-grid { grid-template-columns:1fr; } }
     .section-card {
       padding: 16px;
       border-radius: 22px;
@@ -345,9 +382,35 @@
         <button class="danger" onclick="resetAll()">Reset</button>
       </div>
 
-      <div class="layout">
+      <nav class="atelier-tabs" aria-label="Sections Atelier">
+        <button class="atelier-tab active" data-tab="dashboard" onclick="setAdminTab('dashboard')">Vue d’ensemble</button>
+        <button class="atelier-tab" data-tab="guests" onclick="setAdminTab('guests')">Invités</button>
+        <button class="atelier-tab" data-tab="tables" onclick="setAdminTab('tables')">Tables</button>
+        <button class="atelier-tab" data-tab="data" onclick="setAdminTab('data')">Imports / exports</button>
+      </nav>
+
+      <section class="panel tab-panel" data-tab-panel="dashboard">
+        <div class="dashboard-grid">
+          <div>
+            <span class="section-kicker">Synthèse</span>
+            <h3>État du plan</h3>
+            <p class="text-sm text-muted">Les indicateurs principaux sont en haut. Les alertes ci-dessous résument ce qui mérite une vérification avant validation finale.</p>
+          </div>
+          <div class="section-card">
+            <span class="section-kicker">Actions rapides</span>
+            <div class="compact-actions" style="margin-top:10px">
+              <button onclick="setAdminTab('guests')">Gérer les invités</button>
+              <button class="ghost" onclick="setAdminTab('tables')">Ajuster les tables</button>
+              <button class="ghost" onclick="setAdminTab('data')">Importer / exporter</button>
+            </div>
+          </div>
+        </div>
+        <div id="alerts" class="alerts" style="margin-top:18px"></div>
+      </section>
+
+      <div class="layout tab-panel" data-tab-panel="workspace" hidden>
         <aside class="panel stack">
-          <section class="section-card glow-ring">
+          <section class="section-card glow-ring" data-admin-section="guests">
             <div class="section-head">
               <div class="split-note">
                 <span class="section-kicker">Saisie rapide</span>
@@ -366,7 +429,7 @@
             <button style="margin-top:10px;width:100%" onclick="quickAddGuest()">Ajouter l’invité</button>
           </section>
 
-          <section class="section-card glow-ring">
+          <section class="section-card glow-ring" data-admin-section="guests">
             <div class="section-head">
               <div class="split-note">
                 <span class="section-kicker">Filtrage</span>
@@ -377,7 +440,7 @@
             <div id="guestSearchMeta" class="muted" style="margin-top:8px"></div>
           </section>
 
-          <section class="section-card glow-ring">
+          <section class="section-card glow-ring" data-admin-section="data">
             <div class="section-head">
               <div class="split-note">
                 <span class="section-kicker">Données</span>
@@ -395,7 +458,7 @@
             </div>
           </section>
 
-          <section class="section-card glow-ring">
+          <section class="section-card glow-ring" data-admin-section="guests">
             <div class="list-toolbar">
               <span class="section-kicker" style="margin:0">Réserve</span>
               <span id="guestPoolCount" class="soft-count">0 visible</span>
@@ -403,7 +466,7 @@
             <div id="guests" class="guest-list"></div>
           </section>
 
-          <section class="section-card glow-ring">
+          <section class="section-card glow-ring" data-admin-section="guests">
             <div class="section-head">
               <div class="split-note">
                 <span class="section-kicker">Détail</span>
@@ -465,7 +528,6 @@
             </select>
             <div class="muted" style="display:flex;align-items:center;padding:0 6px">Drag & drop actif entre invités et tables</div>
           </div>
-          <div id="alerts" class="alerts"></div>
           <div class="table-summary">
             <span>Glisser-déposer ou utiliser les actions rapides pour répartir les invités.</span>
             <span class="soft-count"><span id="tableCountInline">0</span> table(s)</span>
@@ -489,6 +551,16 @@
       const r = await fetch(url, opts);
       if(!r.ok) throw new Error(await r.text());
       return r.json();
+    }
+
+    function setAdminTab(tab){
+      const normalized = ['dashboard','guests','tables','data'].includes(tab) ? tab : 'dashboard';
+      document.body.classList.remove('admin-tab-dashboard','admin-tab-guests','admin-tab-tables','admin-tab-data');
+      document.body.classList.add(`admin-tab-${normalized}`);
+      document.querySelectorAll('.atelier-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === normalized));
+      document.querySelector('[data-tab-panel="dashboard"]').hidden = normalized !== 'dashboard';
+      document.querySelector('[data-tab-panel="workspace"]').hidden = normalized === 'dashboard';
+      localStorage.setItem('atelier-tab', normalized);
     }
 
     function normalizeName(g){ return `${(g.prenom||'').trim()} ${(g.nom||'').trim()}`.trim(); }
@@ -899,6 +971,7 @@
     window.addEventListener('beforeunload', (event)=>{ if(saveState==='dirty' || isSaving){ event.preventDefault(); event.returnValue=''; } });
 
     (async function boot(){
+      setAdminTab(localStorage.getItem('atelier-tab') || 'dashboard');
       try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; normalizePlanState(); } catch(e){}
       saveState='saved'; renderAll();
       setInterval(async ()=>{
