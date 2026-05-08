@@ -123,6 +123,46 @@ test('multiple named plans can be created and activated', async () => {
   assert.equal(activate.json().activePlanId, initialActive);
 });
 
+test('config import replaces the currently active named plan', async () => {
+  const before = await request('/api/plans', { headers: { cookie } });
+  const sourcePlanId = before.json().activePlanId;
+  const create = await request('/api/plans', {
+    method: 'POST',
+    body: { name: 'Import cible', sourcePlanId },
+    headers: { cookie },
+  });
+  assert.equal(create.status, 200);
+  const activePlanId = create.json().activePlanId;
+
+  const importedPlan = {
+    tables: [{ id: 'import-table-1', name: 'Table importée', capacity: 6, guests: [{ id: 'import-guest-1', name: 'Invité importé', type: 'adulte' }] }],
+    guests: [{ id: 'import-guest-2', name: 'Libre importé', type: 'enfant' }],
+    layout: { tables: {}, guests: {} },
+  };
+  const res = await request('/api/config/import', {
+    method: 'POST',
+    body: { version: 1, rsvps: [], plan: importedPlan },
+    headers: { cookie },
+  });
+  assert.equal(res.status, 200);
+  assert.equal(res.json().activePlanId, activePlanId);
+
+  const read = await request('/api/plan', { headers: { cookie } });
+  assert.equal(read.status, 200);
+  const data = read.json();
+  assert.equal(data.tables.length, 1);
+  assert.equal(data.tables[0].name, 'Table importée');
+  assert.equal(data.guests[0].name, 'Libre importé');
+});
+
+test('admin page exposes both plan and full config import actions', async () => {
+  const res = await request('/admin.html', { headers: { cookie } });
+  assert.equal(res.status, 200);
+  assert.match(res.text, /Importer plan JSON/);
+  assert.match(res.text, /importPlanFile/);
+  assert.match(res.text, /Importer config complète/);
+});
+
 test('sanitizePlan removes root guests already seated at a table', async () => {
   const duplicateGuest = { id: 'guest-1', name: 'Camille Test', type: 'adulte' };
   const plan = {

@@ -512,14 +512,15 @@ function getActivePlanRow() {
 }
 
 function writeActivePlan(planData) {
+  const sanitizedPlan = sanitizePlan(planData);
   const activePlanId = getActivePlanId();
-  const data = JSON.stringify(sanitizePlan(planData));
+  const data = JSON.stringify(sanitizedPlan);
   const updatedAt = nowIso();
   db.prepare('UPDATE plan_variants SET data = ?, updatedAt = ? WHERE id = ?').run(data, updatedAt, activePlanId);
   db.prepare(`INSERT INTO plan(id, data, updatedAt)
     VALUES(1, ?, ?)
     ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`).run(data, updatedAt);
-  return { data, updatedAt, activePlanId };
+  return { data, updatedAt, activePlanId, plan: sanitizedPlan };
 }
 
 function createPlanVariant({ name, sourcePlanId }) {
@@ -927,20 +928,17 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
       (id, nom, prenom, presence, adultes, enfants, regime, message, phone, adminNotes, createdAt)
       VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @phone, @adminNotes, @createdAt)`);
 
+    let writeResult;
     const tx = db.transaction(() => {
       db.prepare('DELETE FROM rsvps').run();
       for (const r of sanitizedRsvps) {
         insertRsvp.run(r);
       }
-      db.prepare(
-        `INSERT INTO plan(id, data, updatedAt)
-         VALUES(1, ?, ?)
-         ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`
-      ).run(JSON.stringify(sanitizedPlan), new Date().toISOString());
+      writeResult = writeActivePlan(sanitizedPlan);
     });
 
     tx();
-    res.json({ ok: true, importedRsvps: sanitizedRsvps.length });
+    res.json({ ok: true, importedRsvps: sanitizedRsvps.length, activePlanId: writeResult.activePlanId, plan: writeResult.plan });
   } catch (err) {
     res.status(500).json({ ok: false, error: err.message });
   }

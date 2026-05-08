@@ -378,7 +378,8 @@
           <button class="ghost" onclick="window.location.href='visual.html'">Plan visuel</button>
           <button class="ghost" onclick="window.location.href='day-of.html'">Jour J</button>
         </div>
-        <input id="configFile" type="file" accept="application/json" style="display:none" onchange="importConfig(event)">
+        <input id="planFile" type="file" accept="application/json,.json" style="display:none" onchange="importPlanFile(event)">
+        <input id="configFile" type="file" accept="application/json,.json" style="display:none" onchange="importConfig(event)">
         <button class="danger" onclick="resetAll()">Reset</button>
       </div>
 
@@ -452,6 +453,7 @@
             <div class="compact-actions" style="margin-top:10px">
               <button onclick="importCsv()">Importer CSV invités</button>
               <button class="ghost" onclick="exportJson()">Exporter plan JSON</button>
+              <button class="ghost" onclick="document.getElementById('planFile').click()">Importer plan JSON</button>
               <button class="ghost" onclick="exportConfig()">Exporter config complète</button>
               <button class="ghost" onclick="document.getElementById('configFile').click()">Importer config complète</button>
               <button class="ghost" onclick="exportCatererCsv()">Exporter traiteur CSV</button>
@@ -928,6 +930,33 @@
     function exportJson(){ const blob=new Blob([JSON.stringify({tables,guests,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='plan-de-table.json'; a.click(); }
     async function exportConfig(){ const cfg = await api('/api/config/export'); const blob = new Blob([JSON.stringify(cfg, null, 2)], { type:'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `wedding-table-config-${new Date().toISOString().slice(0,10)}.json`; a.click(); }
     function exportCatererCsv(){ window.location.href = '/api/export/caterer.csv'; }
+
+    function normalizeImportedPlan(payload) {
+      const plan = payload && payload.plan && typeof payload.plan === 'object' ? payload.plan : payload;
+      if (!plan || !Array.isArray(plan.tables)) throw new Error('Format de plan invalide');
+      return { tables: plan.tables || [], guests: plan.guests || [], layout: plan.layout || { tables: {}, guests: {} } };
+    }
+
+    async function importPlanFile(event){
+      const f = event.target.files?.[0];
+      if(!f) return;
+      try {
+        const txt = await f.text();
+        const raw = JSON.parse(txt);
+        const plan = normalizeImportedPlan(raw);
+        if(!confirm('Importer ce plan de table et remplacer le plan actif ?')) return;
+        pushHistory();
+        const saved = await api('/api/plan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(plan) });
+        const p = saved.plan || await api('/api/plan');
+        guests = p.guests || [];
+        tables = p.tables || [];
+        saveState='saved'; updateSaveBadge(); renderAll(); alert('Plan de table importé ✅');
+      } catch(e) {
+        alert(e.message === 'Format de plan invalide' ? e.message : 'JSON invalide ou plan de table incompatible');
+      } finally {
+        event.target.value='';
+      }
+    }
 
     function transformRsvpToGuest(guest) {
       const name = guest.name || [guest.prenom, guest.nom].filter(Boolean).join(' ') || 'Invité';
