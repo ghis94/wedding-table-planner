@@ -6,7 +6,7 @@
   <title>Cartes de table — Wedding Table Planner</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Great+Vibes&family=Inter:wght@400;500;600&family=Allura&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600;6..96,700&family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
 
     .postcards-page { display:grid; gap:24px; }
     .postcards-toolbar {
@@ -152,15 +152,18 @@
       margin-bottom:10px;
     }
     .card-title {
-      margin: 2px 0 4px;
-      font-family:'Allura', 'Great Vibes', cursive;
-      font-size: clamp(2.6rem, 3.6vw, 3.3rem);
-      line-height:.95;
+      margin: 8px 0 4px;
+      font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', 'Bodoni 72 Smallcaps', 'Cormorant Garamond', serif;
+      font-size: clamp(2.05rem, 3vw, 2.55rem);
+      line-height:1;
       text-align:center;
-      color:var(--title-color);
-      font-weight:400;
+      color: color-mix(in srgb, var(--label-color) 72%, #1f1a16 28%);
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.13em;
+      font-variant-ligatures: discretionary-ligatures;
       text-wrap:balance;
-      text-shadow: 0 1px 0 rgba(255,255,255,.55);
+      text-shadow: 0 1px 0 rgba(255,255,255,.45);
     }
     .card-divider {
       width:74px; height:1px; margin: 8px auto 12px;
@@ -179,12 +182,12 @@
     }
     .guest-item {
       text-align:center;
-      color:#5c4332;
-      font-size:14px;
-      line-height:1.12;
-      font-family:'Cormorant Garamond', serif;
+      color: color-mix(in srgb, var(--label-color) 68%, #1f1a16 32%);
+      font-size:15px;
+      line-height:1.18;
+      font-family:'Cormorant Garamond', 'Adobe Garamond Pro', 'Garamond', serif;
       font-weight:600;
-      letter-spacing:.01em;
+      letter-spacing:.018em;
       text-wrap:balance;
       padding: 2px 0;
     }
