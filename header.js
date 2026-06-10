@@ -1,14 +1,13 @@
 (function() {
   'use strict';
 
-  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  const currentPage = window.location.pathname.split('/').pop() || 'login.html';
   const navLinks = [
-    { href: 'index.html', label: 'RSVP', icon: '01' },
-    { href: 'admin.html', label: 'Atelier', icon: '02' },
-    { href: 'visual.html', label: 'Plan', icon: '03' },
-    { href: 'postcards.html', label: 'Cartes', icon: '04' },
-    { href: 'day-of.html', label: 'Jour J', icon: '05' },
-    { href: 'login.html', label: 'Login', icon: '↗' }
+    { href: 'admin.html', label: 'Atelier', icon: 'A' },
+    { href: 'visual.html', label: 'Plan', icon: 'P' },
+    { href: 'postcards.html', label: 'Cartes', icon: 'C' },
+    { href: 'day-of.html', label: 'Jour J', icon: 'J' },
+    { href: 'login.html', label: 'Login', icon: 'L' }
   ];
 
   function createHeader() {
@@ -27,10 +26,10 @@
 
     header.innerHTML = `
       <div class="wedding-header__brand">
-        <div class="brand-mark">W</div>
+        <div class="brand-mark">WT</div>
         <div>
           <strong>Wedding Table Studio</strong>
-          <span>RSVP · seating · jour J</span>
+          <span>Plan · tables · supports</span>
         </div>
       </div>
       <nav class="wedding-nav">${navHtml}</nav>
@@ -66,12 +65,12 @@
         display: grid;
         grid-template-columns: auto 1fr auto;
         align-items: center;
-        gap: 16px;
-        padding: 14px 22px;
-        background: linear-gradient(180deg, var(--surface-strong), var(--surface));
+        gap: 18px;
+        padding: 12px 22px;
+        background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
         border-bottom: 1px solid var(--line-soft);
-        backdrop-filter: blur(18px);
-        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
         box-shadow: var(--shadow-xs);
       }
 
@@ -83,20 +82,23 @@
       }
 
       .brand-mark {
-        width: 38px;
-        height: 38px;
+        width: 40px;
+        height: 40px;
         display: grid;
         place-items: center;
-        border-radius: 14px;
-        background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--text), color-mix(in srgb, var(--accent-strong) 70%, var(--text) 30%));
         color: #fffaf4;
         box-shadow: var(--shadow-sm);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: .04em;
       }
 
       .wedding-header__brand strong {
         display: block;
         font-size: 14px;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
         text-transform: uppercase;
       }
 
@@ -109,7 +111,7 @@
       .wedding-nav {
         display: flex;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         flex-wrap: wrap;
       }
 
@@ -117,8 +119,9 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 14px;
-        border-radius: 14px;
+        min-height: 38px;
+        padding: 8px 12px;
+        border-radius: 10px;
         color: var(--text-muted);
         font-size: 13px;
         font-weight: 700;
@@ -132,13 +135,20 @@
       }
 
       .wedding-nav a.active {
-        background: linear-gradient(135deg, rgba(181,136,99,.2), rgba(181,136,99,.08));
+        background: color-mix(in srgb, var(--accent-ghost) 70%, var(--surface-solid) 30%);
         color: var(--accent-strong);
         box-shadow: inset 0 0 0 1px var(--line-soft);
       }
 
       .nav-icon {
-        font-size: 14px;
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--line) 35%, transparent);
+        font-size: 10px;
+        font-weight: 900;
       }
 
       .wedding-theme {

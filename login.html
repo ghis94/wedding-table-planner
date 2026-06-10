@@ -10,12 +10,12 @@
       display: grid;
       place-items: center;
       min-height: 100vh;
+      padding: 20px;
     }
     .login-card {
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
-      padding: 36px;
-      text-align: center;
+      padding: 34px;
     }
     .login-card h2 {
       font-size: 2rem;
@@ -41,14 +41,38 @@
       top: 16px;
       right: 16px;
     }
+    .login-brand {
+      display:grid;
+      gap:8px;
+      margin-bottom:26px;
+      text-align:left;
+    }
+    .login-mark {
+      width:42px;
+      height:42px;
+      display:grid;
+      place-items:center;
+      border-radius:12px;
+      background:linear-gradient(135deg, var(--text), var(--accent-strong));
+      color:var(--ivory);
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.04em;
+    }
+    .login-card button { width:100%; }
   </style>
 </head>
 <body>
   <div class="theme-float" id="theme-container"></div>
 
   <div class="card login-card">
-    <h2>🔐 Connexion</h2>
-    <p class="muted">Accès admin sécurisé par session</p>
+    <div class="login-brand">
+      <div class="login-mark">WT</div>
+      <div>
+        <h2>Connexion</h2>
+        <p class="muted">Accès administrateur</p>
+      </div>
+    </div>
     
     <form id="loginForm">
       <div class="form-group">

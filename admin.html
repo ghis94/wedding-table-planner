@@ -52,7 +52,7 @@
       align-items:center;
       flex-wrap:wrap;
       padding: 12px 14px;
-      border-radius: 22px;
+      border-radius: 14px;
       background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 82%, white 18%), var(--surface));
       border: 1px solid var(--line-soft);
       box-shadow: var(--shadow-sm);
@@ -82,7 +82,7 @@
       flex-wrap:wrap;
       width: fit-content;
       padding:5px;
-      border-radius:999px;
+      border-radius:12px;
       border:1px solid var(--line-soft);
       background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
       box-shadow: var(--shadow-xs);
@@ -114,7 +114,7 @@
     @media (max-width: 900px) { .dashboard-grid { grid-template-columns:1fr; } .overview-actions { justify-content:flex-start; } }
     .section-card {
       padding: 16px;
-      border-radius: 22px;
+      border-radius: var(--radius-md);
       background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.10));
       border: 1px solid var(--line-soft);
       box-shadow: var(--shadow-xs);
@@ -137,7 +137,7 @@
       align-items: flex-start;
       gap: 12px;
       padding: 13px 14px;
-      border-radius: 18px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--line-soft);
       background: linear-gradient(180deg, rgba(255,255,255,.46), rgba(255,255,255,.14));
       box-shadow: var(--shadow-xs);
@@ -165,11 +165,11 @@
     .xbtn { background: linear-gradient(135deg, #7f1d1d, #b91c1c); }
     .filters {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 10px;
       margin-bottom: 14px;
       padding: 14px;
-      border-radius: 22px;
+      border-radius: var(--radius-md);
       background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,.08));
       border: 1px solid var(--line-soft);
       box-shadow: var(--shadow-xs);
@@ -188,7 +188,7 @@
     .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
     .table {
       padding: 14px;
-      border-radius: 20px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--line-soft);
       background: linear-gradient(180deg, var(--surface-strong), var(--surface));
       box-shadow: var(--shadow-sm);
@@ -202,8 +202,7 @@
       inset:auto -40px -60px auto;
       width:120px;
       height:120px;
-      border-radius:50%;
-      background: radial-gradient(circle, rgba(181,136,99,.14), transparent 70%);
+      display:none;
       pointer-events:none;
     }
     .table-head {
@@ -308,7 +307,6 @@
       border-radius: 14px;
     }
     .sheet-actions { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
-    .rsvp,
     .type,
     .tag {
       display: inline-flex;
@@ -324,9 +322,6 @@
     .type { background: var(--badge-adulte); color: var(--badge-adulte-text); }
     .type.enfant { background: var(--badge-enfant); color: var(--badge-enfant-text); }
     .type.bebe { background: var(--badge-bebe); color: var(--badge-bebe-text); }
-    .rsvp.oui { background: var(--success-bg); color: var(--success-text); }
-    .rsvp.peutetre { background: var(--warning-bg); color: var(--warning-text); }
-    .rsvp.non { background: var(--error-bg); color: var(--error-text); }
     .tag { background: var(--accent-ghost); color: var(--accent-strong); }
     @media (max-width: 1180px) { .layout { grid-template-columns: 1fr; } }
     @media (max-width: 880px) {
@@ -350,13 +345,13 @@
       <section class="hero">
         <div class="hero-top">
           <div class="hero-copy">
-            <div class="eyebrow">Wedding control · admin</div>
+            <div class="eyebrow">Administration</div>
             <h1>Wedding Table Studio</h1>
-            <p>Un atelier moderne pour centraliser RSVP, invités, tables, cohérence, import/export et supports jour J.</p>
+            <p>Un espace clair pour gérer les invités, le placement, les alertes et les supports imprimés.</p>
           </div>
           <div class="hero-actions">
-            <span class="metric-inline"><strong>Mode</strong> administration</span>
-            <span class="metric-inline"><strong>UX</strong> raffiné</span>
+            <span class="metric-inline"><strong>Plan</strong> autosauvegarde</span>
+            <span class="metric-inline"><strong>Jour J</strong> exports prêts</span>
           </div>
         </div>
         <div class="hero-stats">
@@ -370,7 +365,7 @@
       <div class="toolbar">
         <div class="toolbar-group">
           <button onclick="loadGuests()">Charger les invités</button>
-          <button class="ghost" onclick="addTable()">+ Table</button>
+          <button class="ghost" onclick="addTable()">Ajouter une table</button>
           <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder le plan</button>
         </div>
         <span id="saveState" class="save-state">Synchronisé</span>
@@ -400,7 +395,7 @@
           </div>
           <div class="overview-actions">
             <button class="ghost" onclick="document.getElementById('guestSearch')?.focus()">Chercher un invité</button>
-            <button class="ghost" onclick="addTable()">+ Table</button>
+            <button class="ghost" onclick="addTable()">Ajouter une table</button>
             <button class="ghost" onclick="document.getElementById('planFile').click()">Importer plan</button>
           </div>
         </div>
@@ -458,11 +453,6 @@
             <div id="sheetLock" class="sheet-lock" style="display:none"></div>
             <div class="stack" style="margin-top:10px">
               <input id="sheetName" placeholder="Nom" />
-              <select id="sheetPresence">
-                <option value="oui">Oui</option>
-                <option value="peut-etre">Peut-être</option>
-                <option value="non">Non</option>
-              </select>
               <div class="row tight">
                 <input id="sheetAdults" type="number" min="0" placeholder="Adultes" />
                 <input id="sheetKids" type="number" min="0" placeholder="Enfants" />
@@ -505,8 +495,8 @@
               <p class="text-sm text-muted">Lecture plus rapide, cartes plus compactes, hiérarchie plus nette et moins de bruit visuel.</p>
             </div>
             <div class="row">
-              <button class="ghost" onclick="window.location.href='postcards.html'">💌 Cartes</button>
-              <button class="ghost" onclick="undoLastAction()">↩ Annuler</button>
+              <button class="ghost" onclick="window.location.href='postcards.html'">Cartes</button>
+              <button class="ghost" onclick="undoLastAction()">Annuler</button>
             </div>
           </div>
           <div class="filters">
@@ -520,12 +510,6 @@
               <option value="adulte">Adultes</option>
               <option value="enfant">Enfants</option>
               <option value="bebe">Bébés</option>
-            </select>
-            <select id="guestFilterRsvp" onchange="renderAll()">
-              <option value="all">Tous RSVP</option>
-              <option value="oui">Oui</option>
-              <option value="peutetre">Peut-être</option>
-              <option value="non">Non</option>
             </select>
             <div class="muted" style="display:flex;align-items:center;padding:0 6px">Drag & drop actif entre invités et tables</div>
           </div>
@@ -574,14 +558,6 @@
       return 'adulte';
     }
 
-    function normalizePresence(v){
-      const p=String(v||'').toLowerCase();
-      if(['oui','yes','present'].includes(p)) return 'oui';
-      if(['peut-être','peut-etre','maybe','maybe?'].includes(p)) return 'peutetre';
-      if(['non','no'].includes(p)) return 'non';
-      return '';
-    }
-
     function escapeHtml(v){
       return String(v||'')
         .replaceAll('&','&amp;')
@@ -594,9 +570,7 @@
     function guestTag(g){
       const t=normalizeType(g.type);
       const type = `<span class="type ${t==='enfant'?'enfant':(t==='bebe'?'bebe':'')}">${t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte')}</span>`;
-      const p=normalizePresence(g.rsvpStatus);
-      const rsvp = p ? `<span class="rsvp ${p}">${p==='peutetre'?'Peut-être':(p==='oui'?'Oui':'Non')}</span>` : '';
-      return `<span class="guest-actions">${type}${rsvp}</span>`;
+      return `<span class="guest-actions">${type}</span>`;
     }
 
     function updateSaveBadge(){
@@ -635,7 +609,6 @@
         search: String(document.getElementById('guestSearch')?.value || '').trim().toLowerCase(),
         placed: document.getElementById('guestFilterPlaced')?.value || 'all',
         type: document.getElementById('guestFilterType')?.value || 'all',
-        rsvp: document.getElementById('guestFilterRsvp')?.value || 'all',
       };
     }
 
@@ -643,11 +616,9 @@
       const f=getFilters();
       const name=String(g.name||'').toLowerCase();
       const type=normalizeType(g.type);
-      const rsvp=normalizePresence(g.rsvpStatus);
       if(f.search && !name.includes(f.search)) return false;
       if(f.placed!=='all' && f.placed!==placedState) return false;
       if(f.type!=='all' && f.type!==type) return false;
-      if(f.rsvp!=='all' && f.rsvp!==rsvp) return false;
       return true;
     }
 
@@ -677,7 +648,6 @@
       tables.forEach(t=>{
         if((t.guests||[]).length > Number(t.capacity||0)) alerts.push({level:'error', text:`${t.name} dépasse sa capacité (${t.guests.length}/${t.capacity})`});
         if((t.guests||[]).length===0) alerts.push({level:'warn', text:`${t.name} est vide`});
-        (t.guests||[]).forEach(g=>{ if(normalizePresence(g.rsvpStatus)==='non') alerts.push({level:'warn', text:`${g.name} est placé à ${t.name} mais RSVP = non`}); });
       });
       const unplaced=guests.length;
       if(unplaced>0) alerts.push({level:'warn', text:`${unplaced} invité(s) non placé(s)`});
@@ -740,12 +710,11 @@
     function openGuestSheetLocal(g){
       selectedGuestRef = { guestId:g.id, sourceRsvpId:g.sourceRsvpId || null };
       const isRsvp = !!g.sourceRsvpId;
-      document.getElementById('sheetHint').textContent = isRsvp ? `Fiche liée à RSVP ${g.sourceRsvpId}` : 'Fiche locale (invité manuel/import CSV)';
+      document.getElementById('sheetHint').textContent = isRsvp ? `Fiche liée à l’import ${g.sourceRsvpId}` : 'Fiche locale (invité manuel/import CSV)';
       document.getElementById('sheetName').value = g.name || '';
       document.getElementById('sheetName').disabled = isRsvp;
       document.getElementById('sheetLock').style.display = isRsvp ? 'block' : 'none';
-      document.getElementById('sheetLock').textContent = isRsvp ? 'Nom verrouillé : cet invité provient d’un RSVP. Pour garder la cohérence, seul un invité local peut être renommé ici.' : '';
-      document.getElementById('sheetPresence').value = (String(g.rsvpStatus||'oui').toLowerCase().replace('peut-être','peut-etre') || 'oui');
+      document.getElementById('sheetLock').textContent = isRsvp ? 'Nom verrouillé : cet invité provient d’un import. Pour garder la cohérence, seul un invité local peut être renommé ici.' : '';
       document.getElementById('sheetAdults').value = Number(g.adultes ?? (g.type==='adulte'?1:0));
       document.getElementById('sheetKids').value = Number(g.enfants ?? ((g.type==='enfant'||g.type==='bebe')?1:0));
       document.getElementById('sheetPhone').value = g.phone || '';
@@ -765,12 +734,11 @@
         const res = await api(`/api/rsvp/${rsvpId}`);
         const r = res.rsvp;
         selectedGuestRef = { guestId:null, sourceRsvpId:rsvpId };
-        document.getElementById('sheetHint').textContent = `Fiche liée à RSVP ${rsvpId}`;
+        document.getElementById('sheetHint').textContent = `Fiche liée à l’import ${rsvpId}`;
         document.getElementById('sheetName').value = displayName || `${r.prenom||''} ${r.nom||''}`.trim();
         document.getElementById('sheetName').disabled = true;
         document.getElementById('sheetLock').style.display = 'block';
-        document.getElementById('sheetLock').textContent = 'Nom verrouillé : cet invité provient d’un RSVP.';
-        document.getElementById('sheetPresence').value = (String(r.presence||'').toLowerCase().replace('peut-être','peut-etre') || 'oui');
+        document.getElementById('sheetLock').textContent = 'Nom verrouillé : cet invité provient d’un import.';
         document.getElementById('sheetAdults').value = Number(r.adultes||0);
         document.getElementById('sheetKids').value = Number(r.enfants||0);
         document.getElementById('sheetPhone').value = r.phone || '';
@@ -782,7 +750,7 @@
     async function saveGuestSheet(){
       const payload = {
         name: document.getElementById('sheetName').value.trim(),
-        presence: document.getElementById('sheetPresence').value,
+        presence: 'oui',
         adultes: Number(document.getElementById('sheetAdults').value || 0),
         enfants: Number(document.getElementById('sheetKids').value || 0),
         phone: document.getElementById('sheetPhone').value,
@@ -797,14 +765,14 @@
 
       if(selectedGuestRef.guestId){
         updateGuestEverywhere(selectedGuestRef.guestId, {
-          name: payload.name || 'Invité', rsvpStatus: payload.presence, adultes: payload.adultes, enfants: payload.enfants,
+          name: payload.name || 'Invité', rsvpStatus: '', adultes: payload.adultes, enfants: payload.enfants,
           phone: payload.phone, regime: payload.regime, adminNotes: payload.adminNotes,
         });
         renderAll();
       }
 
       await savePlan({ notify:false, force:true });
-      alert('Fiche invité enregistrée ✅');
+      alert('Fiche invité enregistrée');
     }
 
     function expandRsvp(r){
@@ -812,21 +780,19 @@
       const out = [];
       const a = Math.max(0, Number(r.adultes||0));
       const e = Math.max(0, Number(r.enfants||0));
-      const rsvpStatus = normalizePresence(r.presence);
       const sourceRsvpId = r.id || null;
       const phone = r.phone || '';
       const regime = r.regime || '';
       const adminNotes = r.adminNotes || '';
-      if(a===0 && e===0){ out.push({ id: crypto.randomUUID(), name: base, type: 'adulte', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e }); return out; }
-      for(let i=1;i<=a;i++) out.push({ id: crypto.randomUUID(), name: a===1?base:`${base} (Adulte ${i})`, type:'adulte', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
-      for(let i=1;i<=e;i++) out.push({ id: crypto.randomUUID(), name: `${base} (Enfant ${i})`, type:'enfant', rsvpStatus, sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
+      if(a===0 && e===0){ out.push({ id: crypto.randomUUID(), name: base, type: 'adulte', rsvpStatus:'', sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e }); return out; }
+      for(let i=1;i<=a;i++) out.push({ id: crypto.randomUUID(), name: a===1?base:`${base} (Adulte ${i})`, type:'adulte', rsvpStatus:'', sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
+      for(let i=1;i<=e;i++) out.push({ id: crypto.randomUUID(), name: `${base} (Enfant ${i})`, type:'enfant', rsvpStatus:'', sourceRsvpId, phone, regime, adminNotes, adultes:a, enfants:e });
       return out;
     }
 
     async function loadGuests(){
       const raw = await api('/api/rsvps');
-      const filtered = raw.filter(g => ['oui','peut-être','peut-etre','maybe','yes','present'].includes(String(g.presence||'').toLowerCase()));
-      const expanded = filtered.flatMap(expandRsvp).map(g=>({...g, regime: normalizeDietLabel(g.regime)}));
+      const expanded = raw.flatMap(expandRsvp).map(g=>({...g, regime: normalizeDietLabel(g.regime)}));
       pushHistory();
       guests=[...guests,...expanded.filter(n=>!guests.some(g=>g.name===n.name && normalizeType(g.type)===normalizeType(n.type) && (g.sourceRsvpId||'')===(n.sourceRsvpId||'')))];
       markDirty(); renderAll();
@@ -875,7 +841,7 @@
       const c=document.getElementById('tables'); c.innerHTML='';
       tables.forEach(t=>{
         const visibleGuests=(t.guests||[]).filter(g=>matchesFilters(g,'placed'));
-        const showTable = getFilters().placed!=='unplaced' && (visibleGuests.length>0 || getFilters().search==='' || getFilters().type!=='all' || getFilters().rsvp!=='all');
+        const showTable = getFilters().placed!=='unplaced' && (visibleGuests.length>0 || getFilters().search==='' || getFilters().type!=='all');
         if(!showTable && visibleGuests.length===0) return;
         const b=document.createElement('div'); b.className='table';
         b.ondragover=e=>e.preventDefault();
@@ -924,7 +890,7 @@
       try{
         normalizePlanState();
         await api('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tables,guests})});
-        saveState='saved'; updateSaveBadge(); if(notify) alert('Plan sauvegardé ✅');
+        saveState='saved'; updateSaveBadge(); if(notify) alert('Plan sauvegardé');
       }catch(e){ saveState='dirty'; updateSaveBadge(); if(notify) alert('Échec de sauvegarde du plan'); throw e; }
       finally{ isSaving = false; if(saveQueued){ saveQueued = false; queueAutosave(); } }
     }
@@ -951,7 +917,7 @@
         const p = saved.plan || await api('/api/plan');
         guests = p.guests || [];
         tables = p.tables || [];
-        saveState='saved'; updateSaveBadge(); renderAll(); alert('Plan de table importé ✅');
+        saveState='saved'; updateSaveBadge(); renderAll(); alert('Plan de table importé');
       } catch(e) {
         alert(e.message === 'Format de plan invalide' ? e.message : 'JSON invalide ou plan de table incompatible');
       } finally {
@@ -962,8 +928,7 @@
     function transformRsvpToGuest(guest) {
       const name = guest.name || [guest.prenom, guest.nom].filter(Boolean).join(' ') || 'Invité';
       const type = (() => { const t = String(guest.type || '').toLowerCase(); if (['bebe', 'bébé', 'baby'].includes(t)) return 'bebe'; if (['enfant', 'child'].includes(t)) return 'enfant'; return 'adulte'; })();
-      const rsvpStatus = guest.rsvpStatus || guest.presence || '';
-      return { id: guest.id || crypto.randomUUID(), name: name.trim(), type, rsvpStatus, regime: guest.regime || '', phone: guest.phone || '', adminNotes: guest.adminNotes || '' };
+      return { id: guest.id || crypto.randomUUID(), name: name.trim(), type, rsvpStatus: '', regime: guest.regime || '', phone: guest.phone || '', adminNotes: guest.adminNotes || '' };
     }
 
     function transformConfigForImport(cfg) {
@@ -984,7 +949,7 @@
       pushHistory();
       await api('/api/config/import', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(cfg) });
       const p = await api('/api/plan'); guests = p.guests || []; tables = p.tables || [];
-      saveState='saved'; updateSaveBadge(); renderAll(); alert('Config importée ✅'); event.target.value='';
+      saveState='saved'; updateSaveBadge(); renderAll(); alert('Config importée'); event.target.value='';
     }
 
     function updateStats(){

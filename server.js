@@ -64,7 +64,7 @@ function sanitizeRsvp(input = {}, { keepCreatedAt = true } = {}) {
     id: cleanText(input.id || crypto.randomUUID(), 80),
     nom: cleanText(input.nom, 120),
     prenom: cleanText(input.prenom, 120),
-    presence: normalizePresence(input.presence),
+    presence: normalizePresence(input.presence) || 'oui',
     adultes: clampInt(input.adultes, { min: 0, max: 20, fallback: 0 }),
     enfants: clampInt(input.enfants, { min: 0, max: 20, fallback: 0 }),
     regime: cleanText(input.regime, 500),
@@ -88,7 +88,7 @@ function sanitizeGuest(input = {}, { keepRsvpFields = false } = {}) {
     adminNotes: cleanText(input.adminNotes, 2000),
   };
   
-  // Legacy support: keep RSVP-specific fields when explicitly requested
+  // Legacy support: keep source import fields when explicitly requested
   if (keepRsvpFields) {
     base.sourceRsvpId = cleanText(input.sourceRsvpId, 80);
     base.adultes = clampInt(input.adultes, { min: 0, max: 20, fallback: 0 });
@@ -497,6 +497,31 @@ function createPlanVariant({ name, sourcePlanId }) {
   return { id, name: cleanName, updatedAt: timestamp, createdAt: timestamp, active: true };
 }
 
+function deletePlanVariant(id) {
+  ensureDefaultPlanVariant();
+  const cleanId = cleanText(id, 80);
+  const existing = db.prepare('SELECT id FROM plan_variants WHERE id = ?').get(cleanId);
+  if (!existing) return { status: 404, error: 'Plan introuvable' };
+
+  const count = db.prepare('SELECT COUNT(*) AS count FROM plan_variants').get().count;
+  if (count <= 1) return { status: 400, error: 'Impossible de supprimer le dernier plan' };
+
+  const activePlanId = getActivePlanId();
+  db.prepare('DELETE FROM plan_variants WHERE id = ?').run(cleanId);
+
+  let nextActivePlanId = activePlanId;
+  if (cleanId === activePlanId) {
+    const next = db.prepare('SELECT id, data, updatedAt FROM plan_variants ORDER BY datetime(createdAt), name LIMIT 1').get();
+    nextActivePlanId = next.id;
+    setSetting('activePlanId', nextActivePlanId);
+    db.prepare(`INSERT INTO plan(id, data, updatedAt)
+      VALUES(1, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET data=excluded.data, updatedAt=excluded.updatedAt`).run(next.data, next.updatedAt || nowIso());
+  }
+
+  return { status: 200, activePlanId: nextActivePlanId, plans: listPlanVariants() };
+}
+
 ensureDefaultPlanVariant();
 
 app.set('trust proxy', 1);
@@ -578,10 +603,6 @@ app.post('/api/rsvp', (req, res) => {
     if (!rsvp.nom || !rsvp.prenom) {
       return res.status(400).json({ ok: false, error: 'Nom et prénom requis' });
     }
-    if (!rsvp.presence) {
-      return res.status(400).json({ ok: false, error: 'Présence invalide' });
-    }
-
     const stmt = db.prepare(`INSERT OR REPLACE INTO rsvps
       (id, nom, prenom, presence, adultes, enfants, regime, message, phone, adminNotes, createdAt)
       VALUES (@id, @nom, @prenom, @presence, @adultes, @enfants, @regime, @message, @phone, @adminNotes, @createdAt)`);
@@ -663,6 +684,16 @@ app.post('/api/plans/:id/activate', requireAdmin, (req, res) => {
     res.json({ ok: true, activePlanId: id, plans: listPlanVariants() });
   } catch (err) {
     serverError(res, err, 'plans-activate');
+  }
+});
+
+app.delete('/api/plans/:id', requireAdmin, (req, res) => {
+  try {
+    const result = deletePlanVariant(req.params.id);
+    if (result.status !== 200) return res.status(result.status).json({ ok: false, error: result.error });
+    res.json({ ok: true, activePlanId: result.activePlanId, plans: result.plans });
+  } catch (err) {
+    serverError(res, err, 'plans-delete');
   }
 });
 
@@ -906,8 +937,8 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
 app.get(['/admin.html', '/visual.html', '/day-of.html', '/staff.html', '/postcards.html'], requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, path.basename(req.path)));
 });
-app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/index.html', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/', (_req, res) => res.redirect('/login.html'));
+app.get('/index.html', (_req, res) => res.redirect('/login.html'));
 app.get('/login.html', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 
 const PUBLIC_STATIC_FILES = new Set([

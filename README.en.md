@@ -2,7 +2,7 @@
 
 [Version française](README.md)
 
-A visual wedding seating planner built for the parts that actually get stressful: RSVP handling, guest placement, dietary constraints, staff lookup, and day-of coordination.
+A visual wedding seating planner built for the parts that actually get stressful: guest placement, dietary constraints, staff lookup, and day-of coordination.
 
 The goal is not to become a giant all-in-one wedding SaaS.
 The goal is to solve the **seating workflow really well**, with a tool that is practical, focused, and pleasant to use.
@@ -12,7 +12,6 @@ The goal is to solve the **seating workflow really well**, with a tool that is p
 ## Why this project exists
 
 Real-world seating planning gets messy very quickly:
-- who is actually coming,
 - how many adults and children,
 - where everyone should sit,
 - how to handle dietary constraints,
@@ -28,12 +27,6 @@ Real-world seating planning gets messy very quickly:
 ---
 
 ## What the app does
-
-### Guest RSVP flow
-- collect guest RSVP responses,
-- track attendance,
-- manage adults / children,
-- store dietary restrictions, allergies, and guest messages.
 
 ### Seating plan administration
 - manage guests and tables,
@@ -60,7 +53,7 @@ Real-world seating planning gets messy very quickly:
 
 | Page | Purpose |
 |---|---|
-| `/` or `/index.html` | Guest RSVP page |
+| `/` or `/index.html` | Redirects to admin login |
 | `/login.html` | Admin login |
 | `/admin.html` | Main management panel |
 | `/visual.html` | Visual seating plan |
@@ -70,10 +63,9 @@ Real-world seating planning gets messy very quickly:
 
 ## Key features
 
-- RSVP management
 - admin seating plan workflow
 - visual table planner
-- guest records (diet, notes, phone, status)
+- guest records (diet, notes, phone)
 - CSV guest import
 - catering CSV export
 - full config import/export
@@ -139,7 +131,7 @@ Supported types:
 
 ### Full export
 The admin can export / re-import:
-- RSVP data,
+- guest data,
 - plan data,
 - table assignments,
 - layout state.

@@ -11,7 +11,7 @@
     .postcards-page { display:grid; gap:24px; }
     .postcards-toolbar {
       display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-      padding:16px 18px; border-radius:22px;
+      padding:16px 18px; border-radius:14px;
       background:linear-gradient(180deg, rgba(255,250,245,.86), rgba(249,240,231,.72));
       border:1px solid rgba(187,151,118,.18);
       box-shadow: var(--shadow-sm);
@@ -58,7 +58,7 @@
       width:10cm;
       height:15cm;
       padding:.86cm .78cm .68cm;
-      border-radius:28px;
+      border-radius:18px;
       overflow:hidden;
       border:1px solid var(--frame-color);
       box-shadow: 0 24px 70px rgba(109, 80, 53, .16);
@@ -115,7 +115,7 @@
     .card-frame {
       position:absolute;
       inset: 10px;
-      border-radius:22px;
+      border-radius:12px;
       border:1px solid var(--frame-color);
       pointer-events:none;
       z-index:0;
@@ -488,14 +488,15 @@
     <div class="postcards-page">
       <section class="hero">
         <h1>Cartes de table</h1>
-        <p>Des cartes portrait 10×15 pensées pour un présentoir : ambiance nude, typographie élégante, touches dorées et fleurs séchées discrètes.</p>
+        <p>Affiches portrait 10×15 prêtes à imprimer, dans le style minimal de la référence.</p>
       </section>
       <div class="postcards-toolbar">
-        <div class="muted">Format portrait élégant pour annoncer la place des invités.</div>
+        <div class="muted">Choisis le fond selon le papier : blanc ou crème.</div>
         <div class="toolbar-controls">
           <label class="toolbar-label">Plan actif
             <select id="activePlanSelect" class="mini-select" onchange="activateSelectedPlan()"></select>
           </label>
+          <button class="ghost danger-text" onclick="deleteSelectedPlan()">Supprimer la variante</button>
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
             <button onclick="window.print()">Imprimer en 10×15</button>
@@ -558,6 +559,20 @@
     }
     function activateSelectedPlan(){
       activatePlan(document.getElementById('activePlanSelect')?.value);
+    }
+    async function deleteSelectedPlan(){
+      const planId = document.getElementById('activePlanSelect')?.value;
+      if(!planId) return;
+      const selected = planVariants.find(plan => plan.id === planId);
+      if(planVariants.length <= 1){ alert('Impossible de supprimer le dernier plan'); return; }
+      if(!confirm(`Supprimer la variante "${selected?.name || 'Plan'}" ?`)) return;
+      try{
+        await api(`/api/plans/${encodeURIComponent(planId)}`, { method:'DELETE' });
+        await loadPlans();
+        await load();
+      }catch(e){
+        alert('Impossible de supprimer cette variante');
+      }
     }
     function updateCardArtLabel(){
       const el = document.getElementById('cardArtName');

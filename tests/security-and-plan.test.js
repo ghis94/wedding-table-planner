@@ -121,6 +121,14 @@ test('multiple named plans can be created and activated', async () => {
   });
   assert.equal(activate.status, 200);
   assert.equal(activate.json().activePlanId, initialActive);
+
+  const remove = await request(`/api/plans/${encodeURIComponent(created.plan.id)}`, {
+    method: 'DELETE',
+    headers: { cookie },
+  });
+  assert.equal(remove.status, 200);
+  assert.equal(remove.json().activePlanId, initialActive);
+  assert.ok(!remove.json().plans.some(p => p.id === created.plan.id));
 });
 
 test('config import replaces the currently active named plan', async () => {
@@ -161,6 +169,18 @@ test('admin page exposes both plan and full config import actions', async () => 
   assert.match(res.text, /Importer plan JSON/);
   assert.match(res.text, /importPlanFile/);
   assert.match(res.text, /Importer config complète/);
+});
+
+test('postcards page can choose the active plan and paper tone', async () => {
+  const res = await request('/postcards.html', { headers: { cookie } });
+  assert.equal(res.status, 200);
+  assert.match(res.text, /Plan actif/);
+  assert.match(res.text, /activePlanSelect/);
+  assert.match(res.text, /activateSelectedPlan/);
+  assert.match(res.text, /deleteSelectedPlan/);
+  assert.match(res.text, /paper-white/);
+  assert.match(res.text, /paper-cream/);
+  assert.doesNotMatch(res.text, /Importer visuel/);
 });
 
 test('sanitizePlan removes root guests already seated at a table', async () => {

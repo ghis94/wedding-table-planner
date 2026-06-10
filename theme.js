@@ -46,7 +46,7 @@
     const wrapper = document.createElement('div');
     wrapper.className = 'theme-toggle';
     wrapper.innerHTML = `
-      <span>🎨</span>
+      <span class="theme-toggle__mark" aria-hidden="true"></span>
       <select id="theme-select" aria-label="Changer le thème">
         <option value="system" ${current === 'system' ? 'selected' : ''}>Système</option>
         <option value="light" ${current === 'light' ? 'selected' : ''}>Clair</option>

@@ -231,6 +231,7 @@
         <label for="planSelect">Plan actif</label>
         <select id="planSelect" onchange="activateSelectedPlan()"></select>
         <button class="ghost" onclick="createPlanCopy()">Créer une variante</button>
+        <button class="ghost danger-text" onclick="deleteSelectedPlan()">Supprimer la variante</button>
         <button class="ghost" onclick="refreshPlans()">Actualiser</button>
       </div>
     </section>
@@ -269,6 +270,7 @@
     async function refreshPlans(){ const r=await fetch('/api/plans'); if(!r.ok) return; const data=await r.json(); planVariants=data.plans||[]; activePlanId=data.activePlanId || planVariants.find(p=>p.active)?.id || null; renderPlanSelect(); }
     async function activateSelectedPlan(){ const select=document.getElementById('planSelect'); const id=select?.value; if(!id || id===activePlanId) return; await fetch(`/api/plans/${encodeURIComponent(id)}/activate`, { method:'POST' }); await refreshPlans(); await load(); }
     async function createPlanCopy(){ const baseName=planVariants.find(p=>p.id===activePlanId)?.name || 'Plan'; const name=prompt('Nom du nouveau plan de test', `${baseName} - variante`); if(!name) return; const r=await fetch('/api/plans',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name, sourcePlanId: activePlanId})}); if(!r.ok){ alert('Impossible de créer le plan'); return; } await refreshPlans(); await load(); }
+    async function deleteSelectedPlan(){ const select=document.getElementById('planSelect'); const id=select?.value; if(!id) return; const selected=planVariants.find(p=>p.id===id); if((planVariants||[]).length<=1){ alert('Impossible de supprimer le dernier plan'); return; } if(!confirm(`Supprimer la variante "${selected?.name || 'Plan'}" ?`)) return; const r=await fetch(`/api/plans/${encodeURIComponent(id)}`, { method:'DELETE' }); if(!r.ok){ alert('Impossible de supprimer cette variante'); return; } await refreshPlans(); await load(); }
     function getPlacedGuestIds(){ const placed=new Set(); (plan.tables||[]).forEach(t=>(t.guests||[]).forEach(g=>{ if(g?.id) placed.add(g.id); })); return placed; }
     function rebuildGuestList(){ const allGuests=new Map(); (plan.guests||[]).forEach(g=>{ if(g && g.id) allGuests.set(g.id, {...g}); }); (plan.tables||[]).forEach(t=>(t.guests||[]).forEach(g=>{ if(g && g.id && !allGuests.has(g.id)) allGuests.set(g.id, {...g}); })); plan.guests=Array.from(allGuests.values()); }
     function getUnplacedGuests(){ rebuildGuestList(); const placed=getPlacedGuestIds(); return (plan.guests||[]).filter(g=>g && !placed.has(g.id)); }

@@ -2,7 +2,7 @@
 
 [English version](README.en.md)
 
-Un planificateur de tables de mariage visuel, simple à déployer, agréable à utiliser et pensé pour les vrais moments de friction : RSVP, placement des invités, contraintes alimentaires, vue staff et organisation du jour J.
+Un planificateur de tables de mariage visuel, simple à déployer, agréable à utiliser et pensé pour les vrais moments de friction : placement des invités, contraintes alimentaires, vue staff et organisation du jour J.
 
 L’objectif n’est pas de faire un énorme SaaS mariage générique.
 L’objectif est de résoudre **très bien** le problème du plan de table, avec une interface claire et un workflow utile sur le terrain.
@@ -12,7 +12,6 @@ L’objectif est de résoudre **très bien** le problème du plan de table, avec
 ## Pourquoi ce projet existe
 
 Dans la vraie vie, le plan de table devient vite pénible :
-- qui vient vraiment,
 - combien d’adultes / d’enfants,
 - où placer chacun,
 - comment gérer les régimes,
@@ -28,12 +27,6 @@ Dans la vraie vie, le plan de table devient vite pénible :
 ---
 
 ## Ce que l’application permet
-
-### RSVP invités
-- collecte des réponses RSVP,
-- suivi de la présence,
-- gestion adultes / enfants,
-- capture des allergies, régimes et messages.
 
 ### Administration du plan de table
 - gestion des invités et des tables,
@@ -60,7 +53,7 @@ Dans la vraie vie, le plan de table devient vite pénible :
 
 | Page | Usage |
 |---|---|
-| `/` ou `/index.html` | RSVP invités |
+| `/` ou `/index.html` | Redirection vers la connexion |
 | `/login.html` | Connexion admin |
 | `/admin.html` | Gestion centrale |
 | `/visual.html` | Plan visuel |
@@ -70,10 +63,9 @@ Dans la vraie vie, le plan de table devient vite pénible :
 
 ## Fonctionnalités clés
 
-- gestion RSVP
 - plan de table admin
 - plan visuel des tables
-- fiches invité (régimes, notes, téléphone, statut)
+- fiches invité (régimes, notes, téléphone)
 - import CSV invités
 - export traiteur CSV
 - export / import complet de la configuration
@@ -139,7 +131,7 @@ Types supportés :
 
 ### Export complet
 L’admin permet d’exporter / réimporter :
-- les RSVP,
+- les invités,
 - le plan,
 - les placements,
 - l’état de layout.
