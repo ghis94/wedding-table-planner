@@ -17,6 +17,24 @@
       box-shadow: var(--shadow-sm);
     }
     .toolbar-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .toolbar-label {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      color:var(--text-muted);
+      font-size:12px;
+      font-weight:800;
+    }
+    .toolbar-label select { min-width:220px; }
+    .file-button input { display:none; }
+    .card-art-name {
+      max-width:220px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      color:var(--text-muted);
+      font-size:12px;
+    }
     .export-hint { width:100%; font-size:12px; color: var(--text-muted); }
     .postcards-grid {
       display:grid;
@@ -62,6 +80,29 @@
       pointer-events:none;
       z-index:0;
     }
+    .card-art {
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      opacity:1;
+      z-index:0;
+      pointer-events:none;
+    }
+    .place-card.has-card-art {
+      padding:0;
+      background:#fff;
+      border-color:transparent;
+    }
+    .place-card.has-card-art::before { display:none; }
+    .place-card.has-card-art .botanical,
+    .place-card.has-card-art .botanical-bottom,
+    .place-card.has-card-art .card-frame,
+    .place-card.has-card-art .print-safe-area,
+    .place-card.has-card-art .card-eyebrow,
+    .place-card.has-card-art .card-divider,
+    .place-card.has-card-art .card-footer { display:none; }
     .botanical,
     .botanical-bottom {
       position:absolute;
@@ -249,6 +290,178 @@
       letter-spacing:.22em;
       text-transform:uppercase;
     }
+    .template-card {
+      position:relative;
+      z-index:1;
+      width:100%;
+      min-height:100%;
+      display:block;
+      padding:0;
+      color:#1d1713;
+      text-shadow:0 1px 1px rgba(255,255,255,.55);
+    }
+    .template-table-number {
+      position:absolute;
+      left:12%;
+      right:12%;
+      top:18%;
+      text-align:center;
+      font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', serif;
+      font-size:34px;
+      line-height:1;
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+    .template-table-name {
+      position:absolute;
+      left:12%;
+      right:12%;
+      top:25%;
+      text-align:center;
+      font-family:'Cormorant Garamond', 'Adobe Garamond Pro', 'Garamond', serif;
+      font-size:22px;
+      line-height:1;
+      font-weight:700;
+    }
+    .template-guests {
+      position:absolute;
+      left:13%;
+      right:13%;
+      top:36%;
+      bottom:12%;
+      display:grid;
+      gap:6px;
+      align-content:center;
+    }
+    .template-guests .guest-item {
+      color:inherit;
+      font-size:15px;
+      line-height:1.08;
+      padding:0;
+      text-shadow:inherit;
+    }
+    .place-card.has-card-art.is-dense .template-guests .guest-item { font-size:13px; }
+    .place-card.has-card-art.is-very-dense .template-guests .guest-item { font-size:11px; }
+    .place-card.has-card-art.is-two-columns .template-guests {
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      column-gap:10px;
+      align-content:center;
+    }
+    .place-card.has-card-art.is-two-columns .template-guests .guest-item { font-size:11px; }
+
+    .place-card.paper-white,
+    .place-card.paper-cream {
+      --poster-bg:#fffdfa;
+      --poster-edge:#c8bcb2;
+      --poster-ink:#14110f;
+      --poster-ornament:#4b3a31;
+      padding:.56cm .42cm .7cm;
+      border-radius:18px;
+      border:1px solid var(--poster-edge);
+      box-shadow:0 18px 54px rgba(38, 28, 22, .10);
+      background:
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 28%),
+        linear-gradient(180deg, var(--poster-bg), color-mix(in srgb, var(--poster-bg) 92%, #d8cec4 8%));
+      color:var(--poster-ink);
+      font-family:'Cormorant Garamond', Georgia, serif;
+    }
+    .place-card.paper-cream { --poster-bg:#f8f1e8; --poster-edge:#beb0a4; }
+    .place-card.paper-white::before,
+    .place-card.paper-cream::before {
+      background:
+        radial-gradient(circle at 50% 42%, rgba(255,255,255,.22), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,.22), transparent 18%);
+    }
+    .place-card.paper-white .botanical,
+    .place-card.paper-white .botanical-bottom,
+    .place-card.paper-white .card-divider,
+    .place-card.paper-white .card-eyebrow,
+    .place-card.paper-cream .botanical,
+    .place-card.paper-cream .botanical-bottom,
+    .place-card.paper-cream .card-divider,
+    .place-card.paper-cream .card-eyebrow { display:none; }
+    .place-card.paper-white .card-frame,
+    .place-card.paper-cream .card-frame {
+      inset:8px;
+      border-radius:12px;
+      border-color:var(--poster-edge);
+    }
+    .place-card.paper-white .card-frame::before,
+    .place-card.paper-white .card-frame::after,
+    .place-card.paper-cream .card-frame::before,
+    .place-card.paper-cream .card-frame::after,
+    .place-card.paper-white .print-safe-area,
+    .place-card.paper-cream .print-safe-area { display:none !important; }
+    .place-card.paper-white .card-inner,
+    .place-card.paper-cream .card-inner {
+      align-items:center;
+      justify-content:flex-start;
+      padding-top:1.95cm;
+    }
+    .place-card.paper-white .card-title,
+    .place-card.paper-cream .card-title {
+      margin:0;
+      color:var(--poster-ink);
+      font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', 'Cormorant Garamond', serif;
+      font-size:31px;
+      font-weight:500;
+      line-height:1;
+      letter-spacing:.34em;
+      text-transform:uppercase;
+      text-shadow:0 1px 0 rgba(255,255,255,.5);
+    }
+    .place-card.paper-white .guest-list,
+    .place-card.paper-cream .guest-list {
+      flex:0;
+      width:100%;
+      margin-top:1.02cm;
+      gap:.24cm;
+      align-content:start;
+      justify-content:center;
+      padding:0 .42cm;
+    }
+    .place-card.paper-white .guest-item,
+    .place-card.paper-cream .guest-item {
+      color:var(--poster-ink);
+      font-family:'Cormorant Garamond', Georgia, serif;
+      font-size:23px;
+      font-weight:600;
+      line-height:1.05;
+      letter-spacing:0;
+      padding:0;
+    }
+    .place-card.paper-white.has-few-guests .guest-list,
+    .place-card.paper-cream.has-few-guests .guest-list,
+    .place-card.paper-white.has-medium-guests .guest-list,
+    .place-card.paper-cream.has-medium-guests .guest-list {
+      align-content:start;
+      gap:.24cm;
+    }
+    .place-card.paper-white.has-few-guests .guest-item,
+    .place-card.paper-cream.has-few-guests .guest-item,
+    .place-card.paper-white.has-medium-guests .guest-item,
+    .place-card.paper-cream.has-medium-guests .guest-item { font-size:23px; }
+    .place-card.paper-white.is-dense .guest-list,
+    .place-card.paper-cream.is-dense .guest-list { gap:.18cm; margin-top:.82cm; }
+    .place-card.paper-white.is-dense .guest-item,
+    .place-card.paper-cream.is-dense .guest-item { font-size:19px; }
+    .place-card.paper-white.is-very-dense .guest-list,
+    .place-card.paper-cream.is-very-dense .guest-list { gap:.12cm; margin-top:.7cm; }
+    .place-card.paper-white.is-very-dense .guest-item,
+    .place-card.paper-cream.is-very-dense .guest-item { font-size:16px; }
+    .place-card.paper-white.is-two-columns .guest-list,
+    .place-card.paper-cream.is-two-columns .guest-list {
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      column-gap:.18cm;
+    }
+    .poster-ornament {
+      margin-top:auto;
+      padding-bottom:.74cm;
+      width:3.25cm;
+      color:var(--poster-ornament);
+    }
+    .poster-ornament svg { display:block; width:100%; height:auto; }
 
     .empty-state {
       padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
@@ -261,7 +474,7 @@
       body { background:#fff !important; margin:0 !important; }
       .wrap { max-width:none; padding:0 !important; margin:0 !important; }
       .postcards-grid { display:block; width:10cm !important; }
-      .place-card { width:10cm !important; height:15cm !important; border-radius:0; box-shadow:none; margin:0; page-break-after:always; break-after:page; }
+      .place-card { width:10cm !important; height:15cm !important; box-shadow:none; margin:0; page-break-after:always; break-after:page; }
       .place-card:last-child { page-break-after:auto; break-after:auto; }
       .print-safe-area { display:block !important; }
     }
@@ -280,11 +493,15 @@
       <div class="postcards-toolbar">
         <div class="muted">Format portrait élégant pour annoncer la place des invités.</div>
         <div class="toolbar-controls">
+          <label class="toolbar-label">Plan actif
+            <select id="activePlanSelect" class="mini-select" onchange="activateSelectedPlan()"></select>
+          </label>
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
             <button onclick="window.print()">Imprimer en 10×15</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
+          <span id="cardArtName" class="card-art-name"></span>
           <div class="export-hint">Mode recommandé : impression directe en 10×15, une carte par page.</div>
         </div>
       </div>
@@ -294,17 +511,83 @@
 
   <script>
     const themeGroups = [
-      { label: 'Signature & neutres', options: [['theme-nude','Nude signature'],['theme-sand','Sand'],['theme-linen','Linen'],['theme-ivory','Ivory'],['theme-champagne','Champagne'],['theme-modern-serif','Modern serif']] },
-      { label: 'Floraux & romantiques', options: [['theme-blush','Blush'],['theme-rosewater','Rosewater'],['theme-lavender','Lavender'],['theme-mauve','Mauve'],['theme-lilac','Lilac'],['theme-garden-party','Garden party']] },
-      { label: 'Verts naturels', options: [['theme-sage','Sage'],['theme-olive','Olive'],['theme-eucalyptus','Eucalyptus'],['theme-forest-mist','Forest mist']] },
-      { label: 'Bleus doux', options: [['theme-dusty-blue','Dusty blue'],['theme-powder-blue','Powder blue'],['theme-slate-blue','Slate blue'],['theme-french-blue','French blue']] },
-      { label: 'Terracotta & soleil', options: [['theme-peach','Peach'],['theme-apricot','Apricot'],['theme-coral','Coral'],['theme-clay','Clay'],['theme-terracotta','Terracotta'],['theme-rust','Rust'],['theme-cinnamon','Cinnamon']] },
-      { label: 'Luxe & contrastes', options: [['theme-espresso','Espresso'],['theme-charcoal','Charcoal'],['theme-minimal-black','Minimal black'],['theme-gold-foil','Gold foil']] }
+      { label: 'Papier', options: [['paper-white','Blanc'],['paper-cream','Crème']] }
     ];
     const allThemeOptions = themeGroups.flatMap(group => group.options);
-    let currentTheme = localStorage.getItem('postcards-theme') || 'theme-nude';
+    let currentTheme = localStorage.getItem('postcards-theme') || 'paper-white';
+    let planVariants = [];
+    let activePlanId = '';
+    let cardArt = '';
+    let cardArtName = '';
 
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+    function escapeAttr(v){ return escapeHtml(v).replaceAll('`','&#96;'); }
+    async function api(url, opts={}){
+      const r = await fetch(url, opts);
+      if(!r.ok) throw new Error(await r.text());
+      return r.json();
+    }
+    function renderActivePlanSelect(){
+      const select = document.getElementById('activePlanSelect');
+      if(!select) return;
+      select.innerHTML = '';
+      planVariants.forEach(plan => {
+        const option = document.createElement('option');
+        option.value = plan.id;
+        option.textContent = plan.active ? `${plan.name} - actif` : plan.name;
+        option.selected = plan.id === activePlanId;
+        select.appendChild(option);
+      });
+    }
+    async function loadPlans(){
+      const res = await api('/api/plans');
+      planVariants = res.plans || [];
+      activePlanId = res.activePlanId || planVariants.find(p => p.active)?.id || '';
+      renderActivePlanSelect();
+    }
+    async function activatePlan(planId){
+      if(!planId || planId === activePlanId) return;
+      try{
+        await api(`/api/plans/${encodeURIComponent(planId)}/activate`, { method:'POST' });
+        await loadPlans();
+        await load();
+      }catch(e){
+        alert('Impossible d’activer ce plan');
+        await loadPlans().catch(()=>{});
+      }
+    }
+    function activateSelectedPlan(){
+      activatePlan(document.getElementById('activePlanSelect')?.value);
+    }
+    function updateCardArtLabel(){
+      const el = document.getElementById('cardArtName');
+      if(el) el.textContent = cardArt ? `Visuel: ${cardArtName || 'image importée'}` : '';
+    }
+    function loadCardArt(event){
+      const file = event.target.files?.[0];
+      if(!file) return;
+      if(!file.type.startsWith('image/')){ alert('Choisis une image PNG, JPG ou WebP'); event.target.value=''; return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        cardArt = String(reader.result || '');
+        cardArtName = file.name || 'image importée';
+        localStorage.setItem('postcards-card-art', cardArt);
+        localStorage.setItem('postcards-card-art-name', cardArtName);
+        updateCardArtLabel();
+        load();
+      };
+      reader.readAsDataURL(file);
+    }
+    function clearCardArt(){
+      cardArt = '';
+      cardArtName = '';
+      localStorage.removeItem('postcards-card-art');
+      localStorage.removeItem('postcards-card-art-name');
+      const input = document.getElementById('cardArtFile');
+      if(input) input.value = '';
+      updateCardArtLabel();
+      load();
+    }
     function floralSvg(cls='') {
       return `
         <svg class="${cls}" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -336,20 +619,50 @@
     function getSortedGuests(table) {
       return (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
     }
-    function buildCardMarkup(table, guests) {
+    function tableNumber(table, index) {
+      const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
+      if(Number.isFinite(fromNumber) && fromNumber > 0) return String(fromNumber);
+      const match = String(table.name || '').match(/\d+/);
+      return match ? match[0] : String(index + 1);
+    }
+    function tableNameWithoutNumber(table, number) {
+      const name = String(table.name || '').trim();
+      if(!name) return '';
+      const normalized = name.toLowerCase().replace(/\s+/g, ' ');
+      if(normalized === `table ${number}` || normalized === `table n ${number}` || normalized === `table n° ${number}` || normalized === `table no ${number}`) return '';
+      return name;
+    }
+    function buildTemplateMarkup(table, guests, index) {
+      const number = tableNumber(table, index);
+      const displayName = tableNameWithoutNumber(table, number);
       return `
-        ${floralSvg('botanical')}
-        ${floralSvg('botanical-bottom')}
+        <img class="card-art" src="${escapeAttr(cardArt)}" alt="">
+        <div class="template-card">
+          <div class="template-table-number">Table ${escapeHtml(number)}</div>
+          ${displayName ? `<div class="template-table-name">${escapeHtml(displayName)}</div>` : ''}
+          <div class="template-guests">
+            ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
+          </div>
+        </div>`;
+    }
+    function buildCardMarkup(table, guests, index) {
+      const number = tableNumber(table, index);
+      return `
         <div class="card-frame"></div>
         <div class="print-safe-area"></div>
         <div class="card-inner">
-          <div class="card-eyebrow">Mariage</div>
-          <div class="card-title">${escapeHtml(table.name || 'Table')}</div>
+          <div class="card-title">Table ${escapeHtml(number)}</div>
           <div class="card-divider"></div>
           <div class="guest-list">
             ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
           </div>
-          <div class="card-footer">Avec amour & célébration</div>
+          <div class="poster-ornament" aria-hidden="true">
+            <svg viewBox="0 0 180 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 18c18 2 32-4 47-14M20 19c9 7 20 8 33 2M39 10c-4-5-10-7-18-7M48 7c2 7 8 12 18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M90 25s-18-10-12-22c6-8 12 2 12 2s6-10 12-2c6 12-12 22-12 22Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M170 18c-18 2-32-4-47-14M160 19c-9 7-20 8-33 2M141 10c4-5 10-7 18-7M132 7c-2 7-8 12-18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
         </div>`;
     }
     function initThemeSelect() {
@@ -360,7 +673,7 @@
           ${group.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
         </optgroup>
       `).join('');
-      if (!allThemeOptions.some(([value]) => value === currentTheme)) currentTheme = 'theme-nude';
+      if (!allThemeOptions.some(([value]) => value === currentTheme)) currentTheme = 'paper-white';
       select.value = currentTheme;
     }
     function applyTheme(theme) {
@@ -376,15 +689,17 @@
       const tables = (plan.tables || []).filter(Boolean);
       if(!tables.length){ cards.innerHTML = '<div class="empty-state">Aucune table disponible.</div>'; return; }
       cards.innerHTML = '';
-      tables.forEach((table) => {
+      tables.forEach((table, index) => {
         const guests = getSortedGuests(table);
         const el = document.createElement('article');
         el.className = `place-card ${currentTheme} ${densityClass(guests.length)} ${layoutClass(guests.length)} ${guestDensityClass(guests.length)}`.trim();
-        el.innerHTML = buildCardMarkup(table, guests);
+        el.innerHTML = buildCardMarkup(table, guests, index);
         cards.appendChild(el);
       });
     }
     initThemeSelect();
+    updateCardArtLabel();
+    loadPlans().catch(()=>{});
     load();
   </script>
 </body>

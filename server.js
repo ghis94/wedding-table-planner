@@ -150,6 +150,8 @@ function removeTempDir(dirPath) {
 }
 
 const CARD_THEMES = {
+  'paper-white': { bgStart:'#fffdfa', bgEnd:'#f5f0eb', title:'#14110f', accent:'#4b3a31', label:'#14110f', chipBg:'#fffdfa', frame:'#c8bcb2' },
+  'paper-cream': { bgStart:'#f8f1e8', bgEnd:'#eee4d9', title:'#14110f', accent:'#4b3a31', label:'#14110f', chipBg:'#f8f1e8', frame:'#beb0a4' },
   'theme-nude': { bgStart:'#fdf6ef', bgEnd:'#ebd9c8', title:'#ab7b4c', accent:'#bb8d67', label:'#8a6446', chipBg:'#fffaf7', frame:'#c8a98a' },
   'theme-sand': { bgStart:'#fbf4eb', bgEnd:'#decbb6', title:'#9d6f4c', accent:'#b38864', label:'#7d5f49', chipBg:'#fffaf5', frame:'#c0a07f' },
   'theme-blush': { bgStart:'#fbf0f0', bgEnd:'#e6c7ca', title:'#b06f7e', accent:'#c68e98', label:'#8f5f68', chipBg:'#fff9fa', frame:'#d3a0ab' },
@@ -184,7 +186,7 @@ const CARD_THEMES = {
 };
 
 function getCardTheme(theme) {
-  return CARD_THEMES[theme] || CARD_THEMES['theme-nude'];
+  return CARD_THEMES[theme] || CARD_THEMES['paper-white'];
 }
 
 function densityClass(count) {
@@ -226,13 +228,17 @@ function findChromiumBinary() {
   return null;
 }
 
-function buildCardHtml(table, themeName = 'theme-nude') {
+function buildCardHtml(table, themeName = 'paper-white') {
   const theme = getCardTheme(themeName);
   const guests = (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
   const count = guests.length;
+  const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
+  const tableNumber = Number.isFinite(fromNumber) && fromNumber > 0
+    ? String(fromNumber)
+    : (String(table.name || '').match(/\d+/)?.[0] || '1');
   const classes = [
     'place-card',
-    themeName,
+    CARD_THEMES[themeName] ? themeName : 'paper-white',
     densityClass(count),
     layoutClass(count),
     count <= 6 ? 'has-few-guests' : (count <= 10 ? 'has-medium-guests' : '')
@@ -250,93 +256,46 @@ function buildCardHtml(table, themeName = 'theme-nude') {
       html, body { margin:0; padding:0; width:1000px; height:1500px; background:#fff; }
       body { overflow:hidden; }
       .place-card {
-        --card-bg-start:#fdf6ef; --card-bg-end:#ebd9c8; --title-color:#ab7b4c; --accent-line:#bb8d67; --label-color:#8a6446;
-        --frame-color:rgba(191,150,115,.18); --ornament-top:rgba(191,150,115,.16); --ornament-bottom:rgba(173,129,98,.10); --overlay-highlight:rgba(255,255,255,.22);
-        position:relative; width:1000px; height:1500px; padding:86px 78px 68px; box-sizing:border-box; overflow:hidden;
-        background: linear-gradient(180deg, var(--card-bg-start), var(--card-bg-end)); border:0; display:flex; isolation:isolate;
-        font-family: Georgia, 'Times New Roman', serif;
+        --poster-bg:${theme.bgStart}; --poster-bg-end:${theme.bgEnd}; --poster-edge:${theme.frame}; --poster-ink:${theme.title}; --poster-ornament:${theme.accent};
+        position:relative; width:1000px; height:1500px; padding:56px 42px 70px; box-sizing:border-box; overflow:hidden;
+        background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 28%), linear-gradient(180deg, var(--poster-bg), var(--poster-bg-end));
+        border:1px solid var(--poster-edge); border-radius:18px; display:flex; isolation:isolate;
+        font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; color:var(--poster-ink);
       }
       .place-card::before {
         content:''; position:absolute; inset:0;
-        background: radial-gradient(circle at 82% 12%, var(--ornament-top), transparent 18%), radial-gradient(circle at 16% 88%, var(--ornament-bottom), transparent 20%), linear-gradient(180deg, var(--overlay-highlight), transparent 18%);
+        background: radial-gradient(circle at 50% 42%, rgba(255,255,255,.22), transparent 30%), linear-gradient(180deg, rgba(255,255,255,.22), transparent 18%);
         pointer-events:none; z-index:0;
       }
-      .theme-nude { --card-bg-start:#fdf6ef; --card-bg-end:#ebd9c8; --title-color:#ab7b4c; --accent-line:#bb8d67; --label-color:#8a6446; --frame-color:rgba(191,150,115,.18); --ornament-top:rgba(191,150,115,.16); --ornament-bottom:rgba(173,129,98,.10); }
-      .theme-sand { --card-bg-start:#fbf4eb; --card-bg-end:#decbb6; --title-color:#9d6f4c; --accent-line:#b38864; --label-color:#7d5f49; --frame-color:rgba(176,140,108,.2); --ornament-top:rgba(188,150,112,.18); --ornament-bottom:rgba(154,117,83,.12); }
-      .theme-blush { --card-bg-start:#fbf0f0; --card-bg-end:#e6c7ca; --title-color:#b06f7e; --accent-line:#c68e98; --label-color:#8f5f68; --frame-color:rgba(190,132,142,.22); --ornament-top:rgba(202,146,156,.18); --ornament-bottom:rgba(177,120,129,.12); }
-      .theme-linen { --card-bg-start:#f8f2ea; --card-bg-end:#d8c8b8; --title-color:#9a775f; --accent-line:#b59278; --label-color:#7b624f; --frame-color:rgba(179,146,114,.2); --ornament-top:rgba(188,156,126,.18); --ornament-bottom:rgba(152,122,94,.12); }
-      .theme-clay { --card-bg-start:#f8ece5; --card-bg-end:#d9b49d; --title-color:#a45f43; --accent-line:#bc7d60; --label-color:#824f3c; --frame-color:rgba(181,116,88,.22); --ornament-top:rgba(191,126,98,.18); --ornament-bottom:rgba(165,97,69,.12); }
-      .theme-champagne { --card-bg-start:#fbf7eb; --card-bg-end:#e4d1a8; --title-color:#b58a3c; --accent-line:#caab63; --label-color:#866b3e; --frame-color:rgba(196,164,89,.24); --ornament-top:rgba(212,180,98,.18); --ornament-bottom:rgba(173,143,69,.12); }
-      .theme-ivory { --card-bg-start:#fffdf8; --card-bg-end:#e7ddcf; --title-color:#8f765c; --accent-line:#ac937b; --label-color:#6f6255; --frame-color:rgba(172,147,123,.18); --ornament-top:rgba(195,172,145,.16); --ornament-bottom:rgba(158,135,111,.10); }
-      .theme-rosewater { --card-bg-start:#fcf1f3; --card-bg-end:#e9c8d3; --title-color:#b56f8e; --accent-line:#cb8fad; --label-color:#8d5d72; --frame-color:rgba(198,136,167,.22); --ornament-top:rgba(212,149,179,.18); --ornament-bottom:rgba(177,117,145,.12); }
-      .theme-sage { --card-bg-start:#f2f6ef; --card-bg-end:#cad7c1; --title-color:#708261; --accent-line:#91a37f; --label-color:#59694d; --frame-color:rgba(125,145,108,.22); --ornament-top:rgba(144,165,126,.18); --ornament-bottom:rgba(104,127,89,.12); }
-      .theme-olive { --card-bg-start:#f3f2ea; --card-bg-end:#d2cfb1; --title-color:#7c7a46; --accent-line:#9f9a62; --label-color:#615f3b; --frame-color:rgba(143,139,86,.22); --ornament-top:rgba(160,157,99,.18); --ornament-bottom:rgba(120,116,65,.12); }
-      .theme-eucalyptus { --card-bg-start:#eef6f2; --card-bg-end:#bfd8ce; --title-color:#4f8371; --accent-line:#73aa96; --label-color:#44685b; --frame-color:rgba(98,149,128,.22); --ornament-top:rgba(114,170,147,.18); --ornament-bottom:rgba(76,128,109,.12); }
-      .theme-forest-mist { --card-bg-start:#eef3ef; --card-bg-end:#bccbbd; --title-color:#5f765f; --accent-line:#7e9880; --label-color:#4f6150; --frame-color:rgba(112,140,114,.22); --ornament-top:rgba(130,157,132,.18); --ornament-bottom:rgba(92,115,94,.12); }
-      .theme-dusty-blue { --card-bg-start:#eff5fb; --card-bg-end:#c7d7e6; --title-color:#6486a8; --accent-line:#86a8cb; --label-color:#536d86; --frame-color:rgba(111,145,180,.22); --ornament-top:rgba(132,167,203,.18); --ornament-bottom:rgba(91,121,151,.12); }
-      .theme-powder-blue { --card-bg-start:#f2f8fd; --card-bg-end:#d4e3f1; --title-color:#7395b8; --accent-line:#94b5d5; --label-color:#5b7591; --frame-color:rgba(128,165,199,.2); --ornament-top:rgba(149,184,214,.18); --ornament-bottom:rgba(107,140,171,.12); }
-      .theme-slate-blue { --card-bg-start:#f0f3fb; --card-bg-end:#c8d0e6; --title-color:#6879a0; --accent-line:#8797bf; --label-color:#55617f; --frame-color:rgba(111,126,171,.22); --ornament-top:rgba(136,152,191,.18); --ornament-bottom:rgba(92,106,144,.12); }
-      .theme-french-blue { --card-bg-start:#eef5fc; --card-bg-end:#bfd6ef; --title-color:#4f79ac; --accent-line:#729fd5; --label-color:#486586; --frame-color:rgba(92,132,183,.22); --ornament-top:rgba(114,161,214,.18); --ornament-bottom:rgba(79,115,157,.12); }
-      .theme-lavender { --card-bg-start:#f4f0fb; --card-bg-end:#d9cceb; --title-color:#8770a8; --accent-line:#a68bc9; --label-color:#6c5b86; --frame-color:rgba(145,123,178,.22); --ornament-top:rgba(166,142,201,.18); --ornament-bottom:rgba(122,103,154,.12); }
-      .theme-mauve { --card-bg-start:#f7f0f6; --card-bg-end:#ddc3db; --title-color:#946483; --accent-line:#b884ab; --label-color:#765369; --frame-color:rgba(164,112,149,.22); --ornament-top:rgba(183,132,170,.18); --ornament-bottom:rgba(142,95,130,.12); }
-      .theme-lilac { --card-bg-start:#f7f3fd; --card-bg-end:#ddd1f1; --title-color:#8b77b5; --accent-line:#ab95d5; --label-color:#705f92; --frame-color:rgba(145,125,189,.22); --ornament-top:rgba(170,149,213,.18); --ornament-bottom:rgba(120,104,157,.12); }
-      .theme-peach { --card-bg-start:#fdf1e6; --card-bg-end:#f0c9b0; --title-color:#c57d4f; --accent-line:#dd9b6a; --label-color:#965f40; --frame-color:rgba(201,133,87,.22); --ornament-top:rgba(219,153,104,.18); --ornament-bottom:rgba(186,112,69,.12); }
-      .theme-apricot { --card-bg-start:#fbf1e9; --card-bg-end:#ebccb2; --title-color:#bb8357; --accent-line:#d29d74; --label-color:#936647; --frame-color:rgba(193,141,97,.22); --ornament-top:rgba(208,158,116,.18); --ornament-bottom:rgba(176,122,79,.12); }
-      .theme-coral { --card-bg-start:#fcf0ec; --card-bg-end:#ecbdb5; --title-color:#c1695b; --accent-line:#d88c7f; --label-color:#95584e; --frame-color:rgba(197,112,97,.22); --ornament-top:rgba(214,141,129,.18); --ornament-bottom:rgba(185,102,90,.12); }
-      .theme-terracotta { --card-bg-start:#f8ece7; --card-bg-end:#d89e87; --title-color:#b65e41; --accent-line:#ce7b5d; --label-color:#874938; --frame-color:rgba(185,102,74,.22); --ornament-top:rgba(206,122,91,.18); --ornament-bottom:rgba(168,91,67,.12); }
-      .theme-rust { --card-bg-start:#f7ece7; --card-bg-end:#cf9887; --title-color:#a4543e; --accent-line:#bf755d; --label-color:#7f4333; --frame-color:rgba(168,91,69,.24); --ornament-top:rgba(190,117,95,.18); --ornament-bottom:rgba(149,78,60,.12); }
-      .theme-cinnamon { --card-bg-start:#f8f1ec; --card-bg-end:#d8b5a2; --title-color:#986248; --accent-line:#b87f62; --label-color:#754c3a; --frame-color:rgba(154,103,79,.22); --ornament-top:rgba(185,127,98,.18); --ornament-bottom:rgba(136,91,70,.12); }
-      .theme-espresso { --card-bg-start:#efe5df; --card-bg-end:#b79282; --title-color:#6d473a; --accent-line:#8d6657; --label-color:#553a31; --frame-color:rgba(117,79,64,.24); --ornament-top:rgba(145,102,84,.16); --ornament-bottom:rgba(103,69,57,.10); }
-      .theme-charcoal { --card-bg-start:#f0efef; --card-bg-end:#c7c2c0; --title-color:#5f5753; --accent-line:#7d736f; --label-color:#4e4845; --frame-color:rgba(104,97,95,.22); --ornament-top:rgba(124,116,113,.14); --ornament-bottom:rgba(88,82,79,.10); }
-      .theme-minimal-black { --card-bg-start:#f5f5f3; --card-bg-end:#d6d2ce; --title-color:#292624; --accent-line:#5f5752; --label-color:#46403c; --frame-color:rgba(52,47,44,.22); --ornament-top:rgba(95,87,82,.12); --ornament-bottom:rgba(54,49,46,.08); }
-      .theme-gold-foil { --card-bg-start:#fbf7eb; --card-bg-end:#dfc27d; --title-color:#a67a19; --accent-line:#d7b04f; --label-color:#7b6223; --frame-color:rgba(184,145,67,.24); --ornament-top:rgba(214,177,78,.18); --ornament-bottom:rgba(160,122,44,.12); }
-      .theme-garden-party { --card-bg-start:#f2f8ef; --card-bg-end:#c7dcb2; --title-color:#658a56; --accent-line:#86b075; --label-color:#4f6a45; --frame-color:rgba(113,156,92,.22); --ornament-top:rgba(136,176,115,.18); --ornament-bottom:rgba(96,128,79,.12); }
-      .theme-modern-serif { --card-bg-start:#faf8f4; --card-bg-end:#d8d0c7; --title-color:#655b54; --accent-line:#8a7c72; --label-color:#564d47; --frame-color:rgba(109,97,88,.2); --ornament-top:rgba(138,124,114,.16); --ornament-bottom:rgba(103,92,84,.10); }
-
-      .card-frame { position:absolute; inset:40px; border-radius:22px; border:1px solid var(--frame-color); }
-      .card-frame::before, .card-frame::after { content:''; position:absolute; width:22px; height:22px; border:1px solid color-mix(in srgb, var(--frame-color) 140%, white 0%); border-radius:50%; background:rgba(255,255,255,.3); }
-      .card-frame::before { top:-11px; left:calc(50% - 11px); }
-      .card-frame::after { bottom:-11px; left:calc(50% - 11px); }
-      .print-safe-area { position:absolute; inset:88px; border:1px dashed var(--frame-color); border-radius:18px; }
-      .botanical, .botanical-bottom { position:absolute; pointer-events:none; z-index:0; opacity:.72; }
-      .botanical { right:-8px; top:-2px; width:138px; height:210px; }
-      .botanical-bottom { left:-10px; bottom:-8px; width:146px; height:220px; transform: scaleX(-1) rotate(-8deg); opacity:.54; }
-      .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; min-height:100%; width:100%; }
-      .card-eyebrow { text-align:center; color: color-mix(in srgb, var(--label-color) 82%, white 18%); text-transform:uppercase; letter-spacing:.28em; font-size:13px; font-weight:700; margin-bottom:10px; }
-      .card-title { margin:2px 0 4px; font-size:64px; line-height:.95; text-align:center; color:var(--title-color); font-style:italic; font-weight:600; }
-      .card-divider { width:74px; height:1px; margin:8px auto 18px; background: linear-gradient(90deg, transparent, var(--accent-line), transparent); }
-      .guest-list { display:grid; gap:8px; margin-top:18px; align-content:start; align-self:stretch; flex:1; height:100%; }
-      .guest-item { text-align:center; color:#5c4332; font-size:20px; line-height:1.12; font-weight:600; padding:2px 0; }
-      .has-few-guests .guest-list { align-content:center; gap:14px; }
-      .has-few-guests .guest-item { font-size:28px; line-height:1.08; }
-      .has-medium-guests .guest-list { align-content:center; gap:10px; }
-      .has-medium-guests .guest-item { font-size:24px; line-height:1.1; }
-      .is-dense { padding:76px 70px 58px; }
-      .is-dense .card-title { font-size:54px; }
-      .is-dense .guest-list { margin-top:14px; gap:7px; }
-      .is-dense .guest-item { font-size:18px; line-height:1.1; }
-      .is-very-dense { padding:66px 62px 50px; }
-      .is-very-dense .card-frame { inset:32px; }
-      .is-very-dense .card-title { font-size:44px; }
-      .is-very-dense .guest-list { margin-top:10px; gap:5px; }
-      .is-very-dense .guest-item { font-size:15px; line-height:1.04; }
-      .is-two-columns .guest-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap:10px; row-gap:6px; }
-      .is-two-columns .guest-item { font-size:15px; line-height:1.05; }
-      .card-footer { margin-top:auto; padding-top:14px; text-align:center; color: color-mix(in srgb, var(--label-color) 82%, white 18%); font-size:10px; letter-spacing:.22em; text-transform:uppercase; }
+      .card-frame { position:absolute; inset:8px; border-radius:12px; border:1px solid var(--poster-edge); pointer-events:none; z-index:0; }
+      .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100%; width:100%; padding-top:195px; }
+      .card-title { margin:0; font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif; font-size:78px; font-weight:500; line-height:1; text-align:center; color:var(--poster-ink); text-transform:uppercase; letter-spacing:.34em; text-shadow:0 1px 0 rgba(255,255,255,.5); }
+      .guest-list { display:grid; gap:24px; width:100%; margin-top:102px; padding:0 42px; align-content:start; justify-content:center; }
+      .guest-item { text-align:center; color:var(--poster-ink); font-size:58px; line-height:1.05; font-weight:600; letter-spacing:0; padding:0; }
+      .has-few-guests .guest-list, .has-medium-guests .guest-list { align-content:start; gap:24px; }
+      .has-few-guests .guest-item, .has-medium-guests .guest-item { font-size:58px; }
+      .is-dense .guest-list { gap:18px; margin-top:82px; }
+      .is-dense .guest-item { font-size:48px; }
+      .is-very-dense .guest-list { gap:12px; margin-top:70px; }
+      .is-very-dense .guest-item { font-size:40px; }
+      .is-two-columns .guest-list { grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:18px; }
+      .poster-ornament { margin-top:auto; padding-bottom:74px; width:325px; color:var(--poster-ornament); }
+      .poster-ornament svg { display:block; width:100%; height:auto; }
     </style>
   </head>
   <body>
-    <article class="${classes}" style="background: linear-gradient(180deg, ${theme.bgStart}, ${theme.bgEnd}); --card-bg-start:${theme.bgStart}; --card-bg-end:${theme.bgEnd}; --title-color:${theme.title}; --accent-line:${theme.accent}; --label-color:${theme.label}; --frame-color:${theme.frame};">
-      <svg class="botanical" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M68 248C74 213 78 181 77 149C76 121 67 92 48 63" stroke="#B88D66" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M80 231C102 201 112 171 112 136C112 104 103 73 84 44" stroke="#9A6F4E" stroke-width="1.9" stroke-linecap="round" opacity=".45"/><path d="M41 86C26 83 16 72 12 54C27 58 38 66 45 80" fill="#DAB9A1" opacity=".7"/><path d="M34 118C18 117 8 109 3 93C20 96 31 104 38 113" fill="#E6CAB7" opacity=".62"/><path d="M98 62C112 55 121 42 124 24C111 28 100 37 94 51" fill="#C89A72" opacity=".58"/><path d="M120 104C136 98 146 85 150 68C135 72 124 82 117 95" fill="#D9B296" opacity=".55"/><circle cx="85" cy="40" r="10" fill="#E7D0BF" opacity=".65"/><circle cx="49" cy="78" r="8" fill="#E2C3AD" opacity=".56"/><circle cx="117" cy="92" r="8" fill="#D1A684" opacity=".52"/><circle cx="25" cy="110" r="7" fill="#EAD6C7" opacity=".58"/></svg>
-      <svg class="botanical-bottom" viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M68 248C74 213 78 181 77 149C76 121 67 92 48 63" stroke="#B88D66" stroke-width="2.2" stroke-linecap="round" opacity=".55"/><path d="M80 231C102 201 112 171 112 136C112 104 103 73 84 44" stroke="#9A6F4E" stroke-width="1.9" stroke-linecap="round" opacity=".45"/><path d="M41 86C26 83 16 72 12 54C27 58 38 66 45 80" fill="#DAB9A1" opacity=".7"/><path d="M34 118C18 117 8 109 3 93C20 96 31 104 38 113" fill="#E6CAB7" opacity=".62"/><path d="M98 62C112 55 121 42 124 24C111 28 100 37 94 51" fill="#C89A72" opacity=".58"/><path d="M120 104C136 98 146 85 150 68C135 72 124 82 117 95" fill="#D9B296" opacity=".55"/><circle cx="85" cy="40" r="10" fill="#E7D0BF" opacity=".65"/><circle cx="49" cy="78" r="8" fill="#E2C3AD" opacity=".56"/><circle cx="117" cy="92" r="8" fill="#D1A684" opacity=".52"/><circle cx="25" cy="110" r="7" fill="#EAD6C7" opacity=".58"/></svg>
+    <article class="${classes}">
       <div class="card-frame"></div>
-      <div class="print-safe-area"></div>
       <div class="card-inner">
-        <div class="card-eyebrow">Mariage</div>
-        <div class="card-title">${escapeHtml(table.name || 'Table')}</div>
-        <div class="card-divider"></div>
+        <div class="card-title">Table ${escapeHtml(tableNumber)}</div>
         <div class="guest-list">${guestHtml}</div>
-        <div class="card-footer">Avec amour & célébration</div>
+        <div class="poster-ornament" aria-hidden="true">
+          <svg viewBox="0 0 180 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 18c18 2 32-4 47-14M20 19c9 7 20 8 33 2M39 10c-4-5-10-7-18-7M48 7c2 7 8 12 18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M90 25s-18-10-12-22c6-8 12 2 12 2s6-10 12-2c6 12-12 22-12 22Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M170 18c-18 2-32-4-47-14M160 19c-9 7-20 8-33 2M141 10c4-5 10-7 18-7M132 7c-2 7-8 12-18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
       </div>
     </article>
   </body>
@@ -816,7 +775,7 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
   let tmpBase;
   try {
     const format = String(req.query.format || 'png').toLowerCase() === 'jpg' ? 'jpg' : 'png';
-    const theme = cleanText(req.query.theme || 'theme-nude', 80) || 'theme-nude';
+    const theme = cleanText(req.query.theme || 'paper-white', 80) || 'paper-white';
     const planRow = getActivePlanRow();
     const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
     const tables = (plan.tables || []).filter(Boolean);
@@ -860,7 +819,7 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
 app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
   let tmpBase;
   try {
-    const theme = cleanText(req.query.theme || 'theme-nude', 80) || 'theme-nude';
+    const theme = cleanText(req.query.theme || 'paper-white', 80) || 'paper-white';
     const chromiumPath = findChromiumBinary();
     if (!chromiumPath) {
       return res.status(500).json({ ok: false, error: 'Chromium introuvable sur le serveur pour générer le PDF cartes.' });
