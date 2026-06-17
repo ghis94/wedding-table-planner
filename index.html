@@ -2,12 +2,347 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=login.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirection — Wedding Table Planner</title>
-  <script>window.location.replace('login.html');</script>
+  <title>Mathilde &amp; Ghislain — Wedding Table Planner</title>
+  <meta name="description" content="Page d'accueil pour les invités du mariage avec les informations essentielles et un accès discret à la connexion admin." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .home-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 2px 2px 0;
+    }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent-strong), var(--champagne));
+      color: var(--ivory);
+      font-weight: 900;
+      letter-spacing: .06em;
+      box-shadow: var(--shadow-sm);
+    }
+    .hero-band {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(30px, 4vw, 56px);
+      background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--champagne) 14%, transparent) 0%, transparent 34%),
+        radial-gradient(circle at bottom right, color-mix(in srgb, var(--accent-soft) 22%, transparent) 0%, transparent 36%),
+        linear-gradient(135deg, color-mix(in srgb, var(--surface-strong) 88%, var(--ivory) 12%), var(--surface));
+    }
+    .hero-band::after {
+      content: '';
+      position: absolute;
+      inset: auto -10% -30% auto;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--champagne) 22%, transparent) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, .85fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .hero-copy {
+      display: grid;
+      gap: 18px;
+      max-width: 720px;
+    }
+    .hero-copy h1 {
+      max-width: 12ch;
+    }
+    .hero-copy .lede {
+      font-size: 1.08rem;
+      max-width: 62ch;
+    }
+    .login-float {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 20;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .info-card {
+      position: relative;
+      overflow: hidden;
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid color-mix(in srgb, var(--line-soft) 88%, transparent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 90%, white 10%), var(--surface-solid)),
+        var(--surface-solid);
+      box-shadow: var(--shadow-sm);
+    }
+    .info-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto auto 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-strong), var(--champagne));
+      opacity: .75;
+    }
+    .info-card .label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .info-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.72rem;
+      line-height: .94;
+    }
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .detail-card {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      min-height: 180px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 92%, white 8%), var(--surface)),
+        var(--surface);
+      box-shadow: var(--shadow-md);
+    }
+    .detail-card::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--champagne) 70%, transparent), transparent);
+    }
+    .detail-card ul {
+      margin: 12px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+    .detail-card li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--surface-solid) 82%, white 18%);
+      border: 1px solid color-mix(in srgb, var(--line-soft) 90%, transparent);
+    }
+    .detail-card li span:last-child {
+      color: var(--text);
+      font-weight: 700;
+      text-align: right;
+    }
+    .schedule {
+      display: grid;
+      gap: 12px;
+    }
+    .schedule-item {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 14px;
+      padding: 14px;
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--surface-solid) 82%, white 18%);
+      border: 1px solid color-mix(in srgb, var(--line-soft) 90%, transparent);
+      box-shadow: var(--shadow-xs);
+    }
+    .schedule-time {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .quick-links {
+      display: grid;
+      gap: 12px;
+    }
+    .quick-links a {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 15px 16px;
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, var(--line-soft) 90%, transparent);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 92%, white 8%), var(--surface-solid));
+      color: var(--text);
+      box-shadow: var(--shadow-xs);
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    .quick-links a:hover {
+      color: var(--text);
+      border-color: color-mix(in srgb, var(--accent) 28%, var(--line-soft));
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+    .footer-note {
+      padding: 4px 2px 0;
+      color: var(--text-soft);
+      font-size: 13px;
+      text-align: center;
+    }
+    @media (max-width: 960px) {
+      .hero-grid,
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 720px) {
+      body { padding: 14px; }
+      .topbar { align-items: center; }
+      .login-float {
+        top: 12px;
+        right: 12px;
+      }
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+      .schedule-item {
+        grid-template-columns: 1fr;
+      }
+      .brand {
+        gap: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <p>Redirection vers la connexion… <a href="login.html">Continuer</a></p>
+  <div class="login-float">
+    <a class="btn small link-btn" href="login.html">Login / admin</a>
+  </div>
+
+  <div class="home-shell">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark">WT</div>
+        <div>
+          <div class="eyebrow">Mathilde &amp; Ghislain</div>
+          <p class="muted">Informations utiles pour les invités</p>
+        </div>
+      </div>
+      <div id="theme-container"></div>
+    </div>
+
+    <section class="hero hero-band">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Bienvenue</div>
+          <h1>Mathilde &amp; Ghislain</h1>
+          <p class="lede">
+            Le 25 juillet 2026, on se retrouve pour la cérémonie puis la réception. Les infos utiles sont rassemblées ici, simplement.
+          </p>
+        </div>
+
+        <div class="info-grid" aria-label="Résumé rapide">
+          <article class="info-card">
+            <span class="label">Date</span>
+            <strong>25 juillet 2026</strong>
+            <p>Le grand jour.</p>
+          </article>
+          <article class="info-card">
+            <span class="label">Lieu</span>
+            <strong>Saint-Maur-des-Fossés</strong>
+            <p>Cérémonie en mairie puis réception au Manoir De L&apos;ile Aux Loups.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="infos" class="section-grid">
+      <article class="card detail-card">
+        <div class="eyebrow">Infos pratiques</div>
+        <h2>Ce qu’il faut savoir</h2>
+        <ul>
+          <li><span>Cérémonie</span><span>15:00 - 16:00</span></li>
+          <li><span>Réception</span><span>16:00 - 04:00</span></li>
+          <li><span>Mairie</span><span>Place Charles-de-Gaulle, 94100 Saint-Maur-des-Fossés</span></li>
+          <li><span>Manoir</span><span>1 Quai du Port, 94130 Nogent-sur-Marne</span></li>
+        </ul>
+      </article>
+
+      <article id="planning" class="card detail-card">
+        <div class="eyebrow">Programme</div>
+        <h2>Déroulé de la journée</h2>
+        <div class="schedule">
+          <div class="schedule-item">
+            <div class="schedule-time">15:00</div>
+            <div>
+              <strong>Cérémonie</strong>
+              <p>Mairie de Saint-Maur-des-Fossés, Place Charles-de-Gaulle, 94100 Saint-Maur-des-Fossés.</p>
+            </div>
+          </div>
+          <div class="schedule-item">
+            <div class="schedule-time">16:00</div>
+            <div>
+              <strong>Réception</strong>
+              <p>Manoir De L&apos;ile Aux Loups, 1 Quai du Port, 94130 Nogent-sur-Marne.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card detail-card">
+        <div class="eyebrow">Accès rapide</div>
+        <h2>Liens utiles</h2>
+        <div class="quick-links">
+          <a href="https://maps.app.goo.gl/4sDbGHzUEjUgvoJ87" target="_blank" rel="noreferrer"><span>Y aller - cérémonie</span><span>→</span></a>
+          <a href="https://maps.app.goo.gl/BnPcNYcjfV8wDZUM8" target="_blank" rel="noreferrer"><span>Y aller - réception</span><span>→</span></a>
+          <a href="#infos"><span>Infos pratiques</span><span>→</span></a>
+        </div>
+      </article>
+    </section>
+
+    <p class="footer-note">
+      On vous attend le 25 juillet 2026.
+    </p>
+  </div>
+
+  <script src="theme.js"></script>
+  <script>
+    window.ThemeManager.createToggle(document.getElementById('theme-container'));
+  </script>
 </body>
 </html>

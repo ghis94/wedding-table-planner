@@ -44,19 +44,21 @@
       color: var(--text-soft);
     }
     .toolbar {
-      position: sticky;
-      top: 86px;
       z-index: 20;
+      display:grid;
+      gap:10px;
+      padding: 14px 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.32);
+      border: 1px solid rgba(164,127,89,.08);
+      box-shadow: var(--shadow-xs);
+      backdrop-filter: none;
+    }
+    .toolbar-row {
       display:flex;
       gap:10px;
       align-items:center;
       flex-wrap:wrap;
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 82%, white 18%), var(--surface));
-      border: 1px solid var(--line-soft);
-      box-shadow: var(--shadow-sm);
-      backdrop-filter: blur(20px);
     }
     .save-state {
       display: inline-flex;
@@ -74,8 +76,6 @@
     .save-state.saving { background: #eff6ff; color: #1d4ed8; }
     .save-state.saved { background: #dcfce7; color: #166534; }
     .atelier-tabs {
-      position: sticky;
-      top: 74px;
       z-index: 19;
       display:flex;
       gap:6px;
@@ -83,10 +83,10 @@
       width: fit-content;
       padding:5px;
       border-radius:12px;
-      border:1px solid var(--line-soft);
-      background: color-mix(in srgb, var(--surface-strong) 86%, transparent);
+      border:1px solid rgba(164,127,89,.08);
+      background: rgba(255,255,255,.38);
       box-shadow: var(--shadow-xs);
-      backdrop-filter: blur(16px);
+      backdrop-filter: none;
     }
     .atelier-tab {
       min-height: 36px;
@@ -221,8 +221,34 @@
       font-weight: 600;
     }
     .table-kpis { display: grid; gap: 6px; color: var(--text-muted); font-size: 12px; margin-bottom: 12px; }
-    .progress { height: 9px; background: rgba(138,102,70,.12); border-radius: 999px; overflow: hidden; }
-    .progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); }
+    .table-fill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.74), rgba(248,240,231,.9));
+      border: 1px solid rgba(164,127,89,.16);
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .table-fill strong {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .fill-badge {
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: rgba(138,102,70,.10);
+      color: var(--text);
+      white-space: nowrap;
+    }
     .toolbar-spacer { flex: 1 1 auto; }
     .section-note {
       color: var(--text-muted);
@@ -235,6 +261,23 @@
       align-items:center;
       flex-wrap:wrap;
     }
+    .toolbar-group-soft {
+      padding: 10px 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.58);
+      border: 1px solid rgba(164,127,89,.12);
+      box-shadow: var(--shadow-sm);
+    }
+    .toolbar-group-right { margin-left: auto; }
+    .toolbar-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-right: 2px;
+    }
+    .toolbar-reset { margin-left: 10px; }
     .compact-actions {
       display:grid;
       gap:8px;
@@ -332,7 +375,11 @@
       .hero-stats,
       .filters { grid-template-columns: 1fr; }
       .guest { flex-direction: column; }
-      .toolbar { top: 12px; }
+      .toolbar { gap: 10px; }
+      .toolbar-row { width:100%; }
+      .toolbar-group-soft { width: 100%; }
+      .toolbar-group-right { margin-left: 0; }
+      .toolbar-reset { margin-left: 0; width: 100%; }
     }
   </style>
 </head>
@@ -363,20 +410,21 @@
       </section>
 
       <div class="toolbar">
-        <div class="toolbar-group">
+        <div class="toolbar-row">
+          <span class="toolbar-label">Atelier</span>
           <button onclick="loadGuests()">Charger les invités</button>
           <button class="ghost" onclick="addTable()">Ajouter une table</button>
-          <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder le plan</button>
+          <button class="ok" onclick="savePlan({notify:true, force:true})">Sauvegarder</button>
         </div>
-        <span id="saveState" class="save-state">Synchronisé</span>
-        <span class="toolbar-spacer"></span>
-        <div class="toolbar-group">
+        <div class="toolbar-row">
+          <span id="saveState" class="save-state">Synchronisé</span>
+          <span class="toolbar-spacer"></span>
           <button class="ghost" onclick="window.location.href='visual.html'">Plan visuel</button>
           <button class="ghost" onclick="window.location.href='day-of.html'">Jour J</button>
         </div>
         <input id="planFile" type="file" accept="application/json,.json" style="display:none" onchange="importPlanFile(event)">
         <input id="configFile" type="file" accept="application/json,.json" style="display:none" onchange="importConfig(event)">
-        <button class="danger" onclick="resetAll()">Reset</button>
+        <button class="danger toolbar-reset" onclick="resetAll()">Reset</button>
       </div>
 
       <nav class="atelier-tabs" aria-label="Sections Atelier">
@@ -459,6 +507,7 @@
               </div>
               <input id="sheetPhone" placeholder="Téléphone" />
               <textarea id="sheetRegime" rows="2" placeholder="Allergies / régime"></textarea>
+              <div id="sheetRegimeSummary" class="muted" style="margin-top:-4px"></div>
               <textarea id="sheetNotes" rows="3" placeholder="Notes staff (PMR, poussette, etc.)"></textarea>
               <div class="sheet-actions">
                 <span class="muted">Les invités locaux sont renommables depuis cette fiche.</span>
@@ -623,16 +672,17 @@
     }
 
     function normalizeDietLabel(v){
-      const r=String(v||'').trim().toLowerCase();
+      const raw = String(v || '').trim();
+      const r = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       if(!r) return '';
       if(r.includes('vegan')) return 'vegan';
-      if(r.includes('végé')||r.includes('vege')||r.includes('végétar')) return 'végétarien';
+      if(r.includes('vege') || r.includes('vegetar')) return 'végétarien';
       if(r.includes('sans porc')) return 'sans porc';
       if(r.includes('halal')) return 'halal';
       if(r.includes('kasher')||r.includes('casher')) return 'kasher';
       if(r.includes('sans gluten')||r.includes('gluten')) return 'sans gluten';
       if(r.includes('sans lactose')||r.includes('lactose')) return 'sans lactose';
-      return String(v||'').trim();
+      return raw;
     }
 
     function buildAlerts(){
@@ -719,6 +769,7 @@
       document.getElementById('sheetKids').value = Number(g.enfants ?? ((g.type==='enfant'||g.type==='bebe')?1:0));
       document.getElementById('sheetPhone').value = g.phone || '';
       document.getElementById('sheetRegime').value = g.regime || '';
+      document.getElementById('sheetRegimeSummary').textContent = normalizeDietLabel(g.regime) ? `Régime détecté: ${normalizeDietLabel(g.regime)}` : '';
       document.getElementById('sheetNotes').value = g.adminNotes || '';
     }
 
@@ -743,6 +794,7 @@
         document.getElementById('sheetKids').value = Number(r.enfants||0);
         document.getElementById('sheetPhone').value = r.phone || '';
         document.getElementById('sheetRegime').value = r.regime || '';
+        document.getElementById('sheetRegimeSummary').textContent = normalizeDietLabel(r.regime) ? `Régime détecté: ${normalizeDietLabel(r.regime)}` : '';
         document.getElementById('sheetNotes').value = r.adminNotes || '';
       }catch(e){ alert('Impossible de charger la fiche invité'); }
     }
@@ -851,7 +903,8 @@
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
         const seated=(t.guests||[]).length;
         const ratio=Math.min(100, Math.round((seated/Math.max(1,Number(t.capacity||1)))*100));
-        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><div class="row"><span class="tag">${seated}/${t.capacity}</span><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div></div><div class="table-kpis"><div>Adultes ${adultCount} · Enfants ${childCount} · Bébés ${babyCount}</div><div>Capacité <input type="number" min="1" value="${t.capacity}" style="width:76px;display:inline-flex" onchange="setCap('${t.id}',this.value)"></div></div><div class="progress"><span style="width:${ratio}%"></span></div><div class="row" style="margin:10px 0 6px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
+        const fillState = ratio >= 100 ? 'Pleine' : ratio >= 75 ? 'Bien remplie' : ratio >= 50 ? 'En cours' : 'Disponible';
+        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><div class="row"><span class="tag">${seated}/${t.capacity}</span><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div></div><div class="table-kpis"><div>Adultes ${adultCount} · Enfants ${childCount} · Bébés ${babyCount}</div><div>Capacité <input type="number" min="1" value="${t.capacity}" style="width:76px;display:inline-flex" onchange="setCap('${t.id}',this.value)"></div></div><div class="table-fill"><strong>${seated}/${t.capacity}</strong><span>${fillState}</span></div><div class="row" style="margin:10px 0 6px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
         visibleGuests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
           const diet=normalizeDietLabel(g.regime);

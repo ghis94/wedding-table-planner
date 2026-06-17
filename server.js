@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const { parse } = require('csv-parse/sync');
 const zlib = require('zlib');
 const { execFileSync } = require('child_process');
+const { Resvg } = require('@resvg/resvg-js');
 
 const app = express();
 const PORT = process.env.PORT || 8090;
@@ -19,6 +20,18 @@ const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'data', 'wedding.db'
 const DEFAULT_ADMIN_PASS = 'changeme';
 const DEFAULT_SESSION_SECRET='change-this-session-secret';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const FONT_DIR = path.join(__dirname, 'assets', 'fonts');
+const CARD_FONT_FILES = [
+  path.join(FONT_DIR, 'BodoniModa-500.ttf'),
+  path.join(FONT_DIR, 'BodoniModa-600.ttf'),
+  path.join(FONT_DIR, 'BodoniModa-700.ttf'),
+  path.join(FONT_DIR, 'CormorantGaramond-500.ttf'),
+  path.join(FONT_DIR, 'CormorantGaramond-600.ttf'),
+  path.join(FONT_DIR, 'CormorantGaramond-700.ttf'),
+  path.join(FONT_DIR, 'Inter-400.ttf'),
+  path.join(FONT_DIR, 'Inter-500.ttf'),
+  path.join(FONT_DIR, 'Inter-600.ttf'),
+].filter(file => fs.existsSync(file));
 
 if (IS_PRODUCTION && ADMIN_PASS === DEFAULT_ADMIN_PASS) {
   console.error('[wedding-table-planner] Refusing to start in production with the default ADMIN_PASS.');
@@ -150,8 +163,8 @@ function removeTempDir(dirPath) {
 }
 
 const CARD_THEMES = {
-  'paper-white': { bgStart:'#fffdfa', bgEnd:'#f5f0eb', title:'#14110f', accent:'#4b3a31', label:'#14110f', chipBg:'#fffdfa', frame:'#c8bcb2' },
-  'paper-cream': { bgStart:'#f8f1e8', bgEnd:'#eee4d9', title:'#14110f', accent:'#4b3a31', label:'#14110f', chipBg:'#f8f1e8', frame:'#beb0a4' },
+  'paper-white': { bgStart:'#fffdfa', bgEnd:'#fffdfa', title:'#14110f', accent:'#4b3a31', label:'#14110f', chipBg:'#fffdfa', frame:'#c8bcb2' },
+  'paper-cream': { bgStart:'#f8f1e8', bgEnd:'#f8f1e8', title:'#14110f', accent:'#4b3a31', label:'#14110f', chipBg:'#f8f1e8', frame:'#beb0a4' },
   'theme-nude': { bgStart:'#fdf6ef', bgEnd:'#ebd9c8', title:'#ab7b4c', accent:'#bb8d67', label:'#8a6446', chipBg:'#fffaf7', frame:'#c8a98a' },
   'theme-sand': { bgStart:'#fbf4eb', bgEnd:'#decbb6', title:'#9d6f4c', accent:'#b38864', label:'#7d5f49', chipBg:'#fffaf5', frame:'#c0a07f' },
   'theme-blush': { bgStart:'#fbf0f0', bgEnd:'#e6c7ca', title:'#b06f7e', accent:'#c68e98', label:'#8f5f68', chipBg:'#fff9fa', frame:'#d3a0ab' },
@@ -226,6 +239,108 @@ function findChromiumBinary() {
   }
 
   return null;
+}
+
+function escapeSvgText(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
+}
+
+function splitGuestLines(guests, maxChars = 20) {
+  const lines = [];
+  for (const guest of guests) {
+    const name = String(guest.name || 'Invité').trim() || 'Invité';
+    if (name.length <= maxChars) {
+      lines.push(name);
+      continue;
+    }
+    const words = name.split(/\s+/);
+    let current = '';
+    for (const word of words) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (candidate.length > maxChars && current) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = candidate;
+      }
+    }
+    if (current) lines.push(current);
+  }
+  return lines;
+}
+
+function buildCardSvg(table, themeName = 'paper-white') {
+  const theme = getCardTheme(themeName);
+  const guests = (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
+  const count = guests.length;
+  const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
+  const tableNumber = Number.isFinite(fromNumber) && fromNumber > 0
+    ? String(fromNumber)
+    : (String(table.name || '').match(/\d+/)?.[0] || '1');
+  const isDense = count >= 11 && count < 15;
+  const isVeryDense = count >= 15;
+  const isTwoColumns = count >= 16;
+  const guestSize = isVeryDense ? 42 : (isDense ? 50 : 61);
+  const guestGap = isVeryDense ? 31 : (isDense ? 48 : 63);
+  const guestTop = isVeryDense ? 376 : (isDense ? 389 : 439);
+  const guestMaxChars = isTwoColumns ? 12 : (isVeryDense ? 16 : 20);
+  const guestLines = splitGuestLines(guests, guestMaxChars);
+  const columns = isTwoColumns ? 2 : 1;
+  const leftColumnX = 267;
+  const rightColumnX = 733;
+  const rowsPerColumn = Math.max(1, Math.ceil(guestLines.length / columns));
+  const titleY = 275;
+  const titleSize = 82;
+  const titleLetterSpacing = 27.88;
+  const dividerY = 325;
+  const dividerHalfWidth = 98;
+  const ornamentY = 1334;
+
+  const rows = guestLines.length
+    ? guestLines.map((line, index) => {
+        const columnIndex = isTwoColumns ? Math.floor(index / rowsPerColumn) : 0;
+        const rowIndex = isTwoColumns ? index % rowsPerColumn : index;
+        const x = columnIndex === 0 ? leftColumnX : rightColumnX;
+        const anchor = 'middle';
+        return `<text x="${x}" y="${guestTop + rowIndex * guestGap}" text-anchor="${anchor}" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">${escapeSvgText(line)}</text>`;
+      }).join('\n')
+    : `<text x="500" y="${guestTop}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">Table en préparation</text>`;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1500" viewBox="0 0 1000 1500">
+  <rect width="1000" height="1500" fill="${theme.bgStart}" />
+  <rect x="0.5" y="0.5" width="999" height="1499" rx="18" ry="18" fill="${theme.bgStart}" stroke="${theme.frame}" stroke-width="1" />
+  <rect x="8" y="8" width="984" height="1484" rx="12" ry="12" fill="none" stroke="${theme.frame}" stroke-width="1" />
+  <text x="500" y="${titleY}" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="${titleSize}" font-weight="500" letter-spacing="${titleLetterSpacing}" fill="${theme.title}">TABLE ${escapeSvgText(tableNumber)}</text>
+  <line x1="${500 - dividerHalfWidth}" y1="${dividerY}" x2="${500 + dividerHalfWidth}" y2="${dividerY}" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" opacity=".85" />
+  ${rows}
+  <g transform="translate(500 ${ornamentY})" fill="none" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+    <path d="M-80 0c-18 2-32-4-47-14M-90 1c-9 7-20 8-33 2M-111 -8c4-5 10-7 18-7M-120 -11c2 7 8 12 18 15" />
+    <path d="M0 7s-18-10-12-22c6-8 12 2 12 2s6-10 12-2c6 12-12 22-12 22Z" />
+    <path d="M80 0c18 2 32-4 47-14M90 1c9 7 20 8 33 2M111 -8c-4-5-10-7-18-7M120 -11c-2 7-8 12-18 15" />
+  </g>
+</svg>`;
+}
+
+function renderCardPng(table, theme) {
+  const svg = buildCardSvg(table, theme);
+  const rendered = new Resvg(svg, {
+    fitTo: { mode: 'zoom', value: 1 },
+    background: 'rgba(255,255,255,1)',
+    font: {
+      loadSystemFonts: false,
+      fontFiles: CARD_FONT_FILES,
+      defaultFontFamily: 'Cormorant Garamond',
+      serifFamily: 'Cormorant Garamond',
+      sansSerifFamily: 'Inter',
+    },
+  });
+  return rendered.render().asPng();
 }
 
 function buildCardHtml(table, themeName = 'paper-white') {
@@ -365,6 +480,265 @@ function buildZip(files) {
   end.writeUInt16LE(0, 20);
 
   return Buffer.concat([...chunks, ...centralChunks, end]);
+}
+
+function escapePdfText(value) {
+  return String(value || '').replace(/([\\()])/g, '\\$1');
+}
+
+function hexToRgb(hex) {
+  const clean = String(hex || '').replace('#', '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(clean)) return [0, 0, 0];
+  return [
+    Number.parseInt(clean.slice(0, 2), 16),
+    Number.parseInt(clean.slice(2, 4), 16),
+    Number.parseInt(clean.slice(4, 6), 16),
+  ];
+}
+
+function pdfColor(rgb) {
+  return rgb.map(value => (value / 255).toFixed(4)).join(' ');
+}
+
+function tableNumberLabel(table, index = 0) {
+  const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
+  if (Number.isFinite(fromNumber) && fromNumber > 0) return String(fromNumber);
+  const match = String(table.name || '').match(/\d+/);
+  return match ? match[0] : String(index + 1);
+}
+
+function tableDisplayName(table, tableNumber) {
+  const name = String(table.name || '').trim();
+  if (!name) return '';
+  const normalized = name.toLowerCase().replace(/\s+/g, ' ');
+  if (
+    normalized === `table ${String(tableNumber).toLowerCase()}` ||
+    normalized === `table n ${String(tableNumber).toLowerCase()}` ||
+    normalized === `table n° ${String(tableNumber).toLowerCase()}` ||
+    normalized === `table no ${String(tableNumber).toLowerCase()}`
+  ) {
+    return '';
+  }
+  return name;
+}
+
+function splitPdfText(value, maxChars = 26) {
+  const text = String(value || '').trim();
+  if (!text) return [];
+  if (text.length <= maxChars) return [text];
+  const words = text.split(/\s+/);
+  const lines = [];
+  let current = '';
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length > maxChars && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+function buildPdfFromTables(tables, themeName) {
+  const pageWidthPt = 210 / 25.4 * 72;
+  const pageHeightPt = 297 / 25.4 * 72;
+  const cardWidthPt = 100 / 25.4 * 72;
+  const cardHeightPt = 150 / 25.4 * 72;
+  const chromiumPath = findChromiumBinary();
+  if (!chromiumPath) {
+    throw new Error('Chromium introuvable sur le serveur pour l’export PDF.');
+  }
+
+  const tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
+  try {
+    const pages = tables.map((table, index) => {
+      const htmlPath = path.join(tmpBase, `card-${index}.html`);
+      const pngPath = path.join(tmpBase, `card-${index}.png`);
+      fs.writeFileSync(htmlPath, buildCardHtml(table, themeName), 'utf8');
+      execFileSync(chromiumPath, [
+        '--headless=new',
+        '--disable-gpu',
+        '--hide-scrollbars',
+        '--force-device-scale-factor=1',
+        `--screenshot=${pngPath}`,
+        '--window-size=1000,1500',
+        `file://${htmlPath}`,
+      ], { stdio: 'ignore' });
+      return parsePng(fs.readFileSync(pngPath));
+    });
+    return buildPdfFromPngPages(pages, {
+      pageWidthPt,
+      pageHeightPt,
+      imageWidthPt: cardWidthPt,
+      imageHeightPt: cardHeightPt,
+    });
+  } finally {
+    removeTempDir(tmpBase);
+  }
+}
+
+function parsePng(buffer) {
+  const signature = '89504e470d0a1a0a';
+  if (!Buffer.isBuffer(buffer) || buffer.length < 8 || buffer.subarray(0, 8).toString('hex') !== signature) {
+    throw new Error('PNG invalide');
+  }
+
+  let width = 0;
+  let height = 0;
+  let bitDepth = 0;
+  let colorType = 0;
+  const idatChunks = [];
+
+  let offset = 8;
+  while (offset + 8 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.subarray(offset + 4, offset + 8).toString('ascii');
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+    const data = buffer.subarray(dataStart, dataEnd);
+
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      bitDepth = data.readUInt8(8);
+      colorType = data.readUInt8(9);
+    } else if (type === 'IDAT') {
+      idatChunks.push(data);
+    } else if (type === 'IEND') {
+      break;
+    }
+
+    offset = dataEnd + 4;
+  }
+
+  if (!width || !height) throw new Error('PNG sans dimensions');
+  if (bitDepth !== 8) throw new Error('PNG non supporté');
+  if (![2, 6].includes(colorType)) throw new Error('PNG non supporté');
+
+  const inflated = zlib.inflateSync(Buffer.concat(idatChunks));
+  const bytesPerPixel = colorType === 6 ? 4 : 3;
+  const rowLength = width * bytesPerPixel;
+  const raw = Buffer.alloc(width * height * 3);
+  const prev = Buffer.alloc(rowLength);
+  const curr = Buffer.alloc(rowLength);
+  let inputOffset = 0;
+  let outputOffset = 0;
+
+  const paeth = (a, b, c) => {
+    const p = a + b - c;
+    const pa = Math.abs(p - a);
+    const pb = Math.abs(p - b);
+    const pc = Math.abs(p - c);
+    if (pa <= pb && pa <= pc) return a;
+    if (pb <= pc) return b;
+    return c;
+  };
+
+  for (let y = 0; y < height; y++) {
+    const filter = inflated.readUInt8(inputOffset++);
+    inflated.copy(curr, 0, inputOffset, inputOffset + rowLength);
+    inputOffset += rowLength;
+
+    for (let i = 0; i < rowLength; i++) {
+      const left = i >= bytesPerPixel ? curr[i - bytesPerPixel] : 0;
+      const up = prev[i] || 0;
+      const upLeft = i >= bytesPerPixel ? prev[i - bytesPerPixel] : 0;
+      let value = curr[i];
+      if (filter === 1) value = (value + left) & 255;
+      else if (filter === 2) value = (value + up) & 255;
+      else if (filter === 3) value = (value + Math.floor((left + up) / 2)) & 255;
+      else if (filter === 4) value = (value + paeth(left, up, upLeft)) & 255;
+      curr[i] = value;
+    }
+
+    for (let x = 0; x < width; x++) {
+      const src = x * bytesPerPixel;
+      raw[outputOffset++] = curr[src];
+      raw[outputOffset++] = curr[src + 1];
+      raw[outputOffset++] = curr[src + 2];
+    }
+
+    curr.copy(prev);
+  }
+
+  return { width, height, data: raw };
+}
+
+function buildPdfFromPngPages(pages, { pageWidthPt, pageHeightPt, imageWidthPt, imageHeightPt, background = [255, 255, 255] }) {
+  const objects = [];
+  const addObject = (body) => {
+    objects.push(body);
+    return objects.length;
+  };
+
+  const catalogId = addObject('');
+  const pagesId = addObject('');
+  const pageIds = [];
+  const contentIds = [];
+  const imageIds = [];
+
+  for (const page of pages) {
+    const imageStream = zlib.deflateSync(page.data);
+    const imageId = addObject(
+      `<< /Type /XObject /Subtype /Image /Width ${page.width} /Height ${page.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${imageStream.length} >>\nstream\n`
+    );
+    objects[imageId - 1] = Buffer.concat([
+      Buffer.from(objects[imageId - 1], 'utf8'),
+      imageStream,
+      Buffer.from('\nendstream')
+    ]);
+
+    const x = (pageWidthPt - imageWidthPt) / 2;
+    const y = (pageHeightPt - imageHeightPt) / 2;
+    const content = Buffer.from(
+      `q\n${imageWidthPt.toFixed(2)} 0 0 ${imageHeightPt.toFixed(2)} ${x.toFixed(2)} ${y.toFixed(2)} cm\n/Im${imageId} Do\nQ\n`,
+      'utf8'
+    );
+    const contentId = addObject(`<< /Length ${content.length} >>\nstream\n`);
+    objects[contentId - 1] = Buffer.concat([
+      Buffer.from(objects[contentId - 1], 'utf8'),
+      content,
+      Buffer.from('endstream')
+    ]);
+
+    const pageId = addObject(
+      `<< /Type /Page /Parent ${pagesId} 0 R /MediaBox [0 0 ${pageWidthPt.toFixed(2)} ${pageHeightPt.toFixed(2)}] /Resources << /XObject << /Im${imageId} ${imageId} 0 R >> >> /Contents ${contentId} 0 R >>`
+    );
+    pageIds.push(pageId);
+    contentIds.push(contentId);
+    imageIds.push(imageId);
+  }
+
+  objects[catalogId - 1] = `<< /Type /Catalog /Pages ${pagesId} 0 R >>`;
+  objects[pagesId - 1] = `<< /Type /Pages /Count ${pageIds.length} /Kids [${pageIds.map(id => `${id} 0 R`).join(' ')}] >>`;
+
+  const chunks = [Buffer.from('%PDF-1.4\n%\xFF\xFF\xFF\xFF\n', 'binary')];
+  const offsets = [0];
+  let offset = chunks[0].length;
+
+  const writeObj = (id, body) => {
+    const header = Buffer.from(`${id} 0 obj\n`, 'utf8');
+    const footer = Buffer.from('\nendobj\n', 'utf8');
+    chunks.push(header, Buffer.isBuffer(body) ? body : Buffer.from(String(body), 'utf8'), footer);
+    offsets[id] = offset;
+    offset += header.length + (Buffer.isBuffer(body) ? body.length : Buffer.byteLength(String(body))) + footer.length;
+  };
+
+  for (let i = 0; i < objects.length; i++) writeObj(i + 1, objects[i]);
+
+  const xrefOffset = offset;
+  const xref = [];
+  xref.push(`xref\n0 ${objects.length + 1}\n`);
+  xref.push('0000000000 65535 f \n');
+  for (let i = 1; i <= objects.length; i++) {
+    xref.push(`${String(offsets[i]).padStart(10, '0')} 00000 n \n`);
+  }
+  xref.push(`trailer\n<< /Size ${objects.length + 1} /Root ${catalogId} 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`);
+  chunks.push(Buffer.from(xref.join(''), 'utf8'));
+  return Buffer.concat(chunks);
 }
 
 const CRC_TABLE = (() => {
@@ -848,59 +1222,21 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
 });
 
 app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
-  let tmpBase;
   try {
     const theme = cleanText(req.query.theme || 'paper-white', 80) || 'paper-white';
-    const chromiumPath = findChromiumBinary();
-    if (!chromiumPath) {
-      return res.status(500).json({ ok: false, error: 'Chromium introuvable sur le serveur pour générer le PDF cartes.' });
-    }
-
-    tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
-    const htmlPath = path.join(tmpBase, 'cards.html');
-    const pdfPath = path.join(tmpBase, 'cards.pdf');
 
     const planRow = getActivePlanRow();
     const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
     const tables = (plan.tables || []).filter(Boolean);
     if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
 
-    const cardsHtml = tables.map(table => buildCardHtml(table, theme).match(/<article class="place-card[\s\S]*?<\/article>/)?.[0] || '').join('');
-    const html = `<!doctype html>
-    <html lang="fr">
-    <head>
-      <meta charset="UTF-8" />
-      <style>
-        @page { size: 10cm 15cm; margin: 0; }
-        html, body { margin:0; padding:0; background:#fff; }
-        body { margin:0; }
-        .sheet { width:10cm; height:15cm; page-break-after:always; break-after:page; }
-        .sheet:last-child { page-break-after:auto; break-after:auto; }
-      </style>
-    </head>
-    <body>
-      ${cardsHtml.split(/(?=<article class="place-card)/).filter(Boolean).map(card => `<div class="sheet">${card}</div>`).join('')}
-    </body>
-    </html>`;
+    const pdfBuffer = buildPdfFromTables(tables, theme);
 
-    fs.writeFileSync(htmlPath, html, 'utf8');
-    execFileSync(chromiumPath, [
-      '--headless=new',
-      '--disable-gpu',
-      '--hide-scrollbars',
-      `--print-to-pdf=${pdfPath}`,
-      '--no-pdf-header-footer',
-      htmlPath.startsWith('/') ? `file://${htmlPath}` : htmlPath,
-    ], { stdio: 'ignore' });
-
-    const pdfBuffer = fs.readFileSync(pdfPath);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-10x15.pdf"`);
     res.send(pdfBuffer);
   } catch (err) {
     serverError(res, err, 'postcards-export-pdf');
-  } finally {
-    removeTempDir(tmpBase);
   }
 });
 
@@ -937,8 +1273,8 @@ app.post('/api/config/import', requireAdmin, (req, res) => {
 app.get(['/admin.html', '/visual.html', '/day-of.html', '/staff.html', '/postcards.html'], requireAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, path.basename(req.path)));
 });
-app.get('/', (_req, res) => res.redirect('/login.html'));
-app.get('/index.html', (_req, res) => res.redirect('/login.html'));
+app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/index.html', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/login.html', (_req, res) => res.sendFile(path.join(__dirname, 'login.html')));
 
 const PUBLIC_STATIC_FILES = new Set([
@@ -954,6 +1290,6 @@ app.use((req, res, next) => {
 });
 app.use(express.static(__dirname, { index: false, dotfiles: 'deny' }));
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`wedding-table-planner listening on :${PORT}`);
 });

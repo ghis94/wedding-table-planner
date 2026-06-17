@@ -6,9 +6,19 @@
   <title>Cartes de table — Wedding Table Planner</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600;6..96,700&family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+    @font-face { font-family: 'Bodoni Moda'; font-style: normal; font-weight: 500; font-display: swap; src: url('/assets/fonts/BodoniModa-500.ttf') format('truetype'); }
+    @font-face { font-family: 'Bodoni Moda'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/BodoniModa-600.ttf') format('truetype'); }
+    @font-face { font-family: 'Bodoni Moda'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/BodoniModa-700.ttf') format('truetype'); }
+    @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 500; font-display: swap; src: url('/assets/fonts/CormorantGaramond-500.ttf') format('truetype'); }
+    @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/CormorantGaramond-600.ttf') format('truetype'); }
+    @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 700; font-display: swap; src: url('/assets/fonts/CormorantGaramond-700.ttf') format('truetype'); }
+    @font-face { font-family: 'Inter'; font-style: normal; font-weight: 400; font-display: swap; src: url('/assets/fonts/Inter-400.ttf') format('truetype'); }
+    @font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('/assets/fonts/Inter-500.ttf') format('truetype'); }
+    @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/Inter-600.ttf') format('truetype'); }
 
     .postcards-page { display:grid; gap:24px; }
+    body.paper-white { background:#fffdfa; }
+    body.paper-cream { background:#f8f1e8; }
     .postcards-toolbar {
       display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
       padding:16px 18px; border-radius:14px;
@@ -468,15 +478,89 @@
     }
 
     @media print {
-      @page { size: 10cm 15cm portrait; margin: 0; }
-      html, body { width:10cm; height:15cm; }
-      body::before, .wedding-header, .postcards-toolbar, .crumbs, .hero { display:none !important; }
-      body { background:#fff !important; margin:0 !important; }
-      .wrap { max-width:none; padding:0 !important; margin:0 !important; }
-      .postcards-grid { display:block; width:10cm !important; }
-      .place-card { width:10cm !important; height:15cm !important; box-shadow:none; margin:0; page-break-after:always; break-after:page; }
-      .place-card:last-child { page-break-after:auto; break-after:auto; }
-      .print-safe-area { display:block !important; }
+      @page { size: A4 portrait; margin: 0; }
+      html, body {
+        width:210mm;
+        min-height:297mm;
+        margin:0 !important;
+        padding:0 !important;
+        overflow:visible !important;
+        background:inherit !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      body::before,
+      body::after,
+      .wedding-header,
+      .postcards-toolbar,
+      .crumbs,
+      .hero {
+        display:none !important;
+        content:none !important;
+      }
+      body.paper-white { background:#fff !important; }
+      body.paper-cream { background:#f8f1e8 !important; }
+      body { margin:0 !important; }
+      .wrap {
+        max-width:none;
+        width:210mm;
+        padding:0 !important;
+        margin:0 auto !important;
+      }
+      .postcards-page {
+        gap:0 !important;
+        width:210mm;
+        margin:0 auto;
+      }
+      .postcards-toolbar,
+      .hero,
+      .crumbs {
+        display:none !important;
+      }
+      .postcards-grid {
+        display:block;
+        width:210mm !important;
+        margin:0 auto;
+      }
+      .postcards-grid::before,
+      .postcards-grid::after {
+        content:none !important;
+        display:none !important;
+      }
+      .postcards-grid > * {
+        display:grid;
+        place-items:center;
+        width:210mm;
+        height:297mm;
+        margin:0 !important;
+        page-break-before:always;
+        break-before:page;
+        page-break-inside:avoid;
+        break-inside:avoid;
+        position:relative;
+      }
+      .postcards-grid > *:first-child {
+        page-break-before:auto;
+        break-before:auto;
+      }
+      .place-card {
+        width:10cm !important;
+        height:15cm !important;
+        margin:0 !important;
+        page-break-before:auto;
+        page-break-after:auto;
+        break-before:auto;
+        break-after:auto;
+        overflow:hidden;
+        background:var(--poster-bg, #fff) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        position:relative;
+      }
+      .place-card.paper-white,
+      .place-card.paper-cream {
+        background: var(--poster-bg) !important;
+      }
     }
   </style>
 </head>
@@ -499,7 +583,7 @@
           <button class="ghost danger-text" onclick="deleteSelectedPlan()">Supprimer la variante</button>
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
-            <button onclick="window.print()">Imprimer en 10×15</button>
+            <button onclick="downloadPdf()">Télécharger le PDF 10×15</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
           <span id="cardArtName" class="card-art-name"></span>
@@ -694,7 +778,13 @@
     function applyTheme(theme) {
       currentTheme = theme;
       localStorage.setItem('postcards-theme', currentTheme);
+      document.body.classList.remove('paper-white', 'paper-cream');
+      document.body.classList.add(currentTheme);
       load();
+    }
+    function downloadPdf() {
+      const url = `/api/postcards/export.pdf?theme=${encodeURIComponent(currentTheme)}`;
+      window.location.href = url;
     }
     async function load(){
       const r = await fetch('/api/plan');
@@ -713,6 +803,7 @@
       });
     }
     initThemeSelect();
+    document.body.classList.add(currentTheme);
     updateCardArtLabel();
     loadPlans().catch(()=>{});
     load();

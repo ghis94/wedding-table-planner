@@ -19,13 +19,11 @@
       margin: 18px 0;
       padding: 14px 16px;
       border-radius: 22px;
-      position: sticky;
-      top: 86px;
       z-index: 20;
-      background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 82%, white 18%), var(--surface));
-      border: 1px solid var(--line-soft);
-      box-shadow: var(--shadow-sm);
-      backdrop-filter: blur(20px);
+      background: rgba(255,255,255,.28);
+      border: 1px solid rgba(164,127,89,.08);
+      box-shadow: var(--shadow-xs);
+      backdrop-filter: none;
     }
     .plan-switcher {
       display:flex;
@@ -35,32 +33,48 @@
       padding: 10px 12px;
       margin: 18px 0 0;
       border-radius: 22px;
-      border: 1px solid var(--line-soft);
-      background: color-mix(in srgb, var(--surface-strong) 88%, transparent);
+      border: 1px solid rgba(164,127,89,.08);
+      background: rgba(255,255,255,.34);
       box-shadow: var(--shadow-xs);
     }
-    .plan-switcher label { margin:0; }
+    .plan-switcher label { margin:0; font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--text-soft); }
     .plan-switcher select { width: min(320px, 100%); }
-    .save-indicator {
+    .plan-actions {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .toolbar-row {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .plan-status {
       display:inline-flex;
       align-items:center;
-      gap:6px;
+      gap:8px;
       padding:8px 12px;
-      background: var(--surface-solid);
+      background: rgba(255,255,255,.62);
       border:1px solid var(--line-soft);
-      border-radius:14px;
-      font-size:12px;
+      border-radius:999px;
+      font-size:11px;
       color: var(--text-muted);
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      white-space:nowrap;
     }
+    .plan-status .dot { width:8px; height:8px; border-radius:50%; background:#22c55e; }
     .layout-container { display:flex; gap:22px; align-items:stretch; }
     .sidebar {
       width: 300px;
       flex-shrink: 0;
-      background: linear-gradient(180deg, var(--surface-strong), var(--surface));
-      border: 1px solid var(--line-soft);
-      box-shadow: var(--shadow-md);
-      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,.40);
+      border: 1px solid rgba(164,127,89,.08);
+      box-shadow: var(--shadow-xs);
+      backdrop-filter: none;
       border-radius: 28px;
       padding: 20px;
       position: sticky;
@@ -154,8 +168,31 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
     }
     .round-table .meta { font-size:11px; color:var(--text-muted); letter-spacing:.12em; text-transform:uppercase; }
-    .progress { width:102px; height:7px; background:rgba(138,102,70,.12); border-radius:999px; overflow:hidden; }
-    .progress span { display:block; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-strong)); }
+    .table-fill {
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-width: 122px;
+      padding: 7px 12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(164,127,89,.16);
+      color: var(--text-muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.11em;
+    }
+    .table-fill .dot {
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(181,136,99,.12);
+    }
+    .table-fill[data-state="full"] .dot { background:#8f5d36; box-shadow: 0 0 0 4px rgba(143,93,54,.14); }
+    .table-fill[data-state="busy"] .dot { background:#b58863; box-shadow: 0 0 0 4px rgba(181,136,99,.12); }
+    .table-fill[data-state="open"] .dot { background:#bfa17d; box-shadow: 0 0 0 4px rgba(191,161,125,.12); }
     .seat-slot {
       border:1px dashed rgba(164,127,89,.34);
       background:rgba(255,255,255,.16);
@@ -201,7 +238,9 @@
     }
     @media (max-width: 700px) {
       .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .toolbar { top: 12px; }
+      .toolbar { }
+      .plan-actions { margin-left:0; width:100%; }
+      .toolbar-row { width:100%; }
     }
   </style>
 </head>
@@ -236,10 +275,14 @@
       </div>
     </section>
     <div class="toolbar">
-      <span class="save-indicator"><span style="width:8px;height:8px;background:#22c55e;border-radius:50%"></span><span>Auto-sauvegarde</span></span>
-      <button onclick="saveLayout()">Sauvegarder</button>
-      <button class="ghost" onclick="resetLayout()">Reset</button>
-      <button class="ghost" onclick="reloadPlan()">Recharger</button>
+      <div class="toolbar-row">
+        <span class="plan-status"><span class="dot"></span><span>Auto-sauvegarde</span></span>
+        <div class="plan-actions">
+          <button onclick="saveLayout()">Sauvegarder</button>
+          <button class="ghost" onclick="resetLayout()">Reset</button>
+          <button class="ghost" onclick="reloadPlan()">Recharger</button>
+        </div>
+      </div>
     </div>
     <div class="layout-container">
       <div class="sidebar">
@@ -265,7 +308,7 @@
     function normType(t){ const v=String(t||'adulte'); if(v==='enfant') return 'enfant'; if(v==='bebe') return 'bebe'; return 'adulte'; }
     function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':''); }
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
-    function regimeClass(regime){ const r=String(regime||'').toLowerCase(); if(!r) return ''; if(r.includes('vegan')) return 'regime-vegan'; if(r.includes('végé')||r.includes('vege')||r.includes('végétar')) return 'regime-vege'; if(r.includes('sans porc')) return 'regime-sans-porc'; if(r.includes('halal')) return 'regime-halal'; if(r.includes('kasher')||r.includes('casher')) return 'regime-kasher'; if(r.includes('sans gluten')||r.includes('gluten')) return 'regime-sans-gluten'; if(r.includes('sans lactose')||r.includes('lactose')) return 'regime-sans-lactose'; return 'regime-default'; }
+    function regimeClass(regime){ const r=String(regime||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); if(!r) return ''; if(r.includes('vegan')) return 'regime-vegan'; if(r.includes('vege') || r.includes('vegetar')) return 'regime-vege'; if(r.includes('sans porc')) return 'regime-sans-porc'; if(r.includes('halal')) return 'regime-halal'; if(r.includes('kasher')||r.includes('casher')) return 'regime-kasher'; if(r.includes('sans gluten')||r.includes('gluten')) return 'regime-sans-gluten'; if(r.includes('sans lactose')||r.includes('lactose')) return 'regime-sans-lactose'; return 'regime-default'; }
     function renderPlanSelect(){ const select=document.getElementById('planSelect'); if(!select) return; select.innerHTML=(planVariants||[]).map(p=>`<option value="${escapeHtml(p.id)}" ${p.id===activePlanId?'selected':''}>${escapeHtml(p.name)}${p.active?' · actif':''}</option>`).join(''); }
     async function refreshPlans(){ const r=await fetch('/api/plans'); if(!r.ok) return; const data=await r.json(); planVariants=data.plans||[]; activePlanId=data.activePlanId || planVariants.find(p=>p.active)?.id || null; renderPlanSelect(); }
     async function activateSelectedPlan(){ const select=document.getElementById('planSelect'); const id=select?.value; if(!id || id===activePlanId) return; await fetch(`/api/plans/${encodeURIComponent(id)}/activate`, { method:'POST' }); await refreshPlans(); await load(); }
@@ -334,7 +377,9 @@
       resolved.forEach(({t, capacity, bounds, pos})=>{
         plan.layout.tables[t.id]=clampTablePos(pos, bounds);
         const cluster=document.createElement('div'); cluster.className='table-cluster'; cluster.style.left=pos.x+'px'; cluster.style.top=pos.y+'px'; cluster.style.width=bounds.width+'px'; cluster.style.height=bounds.height+'px';
-        const table=document.createElement('div'); table.className='round-table'; table.style.left=(CLUSTER_PADDING + bounds.offsetX)+'px'; table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px'; const ratio=Math.min(100, Math.round((((t.guests||[]).filter(Boolean).length)/Math.max(1,capacity))*100)); table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${((t.guests||[]).filter(Boolean).length)}/${capacity}</div><div class="progress"><span style="width:${ratio}%"></span></div></div>`; drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); autoSave(); }); cluster.appendChild(table);
+        const seated=(t.guests||[]).filter(Boolean).length; const ratio=Math.min(100, Math.round(((seated)/Math.max(1,capacity))*100)); const state = ratio >= 100 ? 'full' : ratio >= 75 ? 'busy' : 'open';
+        const label = ratio >= 100 ? 'Pleine' : ratio >= 75 ? 'Bien remplie' : ratio >= 50 ? 'En cours' : 'Disponible';
+        const table=document.createElement('div'); table.className='round-table'; table.style.left=(CLUSTER_PADDING + bounds.offsetX)+'px'; table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px'; table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${seated}/${capacity}</div><div class="table-fill" data-state="${state}"><span class="dot"></span><span>${label}</span></div></div>`; drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); autoSave(); }); cluster.appendChild(table);
         for(let seatIndex=0; seatIndex<capacity; seatIndex++){
           const guest=(t.guests||[])[seatIndex] || null; const seat=seatLayout(seatIndex, capacity, guest||{name:'',regime:''}); const slot=document.createElement('div'); slot.className='seat-slot'; slot.dataset.tableId=t.id; slot.dataset.seatIndex=String(seatIndex); slot.style.left=(seat.left + bounds.offsetX)+'px'; slot.style.top=(seat.top + bounds.offsetY)+'px'; slot.style.width=seat.width+'px'; slot.style.height=seat.height+'px'; cluster.appendChild(slot); if(!guest) continue;
           const chip=document.createElement('div'); chip.className=`guest-chip ${normType(guest.type)}`; chip.style.left=(seat.left + bounds.offsetX)+'px'; chip.style.top=(seat.top + bounds.offsetY)+'px'; chip.style.width=seat.width+'px'; const regime=(guest.regime||'').trim(); const type=normType(guest.type); const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`; chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`; setupDragFromTable(chip, guest, t.id, seatIndex); cluster.appendChild(chip);
@@ -347,7 +392,13 @@
     function drag(handle, cluster, bounds, onDrop){ let sx=0, sy=0, ox=0, oy=0, down=false; handle.addEventListener('pointerdown', e=>{ if(e.target.tagName==='INPUT') return; down=true; sx=e.clientX; sy=e.clientY; ox=parseInt(cluster.style.left,10)||0; oy=parseInt(cluster.style.top,10)||0; handle.setPointerCapture(e.pointerId); }); handle.addEventListener('pointermove', e=>{ if(!down) return; const nx=ox+(e.clientX-sx), ny=oy+(e.clientY-sy); const clamped=clampTablePos({x:nx,y:ny}, bounds); cluster.style.left=clamped.x+'px'; cluster.style.top=clamped.y+'px'; }); handle.addEventListener('pointerup', ()=>{ if(!down) return; down=false; onDrop(parseInt(cluster.style.left,10)||0, parseInt(cluster.style.top,10)||0); }); }
     let saveTimeout = null;
     async function autoSave(){ if(saveTimeout) clearTimeout(saveTimeout); saveTimeout = setTimeout(async () => { try { await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)}); showSaveIndicator(); } catch(e){ console.error('Auto-save failed:', e); } }, 800); }
-    function showSaveIndicator(){ const btn = document.querySelector('.toolbar .save-indicator'); if(btn){ btn.classList.add('saving'); setTimeout(()=>btn.classList.remove('saving'),600); } }
+    function showSaveIndicator(){
+      const indicator = document.querySelector('.toolbar .plan-status');
+      if(indicator){
+        indicator.classList.add('saving');
+        setTimeout(()=>indicator.classList.remove('saving'),600);
+      }
+    }
     async function saveLayout(){ await fetch('/api/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(plan)}); showSaveIndicator(); }
     function resetLayout(){ plan.layout={tables:{},guests:{}}; plan.stagingGuests=[]; render(); }
     window.addEventListener('resize', ()=>requestAnimationFrame(render)); window.addEventListener('focus', ()=>load()); load();
