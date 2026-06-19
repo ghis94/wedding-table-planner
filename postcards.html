@@ -121,7 +121,15 @@
       opacity:.72;
     }
     .botanical { right:-8px; top:-2px; width:138px; height:210px; }
-    .botanical-bottom { left:-10px; bottom:-8px; width:146px; height:220px; transform: scaleX(-1) rotate(-8deg); opacity:.54; }
+    .botanical-bottom {
+      display:block;
+      left:-10px;
+      bottom:-8px;
+      width:146px;
+      height:220px;
+      transform: scaleX(-1) rotate(-8deg);
+      opacity:.54;
+    }
     .card-frame {
       position:absolute;
       inset: 10px;
@@ -190,8 +198,20 @@
       flex-direction:column;
       min-height:100%;
       width:100%;
-      justify-content:flex-start;
-      padding: .06cm 0;
+      align-items:center;
+      padding: .18cm 0 .1cm;
+      box-sizing:border-box;
+    }
+    .card-content {
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      flex:1;
+      min-height:0;
+      padding: 1.05cm 0 1.45cm;
+      box-sizing:border-box;
     }
     .card-eyebrow {
       text-align:center;
@@ -203,7 +223,7 @@
       margin-bottom:10px;
     }
     .card-title {
-      margin: 8px 0 4px;
+      margin: 0 0 4px;
       font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', 'Bodoni 72 Smallcaps', 'Cormorant Garamond', serif;
       font-size: clamp(2.05rem, 3vw, 2.55rem);
       line-height:1;
@@ -223,13 +243,12 @@
     .guest-list {
       display:grid;
       gap:8px;
-      margin-top:18px;
+      margin-top:16px;
       align-content:start;
       justify-content:stretch;
       align-self:stretch;
       padding: 0 2px;
-      flex:1;
-      height:100%;
+      flex:0;
     }
     .guest-item {
       text-align:center;
@@ -292,8 +311,8 @@
       line-height:1.1;
     }
     .card-footer {
-      margin-top:auto;
-      padding-top:14px;
+      margin-top:0;
+      padding-bottom:0.1cm;
       text-align:center;
       color: color-mix(in srgb, var(--label-color) 82%, white 18%);
       font-size:10px;
@@ -365,7 +384,6 @@
       --poster-bg:#fffdfa;
       --poster-edge:#c8bcb2;
       --poster-ink:#14110f;
-      --poster-ornament:#4b3a31;
       padding:.56cm .42cm .7cm;
       border-radius:18px;
       border:1px solid var(--poster-edge);
@@ -383,14 +401,8 @@
         radial-gradient(circle at 50% 42%, rgba(255,255,255,.22), transparent 30%),
         linear-gradient(180deg, rgba(255,255,255,.22), transparent 18%);
     }
-    .place-card.paper-white .botanical,
-    .place-card.paper-white .botanical-bottom,
     .place-card.paper-white .card-divider,
-    .place-card.paper-white .card-eyebrow,
-    .place-card.paper-cream .botanical,
-    .place-card.paper-cream .botanical-bottom,
-    .place-card.paper-cream .card-divider,
-    .place-card.paper-cream .card-eyebrow { display:none; }
+    .place-card.paper-cream .card-divider { display:none; }
     .place-card.paper-white .card-frame,
     .place-card.paper-cream .card-frame {
       inset:8px;
@@ -406,8 +418,19 @@
     .place-card.paper-white .card-inner,
     .place-card.paper-cream .card-inner {
       align-items:center;
-      justify-content:flex-start;
-      padding-top:1.95cm;
+      padding-top:.14cm;
+    }
+    .place-card.paper-white .botanical,
+    .place-card.paper-cream .botanical {
+      right:-8px;
+      top:-2px;
+      width:138px;
+      height:210px;
+      opacity:.42;
+    }
+    .place-card.paper-white .card-content,
+    .place-card.paper-cream .card-content {
+      padding: 1.4cm 0 1.8cm;
     }
     .place-card.paper-white .card-title,
     .place-card.paper-cream .card-title {
@@ -423,9 +446,8 @@
     }
     .place-card.paper-white .guest-list,
     .place-card.paper-cream .guest-list {
-      flex:0;
       width:100%;
-      margin-top:1.02cm;
+      margin-top:.78cm;
       gap:.24cm;
       align-content:start;
       justify-content:center;
@@ -465,23 +487,15 @@
       grid-template-columns:repeat(2, minmax(0, 1fr));
       column-gap:.18cm;
     }
-    .poster-ornament {
-      margin-top:auto;
-      padding-bottom:.74cm;
-      width:3.25cm;
-      color:var(--poster-ornament);
-    }
-    .poster-ornament svg { display:block; width:100%; height:auto; }
-
     .empty-state {
       padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
     }
 
     @media print {
-      @page { size: A4 portrait; margin: 0; }
+      @page { size: 10cm 15cm; margin: 0; }
       html, body {
-        width:210mm;
-        min-height:297mm;
+        width:10cm;
+        min-height:15cm;
         margin:0 !important;
         padding:0 !important;
         overflow:visible !important;
@@ -503,13 +517,13 @@
       body { margin:0 !important; }
       .wrap {
         max-width:none;
-        width:210mm;
+        width:10cm;
         padding:0 !important;
         margin:0 auto !important;
       }
       .postcards-page {
         gap:0 !important;
-        width:210mm;
+        width:10cm;
         margin:0 auto;
       }
       .postcards-toolbar,
@@ -519,7 +533,7 @@
       }
       .postcards-grid {
         display:block;
-        width:210mm !important;
+        width:10cm !important;
         margin:0 auto;
       }
       .postcards-grid::before,
@@ -530,8 +544,8 @@
       .postcards-grid > * {
         display:grid;
         place-items:center;
-        width:210mm;
-        height:297mm;
+        width:10cm;
+        height:15cm;
         margin:0 !important;
         page-break-before:always;
         break-before:page;
@@ -561,6 +575,12 @@
       .place-card.paper-cream {
         background: var(--poster-bg) !important;
       }
+      .card-inner {
+        padding: .14cm 0 .08cm;
+      }
+      .card-content {
+        padding: 1.25cm 0 1.7cm;
+      }
     }
   </style>
 </head>
@@ -583,7 +603,7 @@
           <button class="ghost danger-text" onclick="deleteSelectedPlan()">Supprimer la variante</button>
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
-            <button onclick="downloadPdf()">Télécharger le PDF 10×15</button>
+            <button onclick="downloadPdf()">Imprimer / PDF 10×15</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
           <span id="cardArtName" class="card-art-name"></span>
@@ -595,11 +615,13 @@
   </div>
 
   <script>
+    const exportBootstrap = window.__POSTCARDS_EXPORT__ || null;
+    const exportQuery = new URLSearchParams(window.location.search);
     const themeGroups = [
       { label: 'Papier', options: [['paper-white','Blanc'],['paper-cream','Crème']] }
     ];
     const allThemeOptions = themeGroups.flatMap(group => group.options);
-    let currentTheme = localStorage.getItem('postcards-theme') || 'paper-white';
+    let currentTheme = exportBootstrap?.theme || exportQuery.get('theme') || localStorage.getItem('postcards-theme') || 'paper-white';
     let planVariants = [];
     let activePlanId = '';
     let cardArt = '';
@@ -625,6 +647,12 @@
       });
     }
     async function loadPlans(){
+      if (exportBootstrap) {
+        planVariants = [];
+        activePlanId = '';
+        renderActivePlanSelect();
+        return;
+      }
       const res = await api('/api/plans');
       planVariants = res.plans || [];
       activePlanId = res.activePlanId || planVariants.find(p => p.active)?.id || '';
@@ -746,22 +774,20 @@
     }
     function buildCardMarkup(table, guests, index) {
       const number = tableNumber(table, index);
+      const displayName = tableNameWithoutNumber(table, number);
       return `
         <div class="card-frame"></div>
         <div class="print-safe-area"></div>
         <div class="card-inner">
-          <div class="card-title">Table ${escapeHtml(number)}</div>
-          <div class="card-divider"></div>
-          <div class="guest-list">
-            ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
+          <div class="card-content">
+            <div class="card-title">Table ${escapeHtml(number)}</div>
+            ${displayName ? `<div class="card-eyebrow">${escapeHtml(displayName)}</div>` : ''}
+            <div class="card-divider"></div>
+            <div class="guest-list">
+              ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
+            </div>
           </div>
-          <div class="poster-ornament" aria-hidden="true">
-            <svg viewBox="0 0 180 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M10 18c18 2 32-4 47-14M20 19c9 7 20 8 33 2M39 10c-4-5-10-7-18-7M48 7c2 7 8 12 18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <path d="M90 25s-18-10-12-22c6-8 12 2 12 2s6-10 12-2c6 12-12 22-12 22Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-              <path d="M170 18c-18 2-32-4-47-14M160 19c-9 7-20 8-33 2M141 10c4-5 10-7 18-7M132 7c-2 7-8 12-18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
+          <div class="botanical-bottom" aria-hidden="true">${floralSvg('')}</div>
         </div>`;
     }
     function initThemeSelect() {
@@ -783,13 +809,18 @@
       load();
     }
     function downloadPdf() {
-      const url = `/api/postcards/export.pdf?theme=${encodeURIComponent(currentTheme)}`;
-      window.location.href = url;
+      window.print();
     }
     async function load(){
-      const r = await fetch('/api/plan');
-      if(!r.ok){ document.getElementById('cards').innerHTML = '<div class="empty-state">Connexion requise.</div>'; return; }
-      const plan = await r.json();
+      const plan = exportBootstrap?.plan || await (async () => {
+        const r = await fetch('/api/plan');
+        if(!r.ok){
+          document.getElementById('cards').innerHTML = '<div class="empty-state">Connexion requise.</div>';
+          return null;
+        }
+        return await r.json();
+      })();
+      if(!plan) return;
       const cards = document.getElementById('cards');
       const tables = (plan.tables || []).filter(Boolean);
       if(!tables.length){ cards.innerHTML = '<div class="empty-state">Aucune table disponible.</div>'; return; }

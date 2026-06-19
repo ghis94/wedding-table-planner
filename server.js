@@ -241,6 +241,42 @@ function findChromiumBinary() {
   return null;
 }
 
+async function renderCardToPng(htmlUrl, pngPath) {
+  const chromiumPath = findChromiumBinary();
+  if (chromiumPath) {
+    execFileSync(chromiumPath, [
+      '--headless=new',
+      '--disable-gpu',
+      '--hide-scrollbars',
+      '--force-device-scale-factor=1',
+      `--screenshot=${pngPath}`,
+      '--window-size=1000,1500',
+      htmlUrl,
+    ], { stdio: 'ignore' });
+    return;
+  }
+
+  let chromium;
+  try {
+    ({ chromium } = require('playwright'));
+  } catch {
+    throw new Error('Chromium introuvable sur le serveur pour l’export PDF. Installe Chromium système ou Playwright.');
+  }
+
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+
+  try {
+    const page = await browser.newPage({ viewport: { width: 1000, height: 1500 }, deviceScaleFactor: 1 });
+    await page.goto(htmlUrl, { waitUntil: 'networkidle' });
+    await page.screenshot({ path: pngPath, fullPage: true });
+  } finally {
+    await browser.close();
+  }
+}
+
 function escapeSvgText(value = '') {
   return String(value)
     .replaceAll('&', '&amp;')
@@ -282,24 +318,23 @@ function buildCardSvg(table, themeName = 'paper-white') {
   const tableNumber = Number.isFinite(fromNumber) && fromNumber > 0
     ? String(fromNumber)
     : (String(table.name || '').match(/\d+/)?.[0] || '1');
+  const displayName = tableDisplayName(table, tableNumber);
   const isDense = count >= 11 && count < 15;
   const isVeryDense = count >= 15;
   const isTwoColumns = count >= 16;
-  const guestSize = isVeryDense ? 42 : (isDense ? 50 : 61);
-  const guestGap = isVeryDense ? 31 : (isDense ? 48 : 63);
-  const guestTop = isVeryDense ? 376 : (isDense ? 389 : 439);
+  const guestSize = isVeryDense ? 16 : (isDense ? 19 : 23);
+  const guestGap = isVeryDense ? 12 : (isDense ? 18 : 24);
+  const guestTop = isVeryDense ? 686 : (isDense ? 664 : 646);
   const guestMaxChars = isTwoColumns ? 12 : (isVeryDense ? 16 : 20);
   const guestLines = splitGuestLines(guests, guestMaxChars);
   const columns = isTwoColumns ? 2 : 1;
-  const leftColumnX = 267;
-  const rightColumnX = 733;
+  const leftColumnX = 355;
+  const rightColumnX = 645;
   const rowsPerColumn = Math.max(1, Math.ceil(guestLines.length / columns));
-  const titleY = 275;
-  const titleSize = 82;
-  const titleLetterSpacing = 27.88;
-  const dividerY = 325;
-  const dividerHalfWidth = 98;
-  const ornamentY = 1334;
+  const titleY = 335;
+  const titleSize = 31;
+  const titleLetterSpacing = 3.4;
+  const ornamentY = 1388;
 
   const rows = guestLines.length
     ? guestLines.map((line, index) => {
@@ -311,13 +346,29 @@ function buildCardSvg(table, themeName = 'paper-white') {
       }).join('\n')
     : `<text x="500" y="${guestTop}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">Table en préparation</text>`;
 
+  const bgEnd = themeName === 'paper-cream' ? '#f8f1e8' : '#fffdfa';
+  const frame = themeName === 'paper-cream' ? '#beb0a4' : '#c8bcb2';
+
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1500" viewBox="0 0 1000 1500">
-  <rect width="1000" height="1500" fill="${theme.bgStart}" />
-  <rect x="0.5" y="0.5" width="999" height="1499" rx="18" ry="18" fill="${theme.bgStart}" stroke="${theme.frame}" stroke-width="1" />
-  <rect x="8" y="8" width="984" height="1484" rx="12" ry="12" fill="none" stroke="${theme.frame}" stroke-width="1" />
-  <text x="500" y="${titleY}" text-anchor="middle" font-family="Bodoni Moda, Georgia, serif" font-size="${titleSize}" font-weight="500" letter-spacing="${titleLetterSpacing}" fill="${theme.title}">TABLE ${escapeSvgText(tableNumber)}</text>
-  <line x1="${500 - dividerHalfWidth}" y1="${dividerY}" x2="${500 + dividerHalfWidth}" y2="${dividerY}" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" opacity=".85" />
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="rgba(255,255,255,.34)"/>
+      <stop offset="28%" stop-color="rgba(255,255,255,.08)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+    <linearGradient id="bgShade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,.22)"/>
+      <stop offset="18%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="1500" fill="${bgEnd}" />
+  <rect x="0.5" y="0.5" width="999" height="1499" rx="18" ry="18" fill="${bgEnd}" stroke="${frame}" stroke-width="1" />
+  <rect x="8" y="8" width="984" height="1484" rx="12" ry="12" fill="none" stroke="${frame}" stroke-width="1" />
+  <rect width="1000" height="1500" fill="url(#bgGlow)" />
+  <rect width="1000" height="1500" fill="url(#bgShade)" />
+  <text x="500" y="${titleY}" text-anchor="middle" font-family="Bodoni Moda, Didot, Bodoni 72, Georgia, serif" font-size="${titleSize}" font-weight="500" letter-spacing="${titleLetterSpacing}" fill="${theme.label}" text-transform="uppercase">${escapeSvgText(`Table ${tableNumber}`)}</text>
+  ${displayName ? `<text x="500" y="382" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="22" font-weight="700" fill="${theme.label}">${escapeSvgText(displayName)}</text>` : ''}
   ${rows}
   <g transform="translate(500 ${ornamentY})" fill="none" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
     <path d="M-80 0c-18 2-32-4-47-14M-90 1c-9 7-20 8-33 2M-111 -8c4-5 10-7 18-7M-120 -11c2 7 8 12 18 15" />
@@ -351,6 +402,7 @@ function buildCardHtml(table, themeName = 'paper-white') {
   const tableNumber = Number.isFinite(fromNumber) && fromNumber > 0
     ? String(fromNumber)
     : (String(table.name || '').match(/\d+/)?.[0] || '1');
+  const displayName = tableDisplayName(table, tableNumber);
   const classes = [
     'place-card',
     CARD_THEMES[themeName] ? themeName : 'paper-white',
@@ -371,7 +423,7 @@ function buildCardHtml(table, themeName = 'paper-white') {
       html, body { margin:0; padding:0; width:1000px; height:1500px; background:#fff; }
       body { overflow:hidden; }
       .place-card {
-        --poster-bg:${theme.bgStart}; --poster-bg-end:${theme.bgEnd}; --poster-edge:${theme.frame}; --poster-ink:${theme.title}; --poster-ornament:${theme.accent};
+        --poster-bg:${theme.bgStart}; --poster-bg-end:${theme.bgEnd}; --poster-edge:${theme.frame}; --poster-ink:${theme.title};
         position:relative; width:1000px; height:1500px; padding:56px 42px 70px; box-sizing:border-box; overflow:hidden;
         background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 28%), linear-gradient(180deg, var(--poster-bg), var(--poster-bg-end));
         border:1px solid var(--poster-edge); border-radius:18px; display:flex; isolation:isolate;
@@ -383,10 +435,13 @@ function buildCardHtml(table, themeName = 'paper-white') {
         pointer-events:none; z-index:0;
       }
       .card-frame { position:absolute; inset:8px; border-radius:12px; border:1px solid var(--poster-edge); pointer-events:none; z-index:0; }
-      .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; min-height:100%; width:100%; padding-top:195px; }
+      .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; min-height:100%; width:100%; padding:14px 0 8px; box-sizing:border-box; }
+      .card-content { width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1; min-height:0; padding:140px 0 180px; box-sizing:border-box; }
       .card-title { margin:0; font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif; font-size:78px; font-weight:500; line-height:1; text-align:center; color:var(--poster-ink); text-transform:uppercase; letter-spacing:.34em; text-shadow:0 1px 0 rgba(255,255,255,.5); }
-      .guest-list { display:grid; gap:24px; width:100%; margin-top:102px; padding:0 42px; align-content:start; justify-content:center; }
+      .card-eyebrow { margin:0 0 10px; text-align:center; font-family:'Cormorant Garamond', Georgia, serif; font-size:22px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--poster-ink); }
+      .guest-list { display:grid; gap:24px; width:100%; margin-top:78px; padding:0 42px; align-content:start; justify-content:center; }
       .guest-item { text-align:center; color:var(--poster-ink); font-size:58px; line-height:1.05; font-weight:600; letter-spacing:0; padding:0; }
+      .botanical-bottom { position:absolute; display:block; left:-10px; bottom:-8px; width:146px; height:220px; opacity:.42; pointer-events:none; transform:scaleX(-1) rotate(-8deg); }
       .has-few-guests .guest-list, .has-medium-guests .guest-list { align-content:start; gap:24px; }
       .has-few-guests .guest-item, .has-medium-guests .guest-item { font-size:58px; }
       .is-dense .guest-list { gap:18px; margin-top:82px; }
@@ -394,27 +449,52 @@ function buildCardHtml(table, themeName = 'paper-white') {
       .is-very-dense .guest-list { gap:12px; margin-top:70px; }
       .is-very-dense .guest-item { font-size:40px; }
       .is-two-columns .guest-list { grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:18px; }
-      .poster-ornament { margin-top:auto; padding-bottom:74px; width:325px; color:var(--poster-ornament); }
-      .poster-ornament svg { display:block; width:100%; height:auto; }
     </style>
   </head>
   <body>
     <article class="${classes}">
       <div class="card-frame"></div>
       <div class="card-inner">
-        <div class="card-title">Table ${escapeHtml(tableNumber)}</div>
-        <div class="guest-list">${guestHtml}</div>
-        <div class="poster-ornament" aria-hidden="true">
-          <svg viewBox="0 0 180 34" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M10 18c18 2 32-4 47-14M20 19c9 7 20 8 33 2M39 10c-4-5-10-7-18-7M48 7c2 7 8 12 18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <path d="M90 25s-18-10-12-22c6-8 12 2 12 2s6-10 12-2c6 12-12 22-12 22Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M170 18c-18 2-32-4-47-14M160 19c-9 7-20 8-33 2M141 10c4-5 10-7 18-7M132 7c-2 7-8 12-18 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <div class="card-content">
+          <div class="card-title">Table ${escapeHtml(tableNumber)}</div>
+          ${displayName ? `<div class="card-eyebrow">${escapeHtml(displayName)}</div>` : ''}
+          <div class="guest-list">${guestHtml}</div>
+        </div>
+        <div class="botanical-bottom" aria-hidden="true">
+          <svg viewBox="0 0 180 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M68 248C74 213 78 181 77 149C76 121 67 92 48 63" stroke="${theme.accent}" stroke-width="2.2" stroke-linecap="round" opacity=".55"/>
+            <path d="M80 231C102 201 112 171 112 136C112 104 103 73 84 44" stroke="${theme.title}" stroke-width="1.9" stroke-linecap="round" opacity=".45"/>
+            <path d="M41 86C26 83 16 72 12 54C27 58 38 66 45 80" fill="${theme.accent}" opacity=".7"/>
+            <path d="M34 118C18 117 8 109 3 93C20 96 31 104 38 113" fill="${theme.title}" opacity=".62"/>
+            <path d="M98 62C112 55 121 42 124 24C111 28 100 37 94 51" fill="${theme.accent}" opacity=".58"/>
+            <path d="M120 104C136 98 146 85 150 68C135 72 124 82 117 95" fill="${theme.title}" opacity=".55"/>
+            <circle cx="85" cy="40" r="10" fill="${theme.title}" opacity=".65"/>
+            <circle cx="49" cy="78" r="8" fill="${theme.accent}" opacity=".56"/>
+            <circle cx="117" cy="92" r="8" fill="${theme.accent}" opacity=".52"/>
+            <circle cx="25" cy="110" r="7" fill="${theme.title}" opacity=".58"/>
           </svg>
         </div>
       </div>
     </article>
   </body>
   </html>`;
+}
+
+function buildPrintablePostcardsHtml(tables, themeName = 'paper-white') {
+  const themeClass = CARD_THEMES[themeName] ? themeName : 'paper-white';
+  const htmlPath = path.join(__dirname, 'postcards.html');
+  const bootstrap = JSON.stringify({ theme: themeClass, plan: { tables } })
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e');
+
+  return fs.readFileSync(htmlPath, 'utf8')
+    .replace('</title>', '</title>\n  <base href="http://127.0.0.1:' + PORT + '/" />')
+    .replace(/<script src="theme\.js"><\/script>\s*/i, '')
+    .replace(/<script src="header\.js" defer><\/script>\s*/i, '')
+    .replace(
+      /<script>\s*const exportBootstrap =/i,
+      `<script>window.__POSTCARDS_EXPORT__ = ${bootstrap};</script>\n  <script>\n    const exportBootstrap =`
+    );
 }
 
 function buildZip(files) {
@@ -542,41 +622,34 @@ function splitPdfText(value, maxChars = 26) {
   return lines;
 }
 
-function buildPdfFromTables(tables, themeName) {
-  const pageWidthPt = 210 / 25.4 * 72;
-  const pageHeightPt = 297 / 25.4 * 72;
-  const cardWidthPt = 100 / 25.4 * 72;
-  const cardHeightPt = 150 / 25.4 * 72;
-  const chromiumPath = findChromiumBinary();
-  if (!chromiumPath) {
-    throw new Error('Chromium introuvable sur le serveur pour l’export PDF.');
+async function buildPdfFromTables(tables, themeName) {
+  let chromium;
+  try {
+    ({ chromium } = require('playwright'));
+  } catch {
+    throw new Error('Playwright introuvable sur le serveur pour l’export PDF.');
   }
 
-  const tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
+  const browser = await chromium.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  });
+
   try {
-    const pages = tables.map((table, index) => {
-      const htmlPath = path.join(tmpBase, `card-${index}.html`);
-      const pngPath = path.join(tmpBase, `card-${index}.png`);
-      fs.writeFileSync(htmlPath, buildCardHtml(table, themeName), 'utf8');
-      execFileSync(chromiumPath, [
-        '--headless=new',
-        '--disable-gpu',
-        '--hide-scrollbars',
-        '--force-device-scale-factor=1',
-        `--screenshot=${pngPath}`,
-        '--window-size=1000,1500',
-        `file://${htmlPath}`,
-      ], { stdio: 'ignore' });
-      return parsePng(fs.readFileSync(pngPath));
-    });
-    return buildPdfFromPngPages(pages, {
-      pageWidthPt,
-      pageHeightPt,
-      imageWidthPt: cardWidthPt,
-      imageHeightPt: cardHeightPt,
+    const page = await browser.newPage({ viewport: { width: 1240, height: 1754 }, deviceScaleFactor: 1 });
+    await page.setContent(buildPrintablePostcardsHtml(tables, themeName), { waitUntil: 'load' });
+    await page.waitForSelector('.postcards-grid > .place-card');
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    await page.emulateMedia({ media: 'print' });
+    return await page.pdf({
+      printBackground: true,
+      preferCSSPageSize: true,
+      width: '100mm',
+      height: '150mm',
+      margin: { top: '0', right: '0', bottom: '0', left: '0' },
     });
   } finally {
-    removeTempDir(tmpBase);
+    await browser.close();
   }
 }
 
@@ -1177,8 +1250,8 @@ app.get('/api/export/caterer.csv', requireAdmin, (_req, res) => {
 });
 
 app.get('/api/postcards/export', requireAdmin, (req, res) => {
-  let tmpBase;
-  try {
+  (async () => {
+    let tmpBase;
     const format = String(req.query.format || 'png').toLowerCase() === 'jpg' ? 'jpg' : 'png';
     const theme = cleanText(req.query.theme || 'paper-white', 80) || 'paper-white';
     const planRow = getActivePlanRow();
@@ -1186,43 +1259,32 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
     const tables = (plan.tables || []).filter(Boolean);
     if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
 
-    const chromiumPath = findChromiumBinary();
-    if (!chromiumPath) {
-      return res.status(500).json({ ok: false, error: 'Chromium introuvable sur le serveur pour l’export cartes.' });
-    }
-
     tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-cards-'));
-    const files = tables.map((table, index) => {
-      const htmlPath = path.join(tmpBase, `card-${index}.html`);
-      const pngPath = path.join(tmpBase, `card-${index}.png`);
-      fs.writeFileSync(htmlPath, buildCardHtml(table, theme), 'utf8');
-      execFileSync(chromiumPath, [
-        '--headless=new',
-        '--disable-gpu',
-        '--hide-scrollbars',
-        '--force-device-scale-factor=1',
-        `--screenshot=${pngPath}`,
-        '--window-size=1000,1500',
-        `file://${htmlPath}`,
-      ], { stdio: 'ignore' });
-      const pngBuffer = fs.readFileSync(pngPath);
-      return { name: `${safeFileName(table.name, 'table')}.${format}`, data: pngBuffer };
-    });
+    try {
+      const files = [];
+      for (const [index, table] of tables.entries()) {
+        const pngPath = path.join(tmpBase, `card-${index}.png`);
+        fs.writeFileSync(pngPath, renderCardPng(table, theme));
+        const pngBuffer = fs.readFileSync(pngPath);
+        files.push({ name: `${safeFileName(table.name, 'table')}.${format}`, data: pngBuffer });
+      }
 
-    const zipBuffer = buildZip(files);
-    const archiveName = `wedding-cards-${safeFileName(theme, 'theme')}-${format}.zip`;
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="${archiveName}"`);
-    res.send(zipBuffer);
-  } catch (err) {
+      const zipBuffer = buildZip(files);
+      const archiveName = `wedding-cards-${safeFileName(theme, 'theme')}-${format}.zip`;
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', `attachment; filename="${archiveName}"`);
+      res.send(zipBuffer);
+    } finally {
+      removeTempDir(tmpBase);
+    }
+  })().catch(err => {
     serverError(res, err, 'postcards-export');
-  } finally {
-    removeTempDir(tmpBase);
-  }
+  });
 });
 
 app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
-  try {
+  (async () => {
+    let tmpBase;
     const theme = cleanText(req.query.theme || 'paper-white', 80) || 'paper-white';
 
     const planRow = getActivePlanRow();
@@ -1230,17 +1292,22 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
     const tables = (plan.tables || []).filter(Boolean);
     if (!tables.length) return res.status(400).json({ ok: false, error: 'Aucune table disponible' });
 
-    const pdfBuffer = buildPdfFromTables(tables, theme);
+    tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
+    try {
+      const pdfBuffer = await buildPdfFromTables(tables, theme);
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-10x15.pdf"`);
-    res.send(pdfBuffer);
-  } catch (err) {
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-10x15.pdf"`);
+      res.send(pdfBuffer);
+    } finally {
+      removeTempDir(tmpBase);
+    }
+  })().catch(err => {
     if (err?.message === 'Chromium introuvable sur le serveur pour l’export PDF.') {
       return res.status(500).json({ ok: false, error: err.message });
     }
     serverError(res, err, 'postcards-export-pdf');
-  }
+  });
 });
 
 app.post('/api/config/import', requireAdmin, (req, res) => {

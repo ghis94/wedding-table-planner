@@ -66,6 +66,12 @@
       gap: 28px;
       align-items: start;
     }
+    .login-float {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      z-index: 20;
+    }
     .hero-copy {
       display: grid;
       gap: 18px;
@@ -78,11 +84,16 @@
       font-size: 1.08rem;
       max-width: 62ch;
     }
-    .login-float {
-      position: fixed;
-      top: 18px;
-      right: 18px;
-      z-index: 20;
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .hero-actions .btn {
+      min-height: 48px;
+      padding-inline: 18px;
+      font-size: 15px;
     }
     .info-grid {
       display: grid;
@@ -127,7 +138,7 @@
     }
     .section-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
     }
     .detail-card {
@@ -194,30 +205,6 @@
       font-weight: 800;
       letter-spacing: .02em;
     }
-    .quick-links {
-      display: grid;
-      gap: 12px;
-    }
-    .quick-links a {
-      position: relative;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 15px 16px;
-      border-radius: 16px;
-      border: 1px solid color-mix(in srgb, var(--line-soft) 90%, transparent);
-      background:
-        linear-gradient(180deg, color-mix(in srgb, var(--surface-solid) 92%, white 8%), var(--surface-solid));
-      color: var(--text);
-      box-shadow: var(--shadow-xs);
-      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
-    }
-    .quick-links a:hover {
-      color: var(--text);
-      border-color: color-mix(in srgb, var(--accent) 28%, var(--line-soft));
-      box-shadow: var(--shadow-sm);
-      transform: translateY(-1px);
-    }
     .footer-note {
       padding: 4px 2px 0;
       color: var(--text-soft);
@@ -229,23 +216,58 @@
       .section-grid {
         grid-template-columns: 1fr;
       }
+      .hero-copy h1 {
+        max-width: none;
+      }
     }
     @media (max-width: 720px) {
-      body { padding: 14px; }
-      .topbar { align-items: center; }
+      body { padding: 12px; }
+      .home-shell { gap: 14px; }
       .login-float {
-        top: 12px;
-        right: 12px;
+        top: 10px;
+        right: 10px;
+      }
+      .topbar {
+        align-items: flex-start;
+        margin-bottom: 10px;
       }
       .info-grid {
         grid-template-columns: 1fr;
       }
+      .hero-band {
+        padding: 22px 18px;
+      }
+      .detail-card,
+      .info-card {
+        padding: 16px;
+        border-radius: 16px;
+      }
+      .detail-card {
+        min-height: auto;
+      }
+      .schedule {
+        gap: 10px;
+      }
       .schedule-item {
         grid-template-columns: 1fr;
+        gap: 10px;
+        padding: 12px;
+      }
+      .schedule-time {
+        width: fit-content;
       }
       .brand {
         gap: 10px;
+        align-items: center;
       }
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+      }
+      h1 { font-size: clamp(2.1rem, 12vw, 3rem); }
+      h2 { font-size: clamp(1.55rem, 8vw, 2.2rem); }
+      p { margin-bottom: 12px; }
     }
   </style>
 </head>
@@ -272,8 +294,12 @@
           <div class="eyebrow">Bienvenue</div>
           <h1>Mathilde &amp; Ghislain</h1>
           <p class="lede">
-            Le 25 juillet 2026, on se retrouve pour la cérémonie puis la réception. Les infos utiles sont rassemblées ici, simplement.
+            Le 25 juillet 2026, cérémonie, vin d’honneur et réception. Les infos essentielles sont rassemblées ici, simplement.
           </p>
+          <div class="hero-actions">
+            <a class="btn" href="#infos">Voir les infos</a>
+            <a class="btn secondary" href="login.html" aria-label="Connexion administrateur">Login / admin</a>
+          </div>
         </div>
 
         <div class="info-grid" aria-label="Résumé rapide">
@@ -284,8 +310,8 @@
           </article>
           <article class="info-card">
             <span class="label">Lieu</span>
-            <strong>Saint-Maur-des-Fossés</strong>
-            <p>Cérémonie en mairie puis réception au Manoir De L&apos;ile Aux Loups.</p>
+            <strong>Saint-Maur / Nogent</strong>
+            <p>Cérémonie en mairie, puis vin d’honneur et réception au Manoir De L&apos;ile Aux Loups.</p>
           </article>
         </div>
       </div>
@@ -297,7 +323,8 @@
         <h2>Ce qu’il faut savoir</h2>
         <ul>
           <li><span>Cérémonie</span><span>15:00 - 16:00</span></li>
-          <li><span>Réception</span><span>16:00 - 04:00</span></li>
+          <li><span>Vin d’honneur</span><span>16:00 - 20:30</span></li>
+          <li><span>Réception</span><span>20:30 - 04:00</span></li>
           <li><span>Mairie</span><span>Place Charles-de-Gaulle, 94100 Saint-Maur-des-Fossés</span></li>
           <li><span>Manoir</span><span>1 Quai du Port, 94130 Nogent-sur-Marne</span></li>
         </ul>
@@ -317,20 +344,17 @@
           <div class="schedule-item">
             <div class="schedule-time">16:00</div>
             <div>
+              <strong>Vin d’honneur</strong>
+              <p>Accueil des invités au Manoir De L&apos;ile Aux Loups, 1 Quai du Port, 94130 Nogent-sur-Marne.</p>
+            </div>
+          </div>
+          <div class="schedule-item">
+            <div class="schedule-time">20:30</div>
+            <div>
               <strong>Réception</strong>
               <p>Manoir De L&apos;ile Aux Loups, 1 Quai du Port, 94130 Nogent-sur-Marne.</p>
             </div>
           </div>
-        </div>
-      </article>
-
-      <article class="card detail-card">
-        <div class="eyebrow">Accès rapide</div>
-        <h2>Liens utiles</h2>
-        <div class="quick-links">
-          <a href="https://maps.app.goo.gl/4sDbGHzUEjUgvoJ87" target="_blank" rel="noreferrer"><span>Y aller - cérémonie</span><span>→</span></a>
-          <a href="https://maps.app.goo.gl/BnPcNYcjfV8wDZUM8" target="_blank" rel="noreferrer"><span>Y aller - réception</span><span>→</span></a>
-          <a href="#infos"><span>Infos pratiques</span><span>→</span></a>
         </div>
       </article>
     </section>
