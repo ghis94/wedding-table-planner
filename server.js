@@ -1236,6 +1236,9 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-10x15.pdf"`);
     res.send(pdfBuffer);
   } catch (err) {
+    if (err?.message === 'Chromium introuvable sur le serveur pour l’export PDF.') {
+      return res.status(500).json({ ok: false, error: err.message });
+    }
     serverError(res, err, 'postcards-export-pdf');
   }
 });
