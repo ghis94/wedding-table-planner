@@ -9,7 +9,7 @@ services:
     environment:
       - PORT=8090
       - ADMIN_USER=admin
-      - ADMIN_PASS=change-me-now
+      - ADMIN_PASS=changeme
       - SESSION_SECRET=change-this-super-secret-session-key
       - DB_PATH=/app/data/wedding.db
     volumes:

@@ -381,32 +381,40 @@
 
     .place-card.paper-white,
     .place-card.paper-cream {
-      --poster-bg:#fffdfa;
-      --poster-edge:#c8bcb2;
-      --poster-ink:#14110f;
-      padding:.56cm .42cm .7cm;
-      border-radius:18px;
-      border:1px solid var(--poster-edge);
-      box-shadow:0 18px 54px rgba(38, 28, 22, .10);
+      --poster-bg:#fcf8f2;
+      --poster-bg-end:#f6f0e8;
+      --poster-edge:rgba(183, 165, 149, .92);
+      --poster-line:rgba(124, 101, 85, .78);
+      --poster-ink:#15110f;
+      --card-section-gap:1cm;
+      padding:.42cm;
+      border-radius:22px;
+      border:1px solid rgba(194, 179, 165, .72);
+      box-shadow:0 18px 54px rgba(38, 28, 22, .08);
       background:
-        radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 28%),
-        linear-gradient(180deg, var(--poster-bg), color-mix(in srgb, var(--poster-bg) 92%, #d8cec4 8%));
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,.88), rgba(255,255,255,.14) 26%, transparent 52%),
+        linear-gradient(180deg, var(--poster-bg), var(--poster-bg-end));
       color:var(--poster-ink);
       font-family:'Cormorant Garamond', Georgia, serif;
     }
-    .place-card.paper-cream { --poster-bg:#f8f1e8; --poster-edge:#beb0a4; }
+    .place-card.paper-cream {
+      --poster-bg:#f7efe4;
+      --poster-bg-end:#f0e5d7;
+      --poster-edge:rgba(177, 158, 140, .92);
+      --poster-line:rgba(116, 95, 78, .74);
+    }
     .place-card.paper-white::before,
     .place-card.paper-cream::before {
       background:
-        radial-gradient(circle at 50% 42%, rgba(255,255,255,.22), transparent 30%),
-        linear-gradient(180deg, rgba(255,255,255,.22), transparent 18%);
+        radial-gradient(circle at 50% 40%, rgba(255,255,255,.42), transparent 32%),
+        linear-gradient(180deg, rgba(255,255,255,.22), transparent 20%);
     }
     .place-card.paper-white .card-divider,
     .place-card.paper-cream .card-divider { display:none; }
     .place-card.paper-white .card-frame,
     .place-card.paper-cream .card-frame {
-      inset:8px;
-      border-radius:12px;
+      inset:12px;
+      border-radius:17px;
       border-color:var(--poster-edge);
     }
     .place-card.paper-white .card-frame::before,
@@ -418,88 +426,126 @@
     .place-card.paper-white .card-inner,
     .place-card.paper-cream .card-inner {
       align-items:center;
-      padding-top:.14cm;
+      padding-top:0;
     }
     .place-card.paper-white .botanical,
-    .place-card.paper-cream .botanical {
-      right:-8px;
-      top:-2px;
-      width:138px;
-      height:210px;
-      opacity:.42;
-    }
+    .place-card.paper-cream .botanical,
+    .place-card.paper-white .botanical-bottom,
+    .place-card.paper-cream .botanical-bottom { display:none; }
     .place-card.paper-white .card-content,
     .place-card.paper-cream .card-content {
-      padding: 1.4cm 0 1.8cm;
+      flex:1;
+      justify-content:center;
+      align-items:center;
+      min-height:0;
+      padding: .75cm 0;
     }
     .place-card.paper-white .card-title,
     .place-card.paper-cream .card-title {
       margin:0;
       color:var(--poster-ink);
       font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', 'Cormorant Garamond', serif;
-      font-size:31px;
+      font-size:35px;
       font-weight:500;
       line-height:1;
-      letter-spacing:.34em;
+      letter-spacing:.42em;
       text-transform:uppercase;
-      text-shadow:0 1px 0 rgba(255,255,255,.5);
+      text-shadow:0 1px 0 rgba(255,255,255,.42);
+    }
+    .place-card.paper-white .card-eyebrow,
+    .place-card.paper-cream .card-eyebrow {
+      margin: .38cm 0 0;
+      color: color-mix(in srgb, var(--poster-ink) 68%, white 32%);
+      font-family:'Cormorant Garamond', Georgia, serif;
+      font-size:15px;
+      font-weight:600;
+      line-height:1.1;
+      letter-spacing:.06em;
+      text-transform:none;
     }
     .place-card.paper-white .guest-list,
     .place-card.paper-cream .guest-list {
-      width:100%;
-      margin-top:.78cm;
-      gap:.24cm;
-      align-content:start;
+      width:min(86%, 6.35cm);
+      max-width:6.35cm;
+      margin-left:auto;
+      margin-right:auto;
+      margin-top:var(--card-section-gap);
+      gap:.18cm;
+      align-content:center;
       justify-content:center;
-      padding:0 .42cm;
+      justify-items:center;
+      align-self:center;
+      padding:0;
     }
     .place-card.paper-white .guest-item,
     .place-card.paper-cream .guest-item {
       color:var(--poster-ink);
       font-family:'Cormorant Garamond', Georgia, serif;
       font-size:23px;
-      font-weight:600;
-      line-height:1.05;
+      font-weight:500;
+      line-height:1.02;
+      text-align:center;
       letter-spacing:0;
       padding:0;
+      width:100%;
+      justify-self:center;
+      overflow-wrap:break-word;
+      hyphens:auto;
     }
-    .place-card.paper-white.has-few-guests .guest-list,
-    .place-card.paper-cream.has-few-guests .guest-list,
+    .place-card.paper-white .card-footer,
+    .place-card.paper-cream .card-footer {
+      width:100%;
+      margin-top:var(--card-section-gap);
+      padding:0;
+      color:var(--poster-line);
+    }
+    .footer-ornament {
+      display:block;
+      width:3.9cm;
+      height:auto;
+      margin:0 auto;
+    }
     .place-card.paper-white.has-medium-guests .guest-list,
-    .place-card.paper-cream.has-medium-guests .guest-list {
-      align-content:start;
-      gap:.24cm;
-    }
-    .place-card.paper-white.has-few-guests .guest-item,
-    .place-card.paper-cream.has-few-guests .guest-item,
-    .place-card.paper-white.has-medium-guests .guest-item,
-    .place-card.paper-cream.has-medium-guests .guest-item { font-size:23px; }
+    .place-card.paper-cream.has-medium-guests .guest-list { gap:.2cm; }
     .place-card.paper-white.is-dense .guest-list,
-    .place-card.paper-cream.is-dense .guest-list { gap:.18cm; margin-top:.82cm; }
-    .place-card.paper-white.is-dense .guest-item,
-    .place-card.paper-cream.is-dense .guest-item { font-size:19px; }
+    .place-card.paper-cream.is-dense .guest-list { gap:.12cm; }
+    .place-card.paper-white.is-dense,
+    .place-card.paper-cream.is-dense { --card-section-gap:.74cm; }
     .place-card.paper-white.is-very-dense .guest-list,
-    .place-card.paper-cream.is-very-dense .guest-list { gap:.12cm; margin-top:.7cm; }
-    .place-card.paper-white.is-very-dense .guest-item,
-    .place-card.paper-cream.is-very-dense .guest-item { font-size:16px; }
+    .place-card.paper-cream.is-very-dense .guest-list { gap:.1cm; }
+    .place-card.paper-white.is-very-dense .card-content,
+    .place-card.paper-cream.is-very-dense .card-content { padding: .65cm 0; }
+    .place-card.paper-white.is-very-dense,
+    .place-card.paper-cream.is-very-dense { --card-section-gap:.58cm; }
     .place-card.paper-white.is-two-columns .guest-list,
     .place-card.paper-cream.is-two-columns .guest-list {
       grid-template-columns:repeat(2, minmax(0, 1fr));
-      column-gap:.18cm;
+      column-gap:.36cm;
+      row-gap:.1cm;
+      width:92%;
+      max-width:8.2cm;
     }
+    .place-card.paper-white.has-few-guests .card-content,
+    .place-card.paper-cream.has-few-guests .card-content { padding: .85cm 0; }
+    .place-card.paper-white.has-few-guests .guest-list,
+    .place-card.paper-cream.has-few-guests .guest-list {
+      gap:.32cm;
+    }
+    .place-card.paper-white.has-few-guests,
+    .place-card.paper-cream.has-few-guests { --card-section-gap:1.08cm; }
     .empty-state {
       padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
     }
 
     @media print {
-      @page { size: 10cm 15cm; margin: 0; }
+      @page { size: A4 portrait; margin: 0; }
       html, body {
-        width:10cm;
-        min-height:15cm;
+        width:21cm;
+        min-height:29.7cm;
         margin:0 !important;
         padding:0 !important;
         overflow:visible !important;
-        background:inherit !important;
+        background:#fff !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
       }
@@ -517,13 +563,13 @@
       body { margin:0 !important; }
       .wrap {
         max-width:none;
-        width:10cm;
+        width:21cm;
         padding:0 !important;
         margin:0 auto !important;
       }
       .postcards-page {
         gap:0 !important;
-        width:10cm;
+        width:21cm;
         margin:0 auto;
       }
       .postcards-toolbar,
@@ -533,7 +579,7 @@
       }
       .postcards-grid {
         display:block;
-        width:10cm !important;
+        width:21cm !important;
         margin:0 auto;
       }
       .postcards-grid::before,
@@ -541,45 +587,35 @@
         content:none !important;
         display:none !important;
       }
-      .postcards-grid > * {
-        display:grid;
-        place-items:center;
-        width:10cm;
-        height:15cm;
-        margin:0 !important;
-        page-break-before:always;
-        break-before:page;
+      .postcards-grid > .place-card {
+        display:flex !important;
+        width:10cm !important;
+        height:15cm !important;
+        margin:0 auto !important;
+        top:7.35cm;
+        page-break-after:always;
+        break-after:page;
         page-break-inside:avoid;
         break-inside:avoid;
         position:relative;
       }
-      .postcards-grid > *:first-child {
-        page-break-before:auto;
-        break-before:auto;
+      .postcards-grid > .place-card:last-child {
+        page-break-after:auto;
+        break-after:auto;
       }
       .place-card {
-        width:10cm !important;
-        height:15cm !important;
-        margin:0 !important;
+        width:10cm;
+        height:15cm;
         page-break-before:auto;
-        page-break-after:auto;
         break-before:auto;
-        break-after:auto;
         overflow:hidden;
-        background:var(--poster-bg, #fff) !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         position:relative;
       }
-      .place-card.paper-white,
-      .place-card.paper-cream {
-        background: var(--poster-bg) !important;
-      }
-      .card-inner {
-        padding: .14cm 0 .08cm;
-      }
-      .card-content {
-        padding: 1.25cm 0 1.7cm;
+      .place-card.paper-white .card-inner,
+      .place-card.paper-cream .card-inner {
+        padding:0;
       }
     }
   </style>
@@ -603,7 +639,7 @@
           <button class="ghost danger-text" onclick="deleteSelectedPlan()">Supprimer la variante</button>
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
-            <button onclick="downloadPdf()">Imprimer / PDF 10×15</button>
+            <button onclick="downloadPdf()">Imprimer / PDF A4 - carte 10×15</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
           <span id="cardArtName" class="card-art-name"></span>
@@ -730,17 +766,35 @@
           <circle cx="25" cy="110" r="7" fill="#EAD6C7" opacity=".58"/>
         </svg>`;
     }
+    function footerOrnamentSvg() {
+      return `
+        <svg class="footer-ornament" viewBox="0 0 220 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M39 16H83"/>
+            <path d="M36 16C25 16 16 13.5 8 9.5"/>
+            <path d="M28 14.5C25.8 8.5 21.7 5 16 4.2C16.6 9.7 20.6 13.4 28 14.5Z"/>
+            <path d="M42 16.1C38.3 10.8 33.8 8.1 28.5 8.1C30.2 13.3 34.7 16 42 16.1Z"/>
+            <path d="M49 16.2C43.2 18.1 39.9 21.5 39.1 26.4C44.3 25.7 47.6 22.3 49 16.2Z"/>
+            <path d="M181 16H137"/>
+            <path d="M184 16C195 16 204 13.5 212 9.5"/>
+            <path d="M192 14.5C194.2 8.5 198.3 5 204 4.2C203.4 9.7 199.4 13.4 192 14.5Z"/>
+            <path d="M178 16.1C181.7 10.8 186.2 8.1 191.5 8.1C189.8 13.3 185.3 16 178 16.1Z"/>
+            <path d="M171 16.2C176.8 18.1 180.1 21.5 180.9 26.4C175.7 25.7 172.4 22.3 171 16.2Z"/>
+            <path d="M98.6 13.2C98.6 10.2 100.8 8 103.7 8C106.3 8 108.2 9.8 110 12.4C111.8 9.8 113.7 8 116.3 8C119.2 8 121.4 10.2 121.4 13.2C121.4 18.1 115.7 22.4 110 26.7C104.3 22.4 98.6 18.1 98.6 13.2Z"/>
+          </g>
+        </svg>`;
+    }
     function densityClass(count) {
-      if (count >= 15) return 'is-very-dense';
-      if (count >= 11) return 'is-dense';
+      if (count >= 13) return 'is-very-dense';
+      if (count >= 9) return 'is-dense';
       return '';
     }
     function layoutClass(count) {
-      return count >= 16 ? 'is-two-columns' : '';
+      return count >= 13 ? 'is-two-columns' : '';
     }
     function guestDensityClass(count) {
       if (count <= 6) return 'has-few-guests';
-      if (count <= 10) return 'has-medium-guests';
+      if (count <= 8) return 'has-medium-guests';
       return '';
     }
     function getSortedGuests(table) {
@@ -786,6 +840,7 @@
             <div class="guest-list">
               ${guests.length ? guests.map(g => `<div class="guest-item">${escapeHtml(g.name || 'Invité')}</div>`).join('') : '<div class="guest-item">Table en préparation</div>'}
             </div>
+            <div class="card-footer" aria-hidden="true">${footerOrnamentSvg()}</div>
           </div>
           <div class="botanical-bottom" aria-hidden="true">${floralSvg('')}</div>
         </div>`;
