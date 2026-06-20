@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mathilde &amp; Ghislain — Wedding Table Planner</title>
-  <meta name="description" content="Page d'accueil pour les invités du mariage avec les informations essentielles et un accès discret à la connexion admin." />
+  <meta name="description" content="Page d'accueil pour les invités du mariage avec les informations essentielles." />
   <link rel="stylesheet" href="styles.css" />
   <style>
     :root {
@@ -88,13 +88,7 @@
       letter-spacing: .06em;
       box-shadow: 0 10px 26px rgba(92, 66, 43, .16);
     }
-    .login-float {
-      position: fixed;
-      top: 18px;
-      right: 18px;
-      z-index: 20;
-    }
-    .login-float .btn {
+    .admin-login {
       background: var(--home-panel);
       color: var(--home-ink);
       border-color: var(--home-line);
@@ -189,16 +183,6 @@
       color: var(--home-muted);
       font-size: clamp(1rem, 1.4vw, 1.2rem);
       line-height: 1.72;
-    }
-    .hero-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-top: 28px;
-    }
-    .hero-actions .btn:first-child {
-      background: linear-gradient(135deg, #7c5f40, #b99256);
-      box-shadow: 0 14px 32px rgba(124, 95, 64, .22);
     }
     .date-panel {
       position: relative;
@@ -379,6 +363,21 @@
       margin: 0;
       color: var(--home-muted);
     }
+    body.invite-vin-honneur [data-full-only] {
+      display: none !important;
+    }
+    body.invite-vin-honneur .date-panel .schedule-item {
+      grid-template-columns: 88px minmax(0, 1fr);
+      align-items: center;
+    }
+    body.invite-vin-honneur .date-panel .schedule-time[data-copy="vin-time"] {
+      width: 72px;
+      min-height: 72px;
+      padding: 0 8px;
+      justify-self: center;
+      text-align: center;
+      line-height: 1.08;
+    }
     .footer-note {
       display: flex;
       justify-content: center;
@@ -412,11 +411,8 @@
       }
     }
     @media (max-width: 680px) {
-      .login-float {
-        position: static;
-        justify-self: end;
-        margin-bottom: 8px;
-      }
+      body { padding: 10px; }
+      .home-shell { gap: 10px; }
       .topbar {
         align-items: flex-start;
       }
@@ -424,7 +420,7 @@
         align-items: flex-start;
       }
       .wedding-hero {
-        padding: 34px 24px;
+        padding: 26px 18px;
         border-radius: 20px;
       }
       .wedding-hero::before {
@@ -441,17 +437,22 @@
       .hero-copy h1 {
         font-size: clamp(3rem, 17vw, 4.8rem);
       }
-      .hero-actions,
+      .hero-copy .lede {
+        margin-top: 18px;
+      }
       .footer-note {
         align-items: stretch;
       }
-      .hero-actions .btn {
-        width: 100%;
-      }
       .date-panel,
       .detail-card {
-        padding: 18px;
+        padding: 16px;
         border-radius: 18px;
+      }
+      .date-panel {
+        gap: 12px;
+      }
+      .date-panel .home-kicker {
+        margin-bottom: 8px;
       }
       .places-list {
         grid-template-columns: 1fr;
@@ -471,10 +472,6 @@
   </style>
 </head>
 <body>
-  <div class="login-float">
-    <a class="btn small link-btn" href="login.html">Login / admin</a>
-  </div>
-
   <div class="home-shell">
     <div class="topbar">
       <div class="brand">
@@ -485,6 +482,7 @@
         </div>
       </div>
       <div id="theme-container"></div>
+      <a class="btn small link-btn admin-login" href="login.html" data-full-only>Login / admin</a>
     </div>
 
     <section class="wedding-hero">
@@ -519,13 +517,9 @@
       <div class="hero-copy">
         <div class="home-kicker">Mariage</div>
         <h1>Mathilde &amp; Ghislain</h1>
-        <p class="lede">
+        <p class="lede" data-copy="intro">
           Le 25 juillet 2026, on se retrouve pour la cérémonie, le vin d’honneur et la réception.
         </p>
-        <div class="hero-actions">
-          <a class="btn" href="#infos">Voir les adresses</a>
-          <a class="btn secondary" href="login.html" aria-label="Connexion administrateur">Login / admin</a>
-        </div>
       </div>
 
       <aside class="date-panel" aria-label="Résumé du mariage">
@@ -534,7 +528,7 @@
           <div class="date-number">25.07.2026</div>
         </div>
         <div class="schedule" aria-label="Déroulé de la journée">
-          <div class="schedule-item">
+          <div class="schedule-item" data-full-only>
             <div class="schedule-time">15:00</div>
             <div>
               <strong>Cérémonie</strong>
@@ -542,13 +536,13 @@
             </div>
           </div>
           <div class="schedule-item">
-            <div class="schedule-time">16:00</div>
+            <div class="schedule-time" data-copy="vin-time">16:00</div>
             <div>
               <strong>Vin d’honneur</strong>
               <p>Accueil au Manoir De L&apos;ile Aux Loups</p>
             </div>
           </div>
-          <div class="schedule-item">
+          <div class="schedule-item" data-full-only>
             <div class="schedule-time">20:30</div>
             <div>
               <strong>Réception</strong>
@@ -562,9 +556,9 @@
     <section id="infos" class="section-grid">
       <article class="card detail-card">
         <div class="label-chip">Lieux</div>
-        <h2>Les adresses</h2>
+        <h2 data-copy="places-title">Les adresses</h2>
         <ul class="places-list">
-          <li>
+          <li data-full-only>
             <span class="place-label">Cérémonie</span>
             <a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Place%20Charles-de-Gaulle%2C%2094100%20Saint-Maur-des-Foss%C3%A9s" target="_blank" rel="noopener noreferrer">
               <svg class="map-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -575,7 +569,7 @@
             </a>
           </li>
           <li>
-            <span class="place-label">Vin d’honneur &amp; réception</span>
+            <span class="place-label" data-copy="venue-label">Vin d’honneur &amp; réception</span>
             <a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=1%20Quai%20du%20Port%2C%2094130%20Nogent-sur-Marne" target="_blank" rel="noopener noreferrer">
               <svg class="map-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M12 21s7-6.2 7-12A7 7 0 1 0 5 9c0 5.8 7 12 7 12Z" stroke="currentColor" stroke-width="1.8"/>
@@ -596,6 +590,18 @@
   <script src="theme.js"></script>
   <script>
     window.ThemeManager.createToggle(document.getElementById('theme-container'));
+    const inviteType = new URLSearchParams(window.location.search).get('invite');
+    if (inviteType === 'vin-honneur') {
+      document.body.classList.add('invite-vin-honneur');
+      const intro = document.querySelector('[data-copy="intro"]');
+      const venueLabel = document.querySelector('[data-copy="venue-label"]');
+      const placesTitle = document.querySelector('[data-copy="places-title"]');
+      const vinTime = document.querySelector('[data-copy="vin-time"]');
+      if (intro) intro.textContent = 'Le 25 juillet 2026, on se retrouve pour le vin d’honneur.';
+      if (venueLabel) venueLabel.textContent = 'Vin d’honneur';
+      if (placesTitle) placesTitle.textContent = 'L’adresse';
+      if (vinTime) vinTime.textContent = '16h à 20h30';
+    }
   </script>
 </body>
 </html>
