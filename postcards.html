@@ -109,6 +109,7 @@
     .place-card.has-card-art .botanical,
     .place-card.has-card-art .botanical-bottom,
     .place-card.has-card-art .card-frame,
+    .place-card.has-card-art .print-card-border,
     .place-card.has-card-art .print-safe-area,
     .place-card.has-card-art .card-eyebrow,
     .place-card.has-card-art .card-divider,
@@ -157,6 +158,16 @@
       border-radius: 18px;
       pointer-events:none;
       z-index:0;
+    }
+    .print-card-border {
+      display:none;
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      color:var(--poster-edge);
+      pointer-events:none;
+      z-index:3;
     }
 
     .theme-nude { --card-bg-start:#fdf6ef; --card-bg-end:#ebd9c8; --title-color:#ab7b4c; --accent-line:#bb8d67; --label-color:#8a6446; --frame-color:rgba(191,150,115,.18); --ornament-top:rgba(191,150,115,.16); --ornament-bottom:rgba(173,129,98,.10); }
@@ -383,6 +394,7 @@
     .place-card.paper-cream {
       --poster-bg:#fcf8f2;
       --poster-bg-end:#f6f0e8;
+      --poster-print-bg:#fff;
       --poster-edge:rgba(183, 165, 149, .92);
       --poster-line:rgba(124, 101, 85, .78);
       --poster-ink:#15110f;
@@ -400,6 +412,7 @@
     .place-card.paper-cream {
       --poster-bg:#f7efe4;
       --poster-bg-end:#f0e5d7;
+      --poster-print-bg:#f8f1e8;
       --poster-edge:rgba(177, 158, 140, .92);
       --poster-line:rgba(116, 95, 78, .74);
     }
@@ -613,6 +626,26 @@
         print-color-adjust: exact;
         position:relative;
       }
+      .place-card.paper-white,
+      .place-card.paper-cream {
+        background:var(--poster-print-bg) !important;
+        border:0 !important;
+        border-radius:22px !important;
+        box-shadow:none !important;
+      }
+      .place-card.paper-white::before,
+      .place-card.paper-cream::before {
+        display:none !important;
+        background:none !important;
+      }
+      .place-card.paper-white .card-frame,
+      .place-card.paper-cream .card-frame {
+        display:none !important;
+      }
+      .place-card.paper-white .print-card-border,
+      .place-card.paper-cream .print-card-border {
+        display:block !important;
+      }
       .place-card.paper-white .card-inner,
       .place-card.paper-cream .card-inner {
         padding:0;
@@ -784,6 +817,13 @@
           </g>
         </svg>`;
     }
+    function printCardBorderSvg() {
+      return `
+        <svg class="print-card-border" viewBox="0 0 100 150" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x=".55" y=".55" width="98.9" height="148.9" rx="5.8" ry="5.8" stroke="currentColor" stroke-width=".32"/>
+          <rect x="3.7" y="3.7" width="92.6" height="142.6" rx="4.4" ry="4.4" stroke="currentColor" stroke-width=".26"/>
+        </svg>`;
+    }
     function densityClass(count) {
       if (count >= 13) return 'is-very-dense';
       if (count >= 9) return 'is-dense';
@@ -830,6 +870,7 @@
       const number = tableNumber(table, index);
       const displayName = tableNameWithoutNumber(table, number);
       return `
+        ${printCardBorderSvg()}
         <div class="card-frame"></div>
         <div class="print-safe-area"></div>
         <div class="card-inner">

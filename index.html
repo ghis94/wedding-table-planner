@@ -214,14 +214,21 @@
       backdrop-filter: blur(6px);
     }
     .date-panel .home-kicker {
+      justify-content: center;
       margin-bottom: 14px;
+    }
+    .date-panel .home-kicker::before {
+      display: none;
+    }
+    .date-heading {
+      text-align: center;
     }
     .date-number {
       font-family: 'Cormorant Garamond', Georgia, serif;
       color: var(--home-ink);
-      font-size: clamp(3.1rem, 6vw, 5.2rem);
+      font-size: clamp(3rem, 5.4vw, 4.8rem);
       line-height: .94;
-      margin: 0 0 8px;
+      margin: 0;
     }
     .date-panel p {
       margin: 0;
@@ -513,7 +520,7 @@
         <div class="home-kicker">Mariage</div>
         <h1>Mathilde &amp; Ghislain</h1>
         <p class="lede">
-          Le 25 juillet 2026, on se retrouve pour la cérémonie, le vin d’honneur et la réception. Les informations utiles sont rassemblées ici, simplement.
+          Le 25 juillet 2026, on se retrouve pour la cérémonie, le vin d’honneur et la réception.
         </p>
         <div class="hero-actions">
           <a class="btn" href="#infos">Voir les adresses</a>
@@ -522,10 +529,9 @@
       </div>
 
       <aside class="date-panel" aria-label="Résumé du mariage">
-        <div>
+        <div class="date-heading">
           <span class="home-kicker">Save the date</span>
-          <div class="date-number">25.07</div>
-          <p>Samedi 25 juillet 2026</p>
+          <div class="date-number">25.07.2026</div>
         </div>
         <div class="schedule" aria-label="Déroulé de la journée">
           <div class="schedule-item">
