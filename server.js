@@ -21,6 +21,10 @@ const DEFAULT_ADMIN_PASS = 'changeme';
 const DEFAULT_SESSION_SECRET='change-this-session-secret';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const FONT_DIR = path.join(__dirname, 'assets', 'fonts');
+const CARD_WIDTH_PX = 742;
+const CARD_HEIGHT_PX = 1200;
+const CARD_WIDTH_MM = 74.2;
+const CARD_HEIGHT_MM = 120;
 const CARD_FONT_FILES = [
   path.join(FONT_DIR, 'BodoniModa-500.ttf'),
   path.join(FONT_DIR, 'BodoniModa-600.ttf'),
@@ -203,13 +207,13 @@ function getCardTheme(theme) {
 }
 
 function densityClass(count) {
-  if (count >= 15) return 'is-very-dense';
-  if (count >= 11) return 'is-dense';
+  if (count >= 13) return 'is-very-dense';
+  if (count >= 9) return 'is-dense';
   return '';
 }
 
 function layoutClass(count) {
-  return count >= 16 ? 'is-two-columns' : '';
+  return count >= 13 ? 'is-two-columns' : '';
 }
 
 function safeFileName(value, fallback = 'table') {
@@ -250,7 +254,7 @@ async function renderCardToPng(htmlUrl, pngPath) {
       '--hide-scrollbars',
       '--force-device-scale-factor=1',
       `--screenshot=${pngPath}`,
-      '--window-size=1000,1500',
+      `--window-size=${CARD_WIDTH_PX},${CARD_HEIGHT_PX}`,
       htmlUrl,
     ], { stdio: 'ignore' });
     return;
@@ -269,7 +273,7 @@ async function renderCardToPng(htmlUrl, pngPath) {
   });
 
   try {
-    const page = await browser.newPage({ viewport: { width: 1000, height: 1500 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX }, deviceScaleFactor: 1 });
     await page.goto(htmlUrl, { waitUntil: 'networkidle' });
     await page.screenshot({ path: pngPath, fullPage: true });
   } finally {
@@ -312,45 +316,45 @@ function splitGuestLines(guests, maxChars = 20) {
 
 function buildCardSvg(table, themeName = 'paper-white') {
   const theme = getCardTheme(themeName);
-  const guests = (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
+  const guests = (table.guests || []).filter(Boolean);
   const count = guests.length;
   const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
   const tableNumber = Number.isFinite(fromNumber) && fromNumber > 0
     ? String(fromNumber)
     : (String(table.name || '').match(/\d+/)?.[0] || '1');
   const displayName = tableDisplayName(table, tableNumber);
-  const isDense = count >= 11 && count < 15;
-  const isVeryDense = count >= 15;
-  const isTwoColumns = count >= 16;
-  const guestSize = isVeryDense ? 16 : (isDense ? 19 : 23);
-  const guestGap = isVeryDense ? 12 : (isDense ? 18 : 24);
-  const guestTop = isVeryDense ? 686 : (isDense ? 664 : 646);
-  const guestMaxChars = isTwoColumns ? 12 : (isVeryDense ? 16 : 20);
+  const isDense = count >= 9 && count < 13;
+  const isVeryDense = count >= 13;
+  const isTwoColumns = count >= 13;
+  const guestSize = isVeryDense ? 17 : (isDense ? 21 : 27);
+  const guestGap = isVeryDense ? 16 : (isDense ? 21 : 28);
+  const guestTop = isVeryDense ? 575 : (isDense ? 555 : 530);
+  const guestMaxChars = isTwoColumns ? 16 : (isVeryDense ? 20 : 24);
   const guestLines = splitGuestLines(guests, guestMaxChars);
   const columns = isTwoColumns ? 2 : 1;
-  const leftColumnX = 355;
-  const rightColumnX = 645;
+  const leftColumnX = 270;
+  const rightColumnX = 472;
   const rowsPerColumn = Math.max(1, Math.ceil(guestLines.length / columns));
-  const titleY = 335;
-  const titleSize = 31;
+  const titleY = 300;
+  const titleSize = 34;
   const titleLetterSpacing = 3.4;
-  const ornamentY = 1388;
+  const ornamentY = 1110;
 
   const rows = guestLines.length
     ? guestLines.map((line, index) => {
         const columnIndex = isTwoColumns ? Math.floor(index / rowsPerColumn) : 0;
         const rowIndex = isTwoColumns ? index % rowsPerColumn : index;
-        const x = columnIndex === 0 ? leftColumnX : rightColumnX;
+        const x = isTwoColumns ? (columnIndex === 0 ? leftColumnX : rightColumnX) : CARD_WIDTH_PX / 2;
         const anchor = 'middle';
         return `<text x="${x}" y="${guestTop + rowIndex * guestGap}" text-anchor="${anchor}" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">${escapeSvgText(line)}</text>`;
       }).join('\n')
-    : `<text x="500" y="${guestTop}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">Table en préparation</text>`;
+    : `<text x="${CARD_WIDTH_PX / 2}" y="${guestTop}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">Table en préparation</text>`;
 
   const bgEnd = themeName === 'paper-cream' ? '#f8f1e8' : '#fffdfa';
   const frame = themeName === 'paper-cream' ? '#beb0a4' : '#c8bcb2';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1500" viewBox="0 0 1000 1500">
+<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" viewBox="0 0 ${CARD_WIDTH_PX} ${CARD_HEIGHT_PX}">
   <defs>
     <radialGradient id="bgGlow" cx="50%" cy="38%" r="60%">
       <stop offset="0%" stop-color="rgba(255,255,255,.34)"/>
@@ -362,15 +366,15 @@ function buildCardSvg(table, themeName = 'paper-white') {
       <stop offset="18%" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
   </defs>
-  <rect width="1000" height="1500" fill="${bgEnd}" />
-  <rect x="0.5" y="0.5" width="999" height="1499" rx="18" ry="18" fill="${bgEnd}" stroke="${frame}" stroke-width="1" />
-  <rect x="8" y="8" width="984" height="1484" rx="12" ry="12" fill="none" stroke="${frame}" stroke-width="1" />
-  <rect width="1000" height="1500" fill="url(#bgGlow)" />
-  <rect width="1000" height="1500" fill="url(#bgShade)" />
-  <text x="500" y="${titleY}" text-anchor="middle" font-family="Bodoni Moda, Didot, Bodoni 72, Georgia, serif" font-size="${titleSize}" font-weight="500" letter-spacing="${titleLetterSpacing}" fill="${theme.label}" text-transform="uppercase">${escapeSvgText(`Table ${tableNumber}`)}</text>
-  ${displayName ? `<text x="500" y="382" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="22" font-weight="700" fill="${theme.label}">${escapeSvgText(displayName)}</text>` : ''}
+  <rect width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" fill="${bgEnd}" />
+  <rect x="0.5" y="0.5" width="${CARD_WIDTH_PX - 1}" height="${CARD_HEIGHT_PX - 1}" rx="18" ry="18" fill="${bgEnd}" stroke="${frame}" stroke-width="1" />
+  <rect x="8" y="8" width="${CARD_WIDTH_PX - 16}" height="${CARD_HEIGHT_PX - 16}" rx="12" ry="12" fill="none" stroke="${frame}" stroke-width="1" />
+  <rect width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" fill="url(#bgGlow)" />
+  <rect width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" fill="url(#bgShade)" />
+  <text x="371" y="${titleY}" text-anchor="middle" font-family="Bodoni Moda, Didot, Bodoni 72, Georgia, serif" font-size="${titleSize}" font-weight="500" letter-spacing="${titleLetterSpacing}" fill="${theme.label}" text-transform="uppercase">${escapeSvgText(`Table ${tableNumber}`)}</text>
+  ${displayName ? `<text x="371" y="350" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="22" font-weight="700" fill="${theme.label}">${escapeSvgText(displayName)}</text>` : ''}
   ${rows}
-  <g transform="translate(500 ${ornamentY})" fill="none" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+  <g transform="translate(371 ${ornamentY})" fill="none" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
     <path d="M-80 0c-18 2-32-4-47-14M-90 1c-9 7-20 8-33 2M-111 -8c4-5 10-7 18-7M-120 -11c2 7 8 12 18 15" />
     <path d="M0 7s-18-10-12-22c6-8 12 2 12 2s6-10 12-2c6 12-12 22-12 22Z" />
     <path d="M80 0c18 2 32-4 47-14M90 1c9 7 20 8 33 2M111 -8c-4-5-10-7-18-7M120 -11c-2 7-8 12-18 15" />
@@ -396,7 +400,7 @@ function renderCardPng(table, theme) {
 
 function buildCardHtml(table, themeName = 'paper-white') {
   const theme = getCardTheme(themeName);
-  const guests = (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
+  const guests = (table.guests || []).filter(Boolean);
   const count = guests.length;
   const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
   const tableNumber = Number.isFinite(fromNumber) && fromNumber > 0
@@ -420,11 +424,11 @@ function buildCardHtml(table, themeName = 'paper-white') {
   <head>
     <meta charset="UTF-8" />
     <style>
-      html, body { margin:0; padding:0; width:1000px; height:1500px; background:#fff; }
+      html, body { margin:0; padding:0; width:${CARD_WIDTH_PX}px; height:${CARD_HEIGHT_PX}px; background:#fff; }
       body { overflow:hidden; }
       .place-card {
         --poster-bg:${theme.bgStart}; --poster-bg-end:${theme.bgEnd}; --poster-edge:${theme.frame}; --poster-ink:${theme.title};
-        position:relative; width:1000px; height:1500px; padding:56px 42px 70px; box-sizing:border-box; overflow:hidden;
+        position:relative; width:${CARD_WIDTH_PX}px; height:${CARD_HEIGHT_PX}px; padding:50px 42px 64px; box-sizing:border-box; overflow:hidden;
         background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 28%), linear-gradient(180deg, var(--poster-bg), var(--poster-bg-end));
         border:1px solid var(--poster-edge); border-radius:18px; display:flex; isolation:isolate;
         font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; color:var(--poster-ink);
@@ -436,19 +440,19 @@ function buildCardHtml(table, themeName = 'paper-white') {
       }
       .card-frame { position:absolute; inset:8px; border-radius:12px; border:1px solid var(--poster-edge); pointer-events:none; z-index:0; }
       .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; min-height:100%; width:100%; padding:14px 0 8px; box-sizing:border-box; }
-      .card-content { width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1; min-height:0; padding:140px 0 180px; box-sizing:border-box; }
-      .card-title { margin:0; font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif; font-size:78px; font-weight:500; line-height:1; text-align:center; color:var(--poster-ink); text-transform:uppercase; letter-spacing:.34em; text-shadow:0 1px 0 rgba(255,255,255,.5); }
+      .card-content { width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1; min-height:0; padding:100px 0 120px; box-sizing:border-box; }
+      .card-title { margin:0; font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif; font-size:52px; font-weight:500; line-height:1; text-align:center; color:var(--poster-ink); text-transform:uppercase; letter-spacing:.34em; text-shadow:0 1px 0 rgba(255,255,255,.5); }
       .card-eyebrow { margin:0 0 10px; text-align:center; font-family:'Cormorant Garamond', Georgia, serif; font-size:22px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--poster-ink); }
-      .guest-list { display:grid; gap:24px; width:100%; margin-top:78px; padding:0 42px; align-content:start; justify-content:center; }
-      .guest-item { text-align:center; color:var(--poster-ink); font-size:58px; line-height:1.05; font-weight:600; letter-spacing:0; padding:0; }
+      .guest-list { display:grid; gap:14px; width:100%; margin-top:58px; padding:0 44px; align-content:start; justify-content:center; }
+      .guest-item { text-align:center; color:var(--poster-ink); font-size:34px; line-height:1.04; font-weight:600; letter-spacing:0; padding:0; }
       .botanical-bottom { position:absolute; display:block; left:-10px; bottom:-8px; width:146px; height:220px; opacity:.42; pointer-events:none; transform:scaleX(-1) rotate(-8deg); }
-      .has-few-guests .guest-list, .has-medium-guests .guest-list { align-content:start; gap:24px; }
-      .has-few-guests .guest-item, .has-medium-guests .guest-item { font-size:58px; }
-      .is-dense .guest-list { gap:18px; margin-top:82px; }
-      .is-dense .guest-item { font-size:48px; }
-      .is-very-dense .guest-list { gap:12px; margin-top:70px; }
-      .is-very-dense .guest-item { font-size:40px; }
-      .is-two-columns .guest-list { grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:18px; }
+      .has-few-guests .guest-list, .has-medium-guests .guest-list { align-content:start; gap:14px; }
+      .has-few-guests .guest-item, .has-medium-guests .guest-item { font-size:34px; }
+      .is-dense .guest-list { gap:11px; margin-top:48px; }
+      .is-dense .guest-item { font-size:27px; }
+      .is-very-dense .guest-list { gap:8px; margin-top:38px; }
+      .is-very-dense .guest-item { font-size:22px; }
+      .is-two-columns .guest-list { grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:16px; }
     </style>
   </head>
   <body>
@@ -636,7 +640,7 @@ async function buildPdfFromTables(tables, themeName) {
   });
 
   try {
-    const page = await browser.newPage({ viewport: { width: 1240, height: 1754 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX }, deviceScaleFactor: 1 });
     await page.setContent(buildPrintablePostcardsHtml(tables, themeName), { waitUntil: 'load' });
     await page.waitForSelector('.postcards-grid > .place-card');
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -644,8 +648,8 @@ async function buildPdfFromTables(tables, themeName) {
     return await page.pdf({
       printBackground: true,
       preferCSSPageSize: true,
-      width: '100mm',
-      height: '150mm',
+      width: `${CARD_WIDTH_MM}mm`,
+      height: `${CARD_HEIGHT_MM}mm`,
       margin: { top: '0', right: '0', bottom: '0', left: '0' },
     });
   } finally {
@@ -1297,7 +1301,7 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
       const pdfBuffer = await buildPdfFromTables(tables, theme);
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-10x15.pdf"`);
+      res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-12x7-42-portrait.pdf"`);
       res.send(pdfBuffer);
     } finally {
       removeTempDir(tmpBase);

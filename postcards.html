@@ -48,7 +48,7 @@
     .export-hint { width:100%; font-size:12px; color: var(--text-muted); }
     .postcards-grid {
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(10cm, 10cm));
+      grid-template-columns: repeat(auto-fit, minmax(7.42cm, 7.42cm));
       gap: 24px;
       justify-content:center;
       align-items:start;
@@ -65,9 +65,9 @@
       --ornament-bottom:rgba(173,129,98,.10);
       --overlay-highlight:rgba(255,255,255,.22);
       position:relative;
-      width:10cm;
-      height:15cm;
-      padding:.86cm .78cm .68cm;
+      width:7.42cm;
+      height:12cm;
+      padding:.62cm .48cm .52cm;
       border-radius:18px;
       overflow:hidden;
       border:1px solid var(--frame-color);
@@ -221,7 +221,7 @@
       align-items:center;
       flex:1;
       min-height:0;
-      padding: 1.05cm 0 1.45cm;
+      padding: .48cm 0 .78cm;
       box-sizing:border-box;
     }
     .card-eyebrow {
@@ -236,7 +236,7 @@
     .card-title {
       margin: 0 0 4px;
       font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', 'Bodoni 72 Smallcaps', 'Cormorant Garamond', serif;
-      font-size: clamp(2.05rem, 3vw, 2.55rem);
+      font-size: clamp(1.36rem, 1.82vw, 1.66rem);
       line-height:1;
       text-align:center;
       color: color-mix(in srgb, var(--label-color) 72%, #1f1a16 28%);
@@ -248,13 +248,13 @@
       text-shadow: 0 1px 0 rgba(255,255,255,.45);
     }
     .card-divider {
-      width:74px; height:1px; margin: 8px auto 12px;
+      width:60px; height:1px; margin: 6px auto 8px;
       background: linear-gradient(90deg, transparent, var(--accent-line), transparent);
     }
     .guest-list {
       display:grid;
-      gap:8px;
-      margin-top:16px;
+      gap:6px;
+      margin-top:10px;
       align-content:start;
       justify-content:stretch;
       align-self:stretch;
@@ -264,8 +264,8 @@
     .guest-item {
       text-align:center;
       color: color-mix(in srgb, var(--label-color) 68%, #1f1a16 32%);
-      font-size:15px;
-      line-height:1.18;
+      font-size:12px;
+      line-height:1.12;
       font-family:'Cormorant Garamond', 'Adobe Garamond Pro', 'Garamond', serif;
       font-weight:600;
       letter-spacing:.018em;
@@ -273,52 +273,52 @@
       padding: 2px 0;
     }
     .place-card.is-dense {
-      padding:.76cm .7cm .58cm;
+      padding:.54cm .42cm .48cm;
     }
     .place-card.is-dense .card-eyebrow { margin-bottom:7px; font-size:8px; }
-    .place-card.is-dense .card-title { font-size: clamp(2.25rem, 3vw, 2.8rem); }
-    .place-card.is-dense .card-divider { margin: 6px auto 10px; }
-    .place-card.is-dense .guest-list { margin-top:14px; }
-    .place-card.is-dense .guest-list { gap:7px; }
-    .place-card.is-dense .guest-item { font-size:13px; line-height:1.1; }
+    .place-card.is-dense .card-title { font-size: clamp(1.24rem, 1.65vw, 1.5rem); }
+    .place-card.is-dense .card-divider { margin: 5px auto 7px; }
+    .place-card.is-dense .guest-list { margin-top:8px; }
+    .place-card.is-dense .guest-list { gap:4px; }
+    .place-card.is-dense .guest-item { font-size:10px; line-height:1.04; }
     .place-card.is-dense .card-footer { padding-top:8px; font-size:9px; }
 
     .place-card.is-very-dense {
-      padding:.66cm .62cm .5cm;
+      padding:.48cm .38cm .42cm;
     }
     .place-card.is-very-dense .card-frame { inset: 8px; }
     .place-card.is-very-dense .card-eyebrow { margin-bottom:5px; font-size:7px; letter-spacing:.22em; }
-    .place-card.is-very-dense .card-title { margin: 0 0 2px; font-size: clamp(1.95rem, 2.5vw, 2.35rem); }
-    .place-card.is-very-dense .card-divider { width:60px; margin: 5px auto 8px; }
-    .place-card.is-very-dense .guest-list { margin-top:10px; }
-    .place-card.is-very-dense .guest-list { gap:5px; }
-    .place-card.is-very-dense .guest-item { font-size:11px; line-height:1.04; }
+    .place-card.is-very-dense .card-title { margin: 0 0 2px; font-size: clamp(1.06rem, 1.42vw, 1.26rem); }
+    .place-card.is-very-dense .card-divider { width:52px; margin: 4px auto 6px; }
+    .place-card.is-very-dense .guest-list { margin-top:6px; }
+    .place-card.is-very-dense .guest-list { gap:3px; }
+    .place-card.is-very-dense .guest-item { font-size:8.8px; line-height:1.02; }
     .place-card.is-very-dense .card-footer { padding-top:6px; font-size:8px; letter-spacing:.16em; }
     .place-card.is-two-columns .guest-list {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       align-items:start;
-      column-gap:10px;
-      row-gap:6px;
+      column-gap:7px;
+      row-gap:4px;
     }
     .place-card.is-two-columns .guest-item {
-      font-size:11px;
-      line-height:1.05;
+      font-size:8.6px;
+      line-height:1.02;
       min-width:0;
     }
     .place-card.has-few-guests .guest-list {
       align-content:center;
-      gap:14px;
+      gap:9px;
     }
     .place-card.has-few-guests .guest-item {
-      font-size:18px;
+      font-size:14px;
       line-height:1.08;
     }
     .place-card.has-medium-guests .guest-list {
       align-content:center;
-      gap:10px;
+      gap:7px;
     }
     .place-card.has-medium-guests .guest-item {
-      font-size:16px;
+      font-size:13px;
       line-height:1.1;
     }
     .card-footer {
@@ -369,20 +369,20 @@
       left:13%;
       right:13%;
       top:36%;
-      bottom:12%;
+      bottom:10%;
       display:grid;
       gap:6px;
       align-content:center;
     }
     .template-guests .guest-item {
       color:inherit;
-      font-size:15px;
+      font-size:14px;
       line-height:1.08;
       padding:0;
       text-shadow:inherit;
     }
-    .place-card.has-card-art.is-dense .template-guests .guest-item { font-size:13px; }
-    .place-card.has-card-art.is-very-dense .template-guests .guest-item { font-size:11px; }
+    .place-card.has-card-art.is-dense .template-guests .guest-item { font-size:12px; }
+    .place-card.has-card-art.is-very-dense .template-guests .guest-item { font-size:10px; }
     .place-card.has-card-art.is-two-columns .template-guests {
       grid-template-columns:repeat(2, minmax(0, 1fr));
       column-gap:10px;
@@ -451,14 +451,14 @@
       justify-content:center;
       align-items:center;
       min-height:0;
-      padding: .75cm 0;
+      padding: .5cm 0;
     }
     .place-card.paper-white .card-title,
     .place-card.paper-cream .card-title {
       margin:0;
       color:var(--poster-ink);
       font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', 'Cormorant Garamond', serif;
-      font-size:35px;
+      font-size:24px;
       font-weight:500;
       line-height:1;
       letter-spacing:.42em;
@@ -478,8 +478,8 @@
     }
     .place-card.paper-white .guest-list,
     .place-card.paper-cream .guest-list {
-      width:min(86%, 6.35cm);
-      max-width:6.35cm;
+      width:min(90%, 6.15cm);
+      max-width:6.15cm;
       margin-left:auto;
       margin-right:auto;
       margin-top:var(--card-section-gap);
@@ -494,7 +494,7 @@
     .place-card.paper-cream .guest-item {
       color:var(--poster-ink);
       font-family:'Cormorant Garamond', Georgia, serif;
-      font-size:23px;
+      font-size:17px;
       font-weight:500;
       line-height:1.02;
       text-align:center;
@@ -519,33 +519,33 @@
       margin:0 auto;
     }
     .place-card.paper-white.has-medium-guests .guest-list,
-    .place-card.paper-cream.has-medium-guests .guest-list { gap:.2cm; }
+    .place-card.paper-cream.has-medium-guests .guest-list { gap:.14cm; }
     .place-card.paper-white.is-dense .guest-list,
-    .place-card.paper-cream.is-dense .guest-list { gap:.12cm; }
+    .place-card.paper-cream.is-dense .guest-list { gap:.08cm; }
     .place-card.paper-white.is-dense,
-    .place-card.paper-cream.is-dense { --card-section-gap:.74cm; }
+    .place-card.paper-cream.is-dense { --card-section-gap:.42cm; }
     .place-card.paper-white.is-very-dense .guest-list,
     .place-card.paper-cream.is-very-dense .guest-list { gap:.1cm; }
     .place-card.paper-white.is-very-dense .card-content,
-    .place-card.paper-cream.is-very-dense .card-content { padding: .65cm 0; }
+    .place-card.paper-cream.is-very-dense .card-content { padding: .42cm 0; }
     .place-card.paper-white.is-very-dense,
-    .place-card.paper-cream.is-very-dense { --card-section-gap:.58cm; }
+    .place-card.paper-cream.is-very-dense { --card-section-gap:.32cm; }
     .place-card.paper-white.is-two-columns .guest-list,
     .place-card.paper-cream.is-two-columns .guest-list {
       grid-template-columns:repeat(2, minmax(0, 1fr));
       column-gap:.36cm;
       row-gap:.1cm;
       width:92%;
-      max-width:8.2cm;
+      max-width:6.4cm;
     }
     .place-card.paper-white.has-few-guests .card-content,
-    .place-card.paper-cream.has-few-guests .card-content { padding: .85cm 0; }
+    .place-card.paper-cream.has-few-guests .card-content { padding: .52cm 0; }
     .place-card.paper-white.has-few-guests .guest-list,
     .place-card.paper-cream.has-few-guests .guest-list {
-      gap:.32cm;
+      gap:.2cm;
     }
     .place-card.paper-white.has-few-guests,
-    .place-card.paper-cream.has-few-guests { --card-section-gap:1.08cm; }
+    .place-card.paper-cream.has-few-guests { --card-section-gap:.62cm; }
     .empty-state {
       padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
     }
@@ -602,10 +602,10 @@
       }
       .postcards-grid > .place-card {
         display:flex !important;
-        width:10cm !important;
-        height:15cm !important;
+        width:7.42cm !important;
+        height:12cm !important;
         margin:0 auto !important;
-        top:7.35cm;
+        top:8.85cm;
         page-break-after:always;
         break-after:page;
         page-break-inside:avoid;
@@ -617,8 +617,8 @@
         break-after:auto;
       }
       .place-card {
-        width:10cm;
-        height:15cm;
+        width:7.42cm;
+        height:12cm;
         page-break-before:auto;
         break-before:auto;
         overflow:hidden;
@@ -661,7 +661,7 @@
     <div class="postcards-page">
       <section class="hero">
         <h1>Cartes de table</h1>
-        <p>Affiches portrait 10×15 prêtes à imprimer, dans le style minimal de la référence.</p>
+        <p>Affiches 12×7,42 en portrait, prêtes à imprimer.</p>
       </section>
       <div class="postcards-toolbar">
         <div class="muted">Choisis le fond selon le papier : blanc ou crème.</div>
@@ -672,11 +672,11 @@
           <button class="ghost danger-text" onclick="deleteSelectedPlan()">Supprimer la variante</button>
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
-            <button onclick="downloadPdf()">Imprimer / PDF A4 - carte 10×15</button>
+            <button onclick="downloadPdf()">Imprimer / PDF A4 - carte 12×7,42 portrait</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
           <span id="cardArtName" class="card-art-name"></span>
-          <div class="export-hint">Mode recommandé : impression directe en 10×15, une carte par page.</div>
+          <div class="export-hint">Mode recommandé : impression directe en 12×7,42 portrait, une carte par page.</div>
         </div>
       </div>
       <div id="cards" class="postcards-grid"></div>
@@ -819,9 +819,9 @@
     }
     function printCardBorderSvg() {
       return `
-        <svg class="print-card-border" viewBox="0 0 100 150" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x=".55" y=".55" width="98.9" height="148.9" rx="5.8" ry="5.8" stroke="currentColor" stroke-width=".32"/>
-          <rect x="3.7" y="3.7" width="92.6" height="142.6" rx="4.4" ry="4.4" stroke="currentColor" stroke-width=".26"/>
+        <svg class="print-card-border" viewBox="0 0 74.2 120" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x=".55" y=".55" width="73.1" height="118.9" rx="5.8" ry="5.8" stroke="currentColor" stroke-width=".32"/>
+          <rect x="3.7" y="3.7" width="66.8" height="112.6" rx="4.4" ry="4.4" stroke="currentColor" stroke-width=".26"/>
         </svg>`;
     }
     function densityClass(count) {
@@ -837,8 +837,8 @@
       if (count <= 8) return 'has-medium-guests';
       return '';
     }
-    function getSortedGuests(table) {
-      return (table.guests || []).filter(Boolean).slice().sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
+    function getTablePlanGuests(table) {
+      return (table.guests || []).filter(Boolean);
     }
     function tableNumber(table, index) {
       const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
@@ -922,7 +922,7 @@
       if(!tables.length){ cards.innerHTML = '<div class="empty-state">Aucune table disponible.</div>'; return; }
       cards.innerHTML = '';
       tables.forEach((table, index) => {
-        const guests = getSortedGuests(table);
+        const guests = getTablePlanGuests(table);
         const el = document.createElement('article');
         el.className = `place-card ${currentTheme} ${densityClass(guests.length)} ${layoutClass(guests.length)} ${guestDensityClass(guests.length)}`.trim();
         el.innerHTML = buildCardMarkup(table, guests, index);
