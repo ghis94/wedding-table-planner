@@ -16,6 +16,11 @@
     @font-face { font-family: 'Inter'; font-style: normal; font-weight: 500; font-display: swap; src: url('/assets/fonts/Inter-500.ttf') format('truetype'); }
     @font-face { font-family: 'Inter'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/Inter-600.ttf') format('truetype'); }
 
+    :root {
+      --postcard-width: 7.42cm;
+      --postcard-height: 12cm;
+      --postcard-print-offset: 8.85cm;
+    }
     .postcards-page { display:grid; gap:24px; }
     body.paper-white { background:#fffdfa; }
     body.paper-cream { background:#f8f1e8; }
@@ -48,7 +53,7 @@
     .export-hint { width:100%; font-size:12px; color: var(--text-muted); }
     .postcards-grid {
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(7.42cm, 7.42cm));
+      grid-template-columns: repeat(auto-fit, minmax(var(--postcard-width), var(--postcard-width)));
       gap: 24px;
       justify-content:center;
       align-items:start;
@@ -65,8 +70,8 @@
       --ornament-bottom:rgba(173,129,98,.10);
       --overlay-highlight:rgba(255,255,255,.22);
       position:relative;
-      width:7.42cm;
-      height:12cm;
+      width:var(--postcard-width);
+      height:var(--postcard-height);
       padding:.62cm .48cm .52cm;
       border-radius:18px;
       overflow:hidden;
@@ -546,6 +551,48 @@
     }
     .place-card.paper-white.has-few-guests,
     .place-card.paper-cream.has-few-guests { --card-section-gap:.62cm; }
+    body[data-card-format="10x15"] .place-card {
+      padding:.86cm .78cm .68cm;
+    }
+    body[data-card-format="10x15"] .card-content {
+      padding:1.05cm 0 1.45cm;
+    }
+    body[data-card-format="10x15"] .card-title {
+      font-size:clamp(2.05rem, 3vw, 2.55rem);
+    }
+    body[data-card-format="10x15"] .guest-item {
+      font-size:15px;
+      line-height:1.18;
+    }
+    body[data-card-format="10x15"] .place-card.paper-white .guest-item,
+    body[data-card-format="10x15"] .place-card.paper-cream .guest-item {
+      font-size:23px;
+    }
+    body[data-card-format="10x15"] .place-card.paper-white .guest-list,
+    body[data-card-format="10x15"] .place-card.paper-cream .guest-list {
+      max-width:6.35cm;
+    }
+    body[data-card-format="10x10"] .place-card {
+      padding:.56cm .58cm .46cm;
+    }
+    body[data-card-format="10x10"] .card-content {
+      padding:.42cm 0 .62cm;
+    }
+    body[data-card-format="10x10"] .card-title {
+      font-size:clamp(1.64rem, 2.2vw, 1.95rem);
+    }
+    body[data-card-format="10x10"] .guest-item {
+      font-size:13px;
+      line-height:1.08;
+    }
+    body[data-card-format="10x10"] .place-card.paper-white .guest-item,
+    body[data-card-format="10x10"] .place-card.paper-cream .guest-item {
+      font-size:19px;
+    }
+    body[data-card-format="10x10"] .place-card.paper-white .guest-list,
+    body[data-card-format="10x10"] .place-card.paper-cream .guest-list {
+      max-width:8.2cm;
+    }
     .empty-state {
       padding:20px; text-align:center; border-radius:18px; background:rgba(255,255,255,.38); color:var(--text-muted); border:1px solid var(--line-soft);
     }
@@ -602,10 +649,10 @@
       }
       .postcards-grid > .place-card {
         display:flex !important;
-        width:7.42cm !important;
-        height:12cm !important;
+        width:var(--postcard-width) !important;
+        height:var(--postcard-height) !important;
         margin:0 auto !important;
-        top:8.85cm;
+        top:var(--postcard-print-offset);
         page-break-after:always;
         break-after:page;
         page-break-inside:avoid;
@@ -617,8 +664,8 @@
         break-after:auto;
       }
       .place-card {
-        width:7.42cm;
-        height:12cm;
+        width:var(--postcard-width);
+        height:var(--postcard-height);
         page-break-before:auto;
         break-before:auto;
         overflow:hidden;
@@ -661,7 +708,7 @@
     <div class="postcards-page">
       <section class="hero">
         <h1>Cartes de table</h1>
-        <p>Affiches 12×7,42 en portrait, prêtes à imprimer.</p>
+        <p id="formatDescription">Affiches 12×7,42 en portrait, prêtes à imprimer.</p>
       </section>
       <div class="postcards-toolbar">
         <div class="muted">Choisis le fond selon le papier : blanc ou crème.</div>
@@ -670,13 +717,16 @@
             <select id="activePlanSelect" class="mini-select" onchange="activateSelectedPlan()"></select>
           </label>
           <button class="ghost danger-text" onclick="deleteSelectedPlan()">Supprimer la variante</button>
+          <label class="toolbar-label">Format
+            <select id="formatSelect" class="mini-select" onchange="applyCardFormat(this.value)"></select>
+          </label>
           <select id="themeSelect" class="mini-select" style="min-width:220px" onchange="applyTheme(this.value)"></select>
           <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
-            <button onclick="downloadPdf()">Imprimer / PDF A4 - carte 12×7,42 portrait</button>
+            <button id="printButton" onclick="downloadPdf()">Imprimer / PDF A4</button>
             <button class="ghost" onclick="load()">Rafraîchir</button>
           </div>
           <span id="cardArtName" class="card-art-name"></span>
-          <div class="export-hint">Mode recommandé : impression directe en 12×7,42 portrait, une carte par page.</div>
+          <div id="formatHint" class="export-hint">Mode recommandé : impression directe en 12×7,42 portrait, une carte par page.</div>
         </div>
       </div>
       <div id="cards" class="postcards-grid"></div>
@@ -690,7 +740,13 @@
       { label: 'Papier', options: [['paper-white','Blanc'],['paper-cream','Crème']] }
     ];
     const allThemeOptions = themeGroups.flatMap(group => group.options);
+    const cardFormats = {
+      '10x15': { label: '10×15', description: 'Affiches 10×15 prêtes à imprimer.', widthCm: 10, heightCm: 15, offsetCm: 7.35 },
+      '12x7-42': { label: '12×7,42 portrait', description: 'Affiches 12×7,42 en portrait, prêtes à imprimer.', widthCm: 7.42, heightCm: 12, offsetCm: 8.85 },
+      '10x10': { label: '10×10', description: 'Affiches carrées 10×10 prêtes à imprimer.', widthCm: 10, heightCm: 10, offsetCm: 9.85 }
+    };
     let currentTheme = exportBootstrap?.theme || exportQuery.get('theme') || localStorage.getItem('postcards-theme') || 'paper-white';
+    let currentFormat = exportBootstrap?.format || exportQuery.get('format') || localStorage.getItem('postcards-format') || '12x7-42';
     let planVariants = [];
     let activePlanId = '';
     let cardArt = '';
@@ -759,6 +815,31 @@
       const el = document.getElementById('cardArtName');
       if(el) el.textContent = cardArt ? `Visuel: ${cardArtName || 'image importée'}` : '';
     }
+    function initFormatSelect() {
+      const select = document.getElementById('formatSelect');
+      if (!select) return;
+      select.innerHTML = Object.entries(cardFormats)
+        .map(([value, format]) => `<option value="${value}">${format.label}</option>`)
+        .join('');
+      if (!cardFormats[currentFormat]) currentFormat = '12x7-42';
+      select.value = currentFormat;
+    }
+    function applyCardFormat(format, { persist = true, reload = true } = {}) {
+      currentFormat = cardFormats[format] ? format : '12x7-42';
+      const selected = cardFormats[currentFormat];
+      document.body.dataset.cardFormat = currentFormat;
+      document.documentElement.style.setProperty('--postcard-width', `${selected.widthCm}cm`);
+      document.documentElement.style.setProperty('--postcard-height', `${selected.heightCm}cm`);
+      document.documentElement.style.setProperty('--postcard-print-offset', `${selected.offsetCm}cm`);
+      const description = document.getElementById('formatDescription');
+      const printButton = document.getElementById('printButton');
+      const hint = document.getElementById('formatHint');
+      if (description) description.textContent = selected.description;
+      if (printButton) printButton.textContent = `Imprimer / PDF A4 - carte ${selected.label}`;
+      if (hint) hint.textContent = `Mode recommandé : impression directe en ${selected.label}, une carte par page.`;
+      if (persist) localStorage.setItem('postcards-format', currentFormat);
+      if (reload) load();
+    }
     function loadCardArt(event){
       const file = event.target.files?.[0];
       if(!file) return;
@@ -818,10 +899,17 @@
         </svg>`;
     }
     function printCardBorderSvg() {
+      const format = cardFormats[currentFormat] || cardFormats['12x7-42'];
+      const width = format.widthCm * 10;
+      const height = format.heightCm * 10;
+      const outerWidth = Math.max(0, width - 1.1);
+      const outerHeight = Math.max(0, height - 1.1);
+      const innerWidth = Math.max(0, width - 7.4);
+      const innerHeight = Math.max(0, height - 7.4);
       return `
-        <svg class="print-card-border" viewBox="0 0 74.2 120" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect x=".55" y=".55" width="73.1" height="118.9" rx="5.8" ry="5.8" stroke="currentColor" stroke-width=".32"/>
-          <rect x="3.7" y="3.7" width="66.8" height="112.6" rx="4.4" ry="4.4" stroke="currentColor" stroke-width=".26"/>
+        <svg class="print-card-border" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x=".55" y=".55" width="${outerWidth}" height="${outerHeight}" rx="5.8" ry="5.8" stroke="currentColor" stroke-width=".32"/>
+          <rect x="3.7" y="3.7" width="${innerWidth}" height="${innerHeight}" rx="4.4" ry="4.4" stroke="currentColor" stroke-width=".26"/>
         </svg>`;
     }
     function densityClass(count) {
@@ -931,6 +1019,8 @@
     }
     initThemeSelect();
     document.body.classList.add(currentTheme);
+    initFormatSelect();
+    applyCardFormat(currentFormat, { persist: !exportBootstrap, reload: false });
     updateCardArtLabel();
     loadPlans().catch(()=>{});
     load();

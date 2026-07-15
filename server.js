@@ -21,10 +21,12 @@ const DEFAULT_ADMIN_PASS = 'changeme';
 const DEFAULT_SESSION_SECRET='change-this-session-secret';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const FONT_DIR = path.join(__dirname, 'assets', 'fonts');
-const CARD_WIDTH_PX = 742;
-const CARD_HEIGHT_PX = 1200;
-const CARD_WIDTH_MM = 74.2;
-const CARD_HEIGHT_MM = 120;
+const CARD_FORMATS = {
+  '10x15': { label: '10x15', widthPx: 1000, heightPx: 1500, widthMm: 100, heightMm: 150 },
+  '12x7-42': { label: '12x7-42-portrait', widthPx: 742, heightPx: 1200, widthMm: 74.2, heightMm: 120 },
+  '10x10': { label: '10x10', widthPx: 1000, heightPx: 1000, widthMm: 100, heightMm: 100 },
+};
+const DEFAULT_CARD_FORMAT = '12x7-42';
 const CARD_FONT_FILES = [
   path.join(FONT_DIR, 'BodoniModa-500.ttf'),
   path.join(FONT_DIR, 'BodoniModa-600.ttf'),
@@ -206,6 +208,10 @@ function getCardTheme(theme) {
   return CARD_THEMES[theme] || CARD_THEMES['paper-white'];
 }
 
+function getCardFormat(format) {
+  return CARD_FORMATS[format] || CARD_FORMATS[DEFAULT_CARD_FORMAT];
+}
+
 function densityClass(count) {
   if (count >= 13) return 'is-very-dense';
   if (count >= 9) return 'is-dense';
@@ -245,7 +251,8 @@ function findChromiumBinary() {
   return null;
 }
 
-async function renderCardToPng(htmlUrl, pngPath) {
+async function renderCardToPng(htmlUrl, pngPath, formatName = DEFAULT_CARD_FORMAT) {
+  const cardFormat = getCardFormat(formatName);
   const chromiumPath = findChromiumBinary();
   if (chromiumPath) {
     execFileSync(chromiumPath, [
@@ -254,7 +261,7 @@ async function renderCardToPng(htmlUrl, pngPath) {
       '--hide-scrollbars',
       '--force-device-scale-factor=1',
       `--screenshot=${pngPath}`,
-      `--window-size=${CARD_WIDTH_PX},${CARD_HEIGHT_PX}`,
+      `--window-size=${cardFormat.widthPx},${cardFormat.heightPx}`,
       htmlUrl,
     ], { stdio: 'ignore' });
     return;
@@ -273,7 +280,7 @@ async function renderCardToPng(htmlUrl, pngPath) {
   });
 
   try {
-    const page = await browser.newPage({ viewport: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: { width: cardFormat.widthPx, height: cardFormat.heightPx }, deviceScaleFactor: 1 });
     await page.goto(htmlUrl, { waitUntil: 'networkidle' });
     await page.screenshot({ path: pngPath, fullPage: true });
   } finally {
@@ -314,8 +321,9 @@ function splitGuestLines(guests, maxChars = 20) {
   return lines;
 }
 
-function buildCardSvg(table, themeName = 'paper-white') {
+function buildCardSvg(table, themeName = 'paper-white', formatName = DEFAULT_CARD_FORMAT) {
   const theme = getCardTheme(themeName);
+  const cardFormat = getCardFormat(formatName);
   const guests = (table.guests || []).filter(Boolean);
   const count = guests.length;
   const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
@@ -326,35 +334,39 @@ function buildCardSvg(table, themeName = 'paper-white') {
   const isDense = count >= 9 && count < 13;
   const isVeryDense = count >= 13;
   const isTwoColumns = count >= 13;
-  const guestSize = isVeryDense ? 17 : (isDense ? 21 : 27);
-  const guestGap = isVeryDense ? 16 : (isDense ? 21 : 28);
-  const guestTop = isVeryDense ? 575 : (isDense ? 555 : 530);
+  const widthScale = cardFormat.widthPx / 742;
+  const heightScale = cardFormat.heightPx / 1200;
+  const typeScale = Math.min(widthScale, heightScale);
+  const guestSize = Math.round((isVeryDense ? 17 : (isDense ? 21 : 27)) * typeScale);
+  const guestGap = Math.round((isVeryDense ? 16 : (isDense ? 21 : 28)) * heightScale);
+  const guestTop = Math.round((isVeryDense ? 0.48 : (isDense ? 0.462 : 0.442)) * cardFormat.heightPx);
   const guestMaxChars = isTwoColumns ? 16 : (isVeryDense ? 20 : 24);
   const guestLines = splitGuestLines(guests, guestMaxChars);
   const columns = isTwoColumns ? 2 : 1;
-  const leftColumnX = 270;
-  const rightColumnX = 472;
+  const leftColumnX = Math.round(cardFormat.widthPx * 0.36);
+  const rightColumnX = Math.round(cardFormat.widthPx * 0.64);
   const rowsPerColumn = Math.max(1, Math.ceil(guestLines.length / columns));
-  const titleY = 300;
-  const titleSize = 34;
-  const titleLetterSpacing = 3.4;
-  const ornamentY = 1110;
+  const titleY = Math.round(cardFormat.heightPx * 0.25);
+  const titleSize = Math.round(34 * typeScale);
+  const titleLetterSpacing = Math.max(2.4, 3.4 * typeScale);
+  const ornamentY = Math.round(cardFormat.heightPx * 0.925);
+  const centerX = cardFormat.widthPx / 2;
 
   const rows = guestLines.length
     ? guestLines.map((line, index) => {
         const columnIndex = isTwoColumns ? Math.floor(index / rowsPerColumn) : 0;
         const rowIndex = isTwoColumns ? index % rowsPerColumn : index;
-        const x = isTwoColumns ? (columnIndex === 0 ? leftColumnX : rightColumnX) : CARD_WIDTH_PX / 2;
+        const x = isTwoColumns ? (columnIndex === 0 ? leftColumnX : rightColumnX) : centerX;
         const anchor = 'middle';
         return `<text x="${x}" y="${guestTop + rowIndex * guestGap}" text-anchor="${anchor}" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">${escapeSvgText(line)}</text>`;
       }).join('\n')
-    : `<text x="${CARD_WIDTH_PX / 2}" y="${guestTop}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">Table en préparation</text>`;
+    : `<text x="${centerX}" y="${guestTop}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="${guestSize}" font-weight="600" fill="${theme.label}">Table en préparation</text>`;
 
   const bgEnd = themeName === 'paper-cream' ? '#f8f1e8' : '#fffdfa';
   const frame = themeName === 'paper-cream' ? '#beb0a4' : '#c8bcb2';
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" viewBox="0 0 ${CARD_WIDTH_PX} ${CARD_HEIGHT_PX}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${cardFormat.widthPx}" height="${cardFormat.heightPx}" viewBox="0 0 ${cardFormat.widthPx} ${cardFormat.heightPx}">
   <defs>
     <radialGradient id="bgGlow" cx="50%" cy="38%" r="60%">
       <stop offset="0%" stop-color="rgba(255,255,255,.34)"/>
@@ -366,15 +378,15 @@ function buildCardSvg(table, themeName = 'paper-white') {
       <stop offset="18%" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
   </defs>
-  <rect width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" fill="${bgEnd}" />
-  <rect x="0.5" y="0.5" width="${CARD_WIDTH_PX - 1}" height="${CARD_HEIGHT_PX - 1}" rx="18" ry="18" fill="${bgEnd}" stroke="${frame}" stroke-width="1" />
-  <rect x="8" y="8" width="${CARD_WIDTH_PX - 16}" height="${CARD_HEIGHT_PX - 16}" rx="12" ry="12" fill="none" stroke="${frame}" stroke-width="1" />
-  <rect width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" fill="url(#bgGlow)" />
-  <rect width="${CARD_WIDTH_PX}" height="${CARD_HEIGHT_PX}" fill="url(#bgShade)" />
-  <text x="371" y="${titleY}" text-anchor="middle" font-family="Bodoni Moda, Didot, Bodoni 72, Georgia, serif" font-size="${titleSize}" font-weight="500" letter-spacing="${titleLetterSpacing}" fill="${theme.label}" text-transform="uppercase">${escapeSvgText(`Table ${tableNumber}`)}</text>
-  ${displayName ? `<text x="371" y="350" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="22" font-weight="700" fill="${theme.label}">${escapeSvgText(displayName)}</text>` : ''}
+  <rect width="${cardFormat.widthPx}" height="${cardFormat.heightPx}" fill="${bgEnd}" />
+  <rect x="0.5" y="0.5" width="${cardFormat.widthPx - 1}" height="${cardFormat.heightPx - 1}" rx="18" ry="18" fill="${bgEnd}" stroke="${frame}" stroke-width="1" />
+  <rect x="8" y="8" width="${cardFormat.widthPx - 16}" height="${cardFormat.heightPx - 16}" rx="12" ry="12" fill="none" stroke="${frame}" stroke-width="1" />
+  <rect width="${cardFormat.widthPx}" height="${cardFormat.heightPx}" fill="url(#bgGlow)" />
+  <rect width="${cardFormat.widthPx}" height="${cardFormat.heightPx}" fill="url(#bgShade)" />
+  <text x="${centerX}" y="${titleY}" text-anchor="middle" font-family="Bodoni Moda, Didot, Bodoni 72, Georgia, serif" font-size="${titleSize}" font-weight="500" letter-spacing="${titleLetterSpacing}" fill="${theme.label}" text-transform="uppercase">${escapeSvgText(`Table ${tableNumber}`)}</text>
+  ${displayName ? `<text x="${centerX}" y="${titleY + Math.round(50 * typeScale)}" text-anchor="middle" font-family="Cormorant Garamond, Georgia, serif" font-size="${Math.round(22 * typeScale)}" font-weight="700" fill="${theme.label}">${escapeSvgText(displayName)}</text>` : ''}
   ${rows}
-  <g transform="translate(371 ${ornamentY})" fill="none" stroke="${theme.accent}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
+  <g transform="translate(${centerX} ${ornamentY})" fill="none" stroke="${theme.accent}" stroke-width="${Math.max(1.5, 2 * typeScale)}" stroke-linecap="round" stroke-linejoin="round" opacity=".9">
     <path d="M-80 0c-18 2-32-4-47-14M-90 1c-9 7-20 8-33 2M-111 -8c4-5 10-7 18-7M-120 -11c2 7 8 12 18 15" />
     <path d="M0 7s-18-10-12-22c6-8 12 2 12 2s6-10 12-2c6 12-12 22-12 22Z" />
     <path d="M80 0c18 2 32-4 47-14M90 1c9 7 20 8 33 2M111 -8c-4-5-10-7-18-7M120 -11c-2 7-8 12-18 15" />
@@ -382,8 +394,8 @@ function buildCardSvg(table, themeName = 'paper-white') {
 </svg>`;
 }
 
-function renderCardPng(table, theme) {
-  const svg = buildCardSvg(table, theme);
+function renderCardPng(table, theme, formatName = DEFAULT_CARD_FORMAT) {
+  const svg = buildCardSvg(table, theme, formatName);
   const rendered = new Resvg(svg, {
     fitTo: { mode: 'zoom', value: 1 },
     background: 'rgba(255,255,255,1)',
@@ -398,8 +410,10 @@ function renderCardPng(table, theme) {
   return rendered.render().asPng();
 }
 
-function buildCardHtml(table, themeName = 'paper-white') {
+function buildCardHtml(table, themeName = 'paper-white', formatName = DEFAULT_CARD_FORMAT) {
   const theme = getCardTheme(themeName);
+  const cardFormat = getCardFormat(formatName);
+  const typeScale = Math.min(cardFormat.widthPx / 742, cardFormat.heightPx / 1200);
   const guests = (table.guests || []).filter(Boolean);
   const count = guests.length;
   const fromNumber = Number(table.number || table.numero || table.tableNumber || 0);
@@ -424,11 +438,11 @@ function buildCardHtml(table, themeName = 'paper-white') {
   <head>
     <meta charset="UTF-8" />
     <style>
-      html, body { margin:0; padding:0; width:${CARD_WIDTH_PX}px; height:${CARD_HEIGHT_PX}px; background:#fff; }
+      html, body { margin:0; padding:0; width:${cardFormat.widthPx}px; height:${cardFormat.heightPx}px; background:#fff; }
       body { overflow:hidden; }
       .place-card {
         --poster-bg:${theme.bgStart}; --poster-bg-end:${theme.bgEnd}; --poster-edge:${theme.frame}; --poster-ink:${theme.title};
-        position:relative; width:${CARD_WIDTH_PX}px; height:${CARD_HEIGHT_PX}px; padding:50px 42px 64px; box-sizing:border-box; overflow:hidden;
+        position:relative; width:${cardFormat.widthPx}px; height:${cardFormat.heightPx}px; padding:${Math.round(50 * typeScale)}px ${Math.round(42 * typeScale)}px ${Math.round(64 * typeScale)}px; box-sizing:border-box; overflow:hidden;
         background: radial-gradient(circle at 50% 38%, rgba(255,255,255,.34), transparent 28%), linear-gradient(180deg, var(--poster-bg), var(--poster-bg-end));
         border:1px solid var(--poster-edge); border-radius:18px; display:flex; isolation:isolate;
         font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; color:var(--poster-ink);
@@ -440,19 +454,19 @@ function buildCardHtml(table, themeName = 'paper-white') {
       }
       .card-frame { position:absolute; inset:8px; border-radius:12px; border:1px solid var(--poster-edge); pointer-events:none; z-index:0; }
       .card-inner { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; min-height:100%; width:100%; padding:14px 0 8px; box-sizing:border-box; }
-      .card-content { width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1; min-height:0; padding:100px 0 120px; box-sizing:border-box; }
-      .card-title { margin:0; font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif; font-size:52px; font-weight:500; line-height:1; text-align:center; color:var(--poster-ink); text-transform:uppercase; letter-spacing:.34em; text-shadow:0 1px 0 rgba(255,255,255,.5); }
-      .card-eyebrow { margin:0 0 10px; text-align:center; font-family:'Cormorant Garamond', Georgia, serif; font-size:22px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--poster-ink); }
-      .guest-list { display:grid; gap:14px; width:100%; margin-top:58px; padding:0 44px; align-content:start; justify-content:center; }
-      .guest-item { text-align:center; color:var(--poster-ink); font-size:34px; line-height:1.04; font-weight:600; letter-spacing:0; padding:0; }
+      .card-content { width:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; flex:1; min-height:0; padding:${Math.round(100 * typeScale)}px 0 ${Math.round(120 * typeScale)}px; box-sizing:border-box; }
+      .card-title { margin:0; font-family:'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif; font-size:${Math.round(52 * typeScale)}px; font-weight:500; line-height:1; text-align:center; color:var(--poster-ink); text-transform:uppercase; letter-spacing:.34em; text-shadow:0 1px 0 rgba(255,255,255,.5); }
+      .card-eyebrow { margin:0 0 10px; text-align:center; font-family:'Cormorant Garamond', Georgia, serif; font-size:${Math.round(22 * typeScale)}px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--poster-ink); }
+      .guest-list { display:grid; gap:${Math.round(14 * typeScale)}px; width:100%; margin-top:${Math.round(58 * typeScale)}px; padding:0 ${Math.round(44 * typeScale)}px; align-content:start; justify-content:center; }
+      .guest-item { text-align:center; color:var(--poster-ink); font-size:${Math.round(34 * typeScale)}px; line-height:1.04; font-weight:600; letter-spacing:0; padding:0; }
       .botanical-bottom { position:absolute; display:block; left:-10px; bottom:-8px; width:146px; height:220px; opacity:.42; pointer-events:none; transform:scaleX(-1) rotate(-8deg); }
-      .has-few-guests .guest-list, .has-medium-guests .guest-list { align-content:start; gap:14px; }
-      .has-few-guests .guest-item, .has-medium-guests .guest-item { font-size:34px; }
-      .is-dense .guest-list { gap:11px; margin-top:48px; }
-      .is-dense .guest-item { font-size:27px; }
-      .is-very-dense .guest-list { gap:8px; margin-top:38px; }
-      .is-very-dense .guest-item { font-size:22px; }
-      .is-two-columns .guest-list { grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:16px; }
+      .has-few-guests .guest-list, .has-medium-guests .guest-list { align-content:start; gap:${Math.round(14 * typeScale)}px; }
+      .has-few-guests .guest-item, .has-medium-guests .guest-item { font-size:${Math.round(34 * typeScale)}px; }
+      .is-dense .guest-list { gap:${Math.round(11 * typeScale)}px; margin-top:${Math.round(48 * typeScale)}px; }
+      .is-dense .guest-item { font-size:${Math.round(27 * typeScale)}px; }
+      .is-very-dense .guest-list { gap:${Math.round(8 * typeScale)}px; margin-top:${Math.round(38 * typeScale)}px; }
+      .is-very-dense .guest-item { font-size:${Math.round(22 * typeScale)}px; }
+      .is-two-columns .guest-list { grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:${Math.round(16 * typeScale)}px; }
     </style>
   </head>
   <body>
@@ -484,10 +498,11 @@ function buildCardHtml(table, themeName = 'paper-white') {
   </html>`;
 }
 
-function buildPrintablePostcardsHtml(tables, themeName = 'paper-white') {
+function buildPrintablePostcardsHtml(tables, themeName = 'paper-white', formatName = DEFAULT_CARD_FORMAT) {
   const themeClass = CARD_THEMES[themeName] ? themeName : 'paper-white';
+  const cardFormat = CARD_FORMATS[formatName] ? formatName : DEFAULT_CARD_FORMAT;
   const htmlPath = path.join(__dirname, 'postcards.html');
-  const bootstrap = JSON.stringify({ theme: themeClass, plan: { tables } })
+  const bootstrap = JSON.stringify({ theme: themeClass, format: cardFormat, plan: { tables } })
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e');
 
@@ -626,7 +641,8 @@ function splitPdfText(value, maxChars = 26) {
   return lines;
 }
 
-async function buildPdfFromTables(tables, themeName) {
+async function buildPdfFromTables(tables, themeName, formatName = DEFAULT_CARD_FORMAT) {
+  const cardFormat = getCardFormat(formatName);
   let chromium;
   try {
     ({ chromium } = require('playwright'));
@@ -640,16 +656,16 @@ async function buildPdfFromTables(tables, themeName) {
   });
 
   try {
-    const page = await browser.newPage({ viewport: { width: CARD_WIDTH_PX, height: CARD_HEIGHT_PX }, deviceScaleFactor: 1 });
-    await page.setContent(buildPrintablePostcardsHtml(tables, themeName), { waitUntil: 'load' });
+    const page = await browser.newPage({ viewport: { width: cardFormat.widthPx, height: cardFormat.heightPx }, deviceScaleFactor: 1 });
+    await page.setContent(buildPrintablePostcardsHtml(tables, themeName, formatName), { waitUntil: 'load' });
     await page.waitForSelector('.postcards-grid > .place-card');
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     await page.emulateMedia({ media: 'print' });
     return await page.pdf({
       printBackground: true,
       preferCSSPageSize: true,
-      width: `${CARD_WIDTH_MM}mm`,
-      height: `${CARD_HEIGHT_MM}mm`,
+      width: `${cardFormat.widthMm}mm`,
+      height: `${cardFormat.heightMm}mm`,
       margin: { top: '0', right: '0', bottom: '0', left: '0' },
     });
   } finally {
@@ -1258,6 +1274,10 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
     let tmpBase;
     const format = String(req.query.format || 'png').toLowerCase() === 'jpg' ? 'jpg' : 'png';
     const theme = cleanText(req.query.theme || 'paper-white', 80) || 'paper-white';
+    const cardFormatName = CARD_FORMATS[cleanText(req.query.cardFormat || req.query.card_format || DEFAULT_CARD_FORMAT, 80)]
+      ? cleanText(req.query.cardFormat || req.query.card_format || DEFAULT_CARD_FORMAT, 80)
+      : DEFAULT_CARD_FORMAT;
+    const cardFormat = getCardFormat(cardFormatName);
     const planRow = getActivePlanRow();
     const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
     const tables = (plan.tables || []).filter(Boolean);
@@ -1268,13 +1288,13 @@ app.get('/api/postcards/export', requireAdmin, (req, res) => {
       const files = [];
       for (const [index, table] of tables.entries()) {
         const pngPath = path.join(tmpBase, `card-${index}.png`);
-        fs.writeFileSync(pngPath, renderCardPng(table, theme));
+        fs.writeFileSync(pngPath, renderCardPng(table, theme, cardFormatName));
         const pngBuffer = fs.readFileSync(pngPath);
         files.push({ name: `${safeFileName(table.name, 'table')}.${format}`, data: pngBuffer });
       }
 
       const zipBuffer = buildZip(files);
-      const archiveName = `wedding-cards-${safeFileName(theme, 'theme')}-${format}.zip`;
+      const archiveName = `wedding-cards-${safeFileName(theme, 'theme')}-${cardFormat.label}-${format}.zip`;
       res.setHeader('Content-Type', 'application/zip');
       res.setHeader('Content-Disposition', `attachment; filename="${archiveName}"`);
       res.send(zipBuffer);
@@ -1290,6 +1310,10 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
   (async () => {
     let tmpBase;
     const theme = cleanText(req.query.theme || 'paper-white', 80) || 'paper-white';
+    const cardFormatName = CARD_FORMATS[cleanText(req.query.cardFormat || req.query.card_format || DEFAULT_CARD_FORMAT, 80)]
+      ? cleanText(req.query.cardFormat || req.query.card_format || DEFAULT_CARD_FORMAT, 80)
+      : DEFAULT_CARD_FORMAT;
+    const cardFormat = getCardFormat(cardFormatName);
 
     const planRow = getActivePlanRow();
     const plan = planRow?.data ? sanitizePlan(JSON.parse(planRow.data)) : { tables: [], guests: [] };
@@ -1298,10 +1322,10 @@ app.get('/api/postcards/export.pdf', requireAdmin, (req, res) => {
 
     tmpBase = fs.mkdtempSync(path.join(require('os').tmpdir(), 'wtp-pdf-'));
     try {
-      const pdfBuffer = await buildPdfFromTables(tables, theme);
+      const pdfBuffer = await buildPdfFromTables(tables, theme, cardFormatName);
 
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-12x7-42-portrait.pdf"`);
+      res.setHeader('Content-Disposition', `attachment; filename="wedding-cards-${safeFileName(theme, 'theme')}-${cardFormat.label}.pdf"`);
       res.send(pdfBuffer);
     } finally {
       removeTempDir(tmpBase);
