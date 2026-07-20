@@ -171,6 +171,15 @@ test('admin page exposes both plan and full config import actions', async () => 
   assert.match(res.text, /Importer config complète/);
 });
 
+test('day-of page includes a print-friendly caterer view', async () => {
+  const res = await request('/day-of.html', { headers: { cookie } });
+  assert.equal(res.status, 200);
+  assert.match(res.text, /Régimes à signaler en cuisine/);
+  assert.match(res.text, /Table \$\{tableShapeLabel\(t\.shape\)\.toLowerCase\(\)\}/);
+  assert.match(res.text, /Au-delà de la capacité déclarée/);
+  assert.match(res.text, /@page \{ size:A4 portrait; margin:10mm; \}/);
+});
+
 test('postcards page can choose the active plan and paper tone', async () => {
   const res = await request('/postcards.html', { headers: { cookie } });
   assert.equal(res.status, 200);
@@ -204,4 +213,53 @@ test('sanitizePlan removes root guests already seated at a table', async () => {
   assert.deepEqual(data.guests.map(g => g.id), ['guest-2']);
   assert.equal(data.tables[0].guests.length, 1);
   assert.equal(data.tables[0].guests[0].id, 'guest-1');
+});
+
+test('caterer export includes table details and guest dietary notes', async () => {
+  const save = await request('/api/plan', {
+    method: 'POST',
+    body: {
+      guests: [],
+      tables: [{
+        id: 'caterer-table',
+        name: 'Table Jardin',
+        shape: 'rectangle',
+        capacity: 24,
+        guests: [{ id: 'caterer-guest', name: 'Camille Test', type: 'enfant', regime: 'Sans gluten', adminNotes: 'Prévoir une assiette séparée' }],
+      }],
+    },
+    headers: { cookie },
+  });
+  assert.equal(save.status, 200);
+
+  const exportResponse = await request('/api/export/caterer.csv', { headers: { cookie } });
+  assert.equal(exportResponse.status, 200);
+  assert.match(exportResponse.text, /"forme","capacité déclarée"/);
+  assert.match(exportResponse.text, /"Table Jardin","rectangle","24","Camille Test","enfant","Sans gluten","Prévoir une assiette séparée"/);
+});
+
+test('plan save preserves table shapes and large capacities', async () => {
+  const plan = {
+    guests: [],
+    tables: [
+      { id: 'table-square', name: 'Carrée', shape: 'square', capacity: 24, guests: [] },
+      { id: 'table-rectangle', name: 'Rectangulaire', shape: 'rectangle', capacity: 120, guests: [] },
+    ],
+    layout: { tables: {}, guests: {} },
+  };
+
+  const save = await request('/api/plan', {
+    method: 'POST',
+    body: plan,
+    headers: { cookie },
+  });
+  assert.equal(save.status, 200);
+
+  const read = await request('/api/plan', { headers: { cookie } });
+  assert.equal(read.status, 200);
+  const data = read.json();
+  assert.equal(data.tables[0].shape, 'square');
+  assert.equal(data.tables[0].capacity, 24);
+  assert.equal(data.tables[1].shape, 'rectangle');
+  assert.equal(data.tables[1].capacity, 120);
 });

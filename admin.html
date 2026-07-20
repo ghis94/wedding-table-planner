@@ -607,6 +607,22 @@
       return 'adulte';
     }
 
+    function normalizeTableShape(v){
+      const shape=String(v||'').trim().toLowerCase();
+      if(['square','carree','carrée','carre'].includes(shape)) return 'square';
+      if(['rectangle','rectangulaire','rectangular'].includes(shape)) return 'rectangle';
+      return 'round';
+    }
+
+    function tableShapeOptions(selected='round'){
+      const shape=normalizeTableShape(selected);
+      return [
+        `<option value="round" ${shape==='round'?'selected':''}>Ronde</option>`,
+        `<option value="square" ${shape==='square'?'selected':''}>Carrée</option>`,
+        `<option value="rectangle" ${shape==='rectangle'?'selected':''}>Rectangulaire</option>`,
+      ].join('');
+    }
+
     function escapeHtml(v){
       return String(v||'')
         .replaceAll('&','&amp;')
@@ -734,6 +750,7 @@
 
 
     function normalizePlanState(){
+      tables = (tables||[]).map(t => ({ ...t, shape: normalizeTableShape(t.shape) }));
       const placedIds = new Set((tables||[]).flatMap(t=>t.guests||[]).map(g=>g?.id).filter(Boolean));
       guests = (guests||[]).filter(g => !g?.id || !placedIds.has(g.id));
     }
@@ -866,7 +883,7 @@
       markDirty(); renderAll(); alert(`${res.count} invité(s) importé(s)`);
     }
 
-    function addTable(){ const n=tables.length+1; pushHistory(); tables.push({id:crypto.randomUUID(),name:'Table '+n,capacity:10,guests:[]}); markDirty(); renderAll(); }
+    function addTable(){ const n=tables.length+1; pushHistory(); tables.push({id:crypto.randomUUID(),name:'Table '+n,shape:'round',capacity:10,guests:[]}); markDirty(); renderAll(); }
     function removeTable(id){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); guests.push(...t.guests); tables=tables.filter(x=>x.id!==id); markDirty(); renderAll(); }
     function tableOptions(selected=''){ const opts = [`<option value="">Table…</option>`]; (tables||[]).forEach(t=> opts.push(`<option value="${t.id}" ${selected===t.id?'selected':''}>${escapeHtml(t.name)}</option>`)); return opts.join(''); }
     function guestOptions(){ const opts = [`<option value="">Invité…</option>`]; (guests||[]).forEach(g=> opts.push(`<option value="${g.id}">${escapeHtml(g.name)}</option>`)); return opts.join(''); }
@@ -902,9 +919,10 @@
         const childCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='enfant').length;
         const babyCount=(t.guests||[]).filter(g=>normalizeType(g.type)==='bebe').length;
         const seated=(t.guests||[]).length;
+        const shape=normalizeTableShape(t.shape);
         const ratio=Math.min(100, Math.round((seated/Math.max(1,Number(t.capacity||1)))*100));
-        const fillState = ratio >= 100 ? 'Pleine' : ratio >= 75 ? 'Bien remplie' : ratio >= 50 ? 'En cours' : 'Disponible';
-        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><div class="row"><span class="tag">${seated}/${t.capacity}</span><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div></div><div class="table-kpis"><div>Adultes ${adultCount} · Enfants ${childCount} · Bébés ${babyCount}</div><div>Capacité <input type="number" min="1" value="${t.capacity}" style="width:76px;display:inline-flex" onchange="setCap('${t.id}',this.value)"></div></div><div class="table-fill"><strong>${seated}/${t.capacity}</strong><span>${fillState}</span></div><div class="row" style="margin:10px 0 6px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
+        const fillState = seated > Number(t.capacity||0) ? 'Au-delà' : ratio >= 100 ? 'Pleine' : ratio >= 75 ? 'Bien remplie' : ratio >= 50 ? 'En cours' : 'Disponible';
+        b.innerHTML=`<div class="table-head"><input value="${escapeHtml(t.name)}" onchange="renameTable('${t.id}', this.value)"><div class="row"><span class="tag">${seated}/${t.capacity}</span><button class="xbtn" onclick="removeTable('${t.id}')">Supprimer</button></div></div><div class="table-kpis"><div>Adultes ${adultCount} · Enfants ${childCount} · Bébés ${babyCount}</div><div class="row">Forme <select class="mini-select" style="width:160px;display:inline-flex" onchange="setShape('${t.id}',this.value)">${tableShapeOptions(shape)}</select> Capacité <input type="number" min="1" value="${t.capacity}" style="width:76px;display:inline-flex" onchange="setCap('${t.id}',this.value)"></div></div><div class="table-fill"><strong>${seated}/${t.capacity}</strong><span>${fillState}</span></div><div class="row" style="margin:10px 0 6px"><select class="mini-select" id="table-assign-${t.id}">${guestOptions()}</select><button class="mini-btn" onclick="addGuestToTableFromSelect('${t.id}', event)">Ajouter</button></div>`;
         visibleGuests.forEach(g=>{
           const d=document.createElement('div'); d.className='guest';
           const diet=normalizeDietLabel(g.regime);
@@ -917,8 +935,9 @@
     }
 
     function renameTable(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); t.name=String(val||'').trim()||t.name; markDirty(); renderAll(); }
+    function setShape(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); t.shape=normalizeTableShape(val); markDirty(); renderAll(); }
     function setCap(id,val){ const t=tables.find(x=>x.id===id); if(!t) return; pushHistory(); t.capacity=Math.max(1,parseInt(val||'1',10)); markDirty(); renderAll(); }
-    function assignToTable(guestId,tableId){ const gi=guests.findIndex(g=>g.id===guestId); if(gi===-1) return; const t=tables.find(x=>x.id===tableId); if(!t) return; if(t.guests.length>=t.capacity){alert('Table pleine');return;} pushHistory(); t.guests.push(guests[gi]); guests.splice(gi,1); markDirty(); renderAll(); }
+    function assignToTable(guestId,tableId){ const gi=guests.findIndex(g=>g.id===guestId); if(gi===-1) return; const t=tables.find(x=>x.id===tableId); if(!t) return; pushHistory(); t.guests.push(guests[gi]); guests.splice(gi,1); markDirty(); renderAll(); }
     function assignFromList(guestId, ev){ if(ev){ ev.stopPropagation(); ev.preventDefault(); } const sel=document.getElementById(`assign-${guestId}`); const tableId=sel?.value; if(!tableId){ alert('Choisis une table'); return; } assignToTable(guestId, tableId); }
     function addGuestToTableFromSelect(tableId, ev){ if(ev){ ev.stopPropagation(); ev.preventDefault(); } const sel=document.getElementById(`table-assign-${tableId}`); const guestId=sel?.value; if(!guestId){ alert('Choisis un invité'); return; } assignToTable(guestId, tableId); }
     function unassign(guestId,tableId,ev){ if(ev){ev.stopPropagation();ev.preventDefault();} const t=tables.find(x=>x.id===tableId); if(!t) return; const i=t.guests.findIndex(g=>g.id===guestId); if(i===-1) return; pushHistory(); guests.push(t.guests[i]); t.guests.splice(i,1); markDirty(); renderAll(); }
@@ -986,7 +1005,7 @@
 
     function transformConfigForImport(cfg) {
       const result = { version: cfg.version || 1, exportedAt: cfg.exportedAt, rsvps: cfg.rsvps || [], plan: { tables: [], guests: [], layout: cfg.plan?.layout || { tables: {}, guests: {} } } };
-      if (cfg.plan?.tables) result.plan.tables = cfg.plan.tables.map(table => ({ id: table.id, name: table.name, capacity: table.capacity, guests: (table.guests || []).map(g => transformRsvpToGuest(g)) }));
+      if (cfg.plan?.tables) result.plan.tables = cfg.plan.tables.map(table => ({ id: table.id, name: table.name, shape: normalizeTableShape(table.shape), capacity: table.capacity, guests: (table.guests || []).map(g => transformRsvpToGuest(g)) }));
       if (cfg.plan?.guests) result.plan.guests = cfg.plan.guests.map(g => transformRsvpToGuest(g));
       return result;
     }
@@ -1023,7 +1042,7 @@
       try{ const p = await api('/api/plan'); guests=p.guests||[]; tables=p.tables||[]; normalizePlanState(); } catch(e){}
       saveState='saved'; renderAll();
       setInterval(async ()=>{
-        try{ const p = await api('/api/plan'); const newHash = JSON.stringify((p.tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); const curHash = JSON.stringify((tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); if(newHash !== curHash){ tables=p.tables||[]; guests=p.guests||guests; normalizePlanState(); saveState='saved'; renderAll(); } }catch(_e){}
+        try{ const p = await api('/api/plan'); const newHash = JSON.stringify((p.tables||[]).map(t=>({id:t.id,name:t.name,shape:normalizeTableShape(t.shape),capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); const curHash = JSON.stringify((tables||[]).map(t=>({id:t.id,name:t.name,shape:normalizeTableShape(t.shape),capacity:t.capacity,guests:(t.guests||[]).map(g=>g.id).sort()}))); if(newHash !== curHash){ tables=p.tables||[]; guests=p.guests||guests; normalizePlanState(); saveState='saved'; renderAll(); } }catch(_e){}
       }, 3000);
     })();
   </script>

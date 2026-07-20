@@ -150,24 +150,31 @@
       box-shadow: var(--shadow-lg);
     }
     .table-cluster { position:absolute; }
-    .seat-slot,.guest-chip,.round-table { position:absolute; }
-    .round-table {
-      width:180px;height:180px;left:0;top:0;border-radius:50%;
+    .seat-slot,.guest-chip,.table-node { position:absolute; }
+    .table-node {
+      left:0;
+      top:0;
       border:1px solid var(--line-strong);
       background: var(--table-bg);
       display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;
       cursor:move;user-select:none;box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.4);z-index:10;
     }
-    .round-table::before { content:''; position:absolute; inset:10px; border-radius:50%; border:1px solid rgba(164,127,89,.20); }
-    .round-table .inner { display:grid; gap:8px; justify-items:center; width:100%; position:relative; z-index:1; }
-    .round-table input { max-width:128px; text-align:center; font:600 22px/1 'Cormorant Garamond',serif; background:rgba(255,255,255,.82); color: var(--text); }
-    [data-theme="dark"] .round-table input {
+    .table-node.shape-round { width:180px; height:180px; border-radius:50%; }
+    .table-node.shape-square { width:180px; height:180px; border-radius:28px; }
+    .table-node.shape-rectangle { width:260px; height:150px; border-radius:26px; }
+    .table-node::before { content:''; position:absolute; inset:10px; border:1px solid rgba(164,127,89,.20); }
+    .table-node.shape-round::before { border-radius:50%; }
+    .table-node.shape-square::before { border-radius:22px; }
+    .table-node.shape-rectangle::before { border-radius:20px; }
+    .table-node .inner { display:grid; gap:8px; justify-items:center; width:100%; position:relative; z-index:1; }
+    .table-node input { max-width:160px; text-align:center; font:600 22px/1 'Cormorant Garamond',serif; background:rgba(255,255,255,.82); color: var(--text); }
+    [data-theme="dark"] .table-node input {
       background: rgba(255,255,255,.08);
       color: #f3e8dc;
       border-color: rgba(255,255,255,.10);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
     }
-    .round-table .meta { font-size:11px; color:var(--text-muted); letter-spacing:.12em; text-transform:uppercase; }
+    .table-node .meta { font-size:11px; color:var(--text-muted); letter-spacing:.12em; text-transform:uppercase; }
     .table-fill {
       display:flex;
       align-items:center;
@@ -303,12 +310,20 @@
     let activeDropTarget=null;
     const canvas=document.getElementById('canvas');
     const sidebarPlaceholder=document.getElementById('sidebarPlaceholder');
-    const TABLE_SIZE=180; const TABLE_RADIUS=90; const CLUSTER_PADDING=150;
+    const TABLE_DIMENSIONS={
+      round:{ width:180, height:180, radiusX:90, radiusY:90 },
+      square:{ width:180, height:180, radiusX:90, radiusY:90 },
+      rectangle:{ width:260, height:150, radiusX:130, radiusY:75 },
+    };
+    const TABLE_SIZE=180; const CLUSTER_PADDING=150;
 
     function normType(t){ const v=String(t||'adulte'); if(v==='enfant') return 'enfant'; if(v==='bebe') return 'bebe'; return 'adulte'; }
+    function normalizeTableShape(value){ const shape=String(value||'').trim().toLowerCase(); if(['square','carree','carrée','carre'].includes(shape)) return 'square'; if(['rectangle','rectangulaire','rectangular'].includes(shape)) return 'rectangle'; return 'round'; }
     function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':''); }
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     function regimeClass(regime){ const r=String(regime||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); if(!r) return ''; if(r.includes('vegan')) return 'regime-vegan'; if(r.includes('vege') || r.includes('vegetar')) return 'regime-vege'; if(r.includes('sans porc')) return 'regime-sans-porc'; if(r.includes('halal')) return 'regime-halal'; if(r.includes('kasher')||r.includes('casher')) return 'regime-kasher'; if(r.includes('sans gluten')||r.includes('gluten')) return 'regime-sans-gluten'; if(r.includes('sans lactose')||r.includes('lactose')) return 'regime-sans-lactose'; return 'regime-default'; }
+    function tableGeometry(shape){ return TABLE_DIMENSIONS[normalizeTableShape(shape)] || TABLE_DIMENSIONS.round; }
+    function seatCountForTable(table){ return Math.max(1, Number(table.capacity||1), (table.guests||[]).length || 0); }
     function renderPlanSelect(){ const select=document.getElementById('planSelect'); if(!select) return; select.innerHTML=(planVariants||[]).map(p=>`<option value="${escapeHtml(p.id)}" ${p.id===activePlanId?'selected':''}>${escapeHtml(p.name)}${p.active?' · actif':''}</option>`).join(''); }
     async function refreshPlans(){ const r=await fetch('/api/plans'); if(!r.ok) return; const data=await r.json(); planVariants=data.plans||[]; activePlanId=data.activePlanId || planVariants.find(p=>p.active)?.id || null; renderPlanSelect(); }
     async function activateSelectedPlan(){ const select=document.getElementById('planSelect'); const id=select?.value; if(!id || id===activePlanId) return; await fetch(`/api/plans/${encodeURIComponent(id)}/activate`, { method:'POST' }); await refreshPlans(); await load(); }
@@ -360,8 +375,52 @@
     function updateStats(){ const tables=plan.tables||[]; const placedGuests=tables.flatMap(t=>t.guests||[]).filter(Boolean); const unplaced=getUnplacedGuests(); const alerts=tables.filter(t=>(t.guests||[]).filter(Boolean).length>(t.capacity||0)).length; document.getElementById('statTables').textContent=tables.length; document.getElementById('statGuests').textContent=placedGuests.length; document.getElementById('statCapacity').textContent=tables.reduce((s,t)=>s+Number(t.capacity||0),0); document.getElementById('statAlerts').textContent=alerts + (unplaced.length>0?1:0); }
     function estimateChipSize(guest){ const name=String(guest?.name||''); const regime=String(guest?.regime||'').trim(); const width=Math.min(118, Math.max(74, Math.round(name.length*5.4) + (regime ? 18 : 8))); const height=regime ? 36 : 24; return { width, height }; }
     function ringDistribution(capacity){ const total=Math.max(1, capacity|0); if(total <= 9) return [total]; const rings=[]; let left=total; const capacities=[10, 14, 18]; for(let i=0;i<capacities.length && left>0;i++){ const take=Math.min(left, capacities[i]); rings.push(take); left-=take; } while(left>0){ const take=Math.min(left, 20); rings.push(take); left-=take; } return rings; }
-    function seatLayout(seatIndex, capacity, guest){ const size=estimateChipSize(guest); const rings=ringDistribution(capacity); let ring=0; let offset=seatIndex; while(ring < rings.length && offset >= rings[ring]){ offset -= rings[ring]; ring++; } const countInRing=Math.max(1, rings[ring] || 1); const radius=116 + ring*52; const baseStep=(Math.PI * 2) / countInRing; const ringOffset=(ring % 2) ? baseStep / 2 : 0; const angle=(-Math.PI / 2) + offset * baseStep + ringOffset; const cx=CLUSTER_PADDING + TABLE_RADIUS; const cy=CLUSTER_PADDING + TABLE_RADIUS; return { left: Math.round(cx + Math.cos(angle)*radius - size.width/2), top: Math.round(cy + Math.sin(angle)*radius - size.height/2), width: size.width, height: size.height }; }
-    function clusterBounds(capacity){ const total=Math.max(1, capacity||1); let minLeft=CLUSTER_PADDING, minTop=CLUSTER_PADDING, maxRight=CLUSTER_PADDING + TABLE_SIZE, maxBottom=CLUSTER_PADDING + TABLE_SIZE; for(let i=0;i<total;i++){ const seat=seatLayout(i,total,{name:'Placeholder long', regime:'sans gluten'}); minLeft=Math.min(minLeft, seat.left); minTop=Math.min(minTop, seat.top); maxRight=Math.max(maxRight, seat.left + seat.width); maxBottom=Math.max(maxBottom, seat.top + seat.height); } const pad=26; return { minLeft, minTop, width: Math.max(TABLE_SIZE, maxRight - minLeft + pad*2), height: Math.max(TABLE_SIZE, maxBottom - minTop + pad*2), offsetX: pad - minLeft, offsetY: pad - minTop }; }
+    function seatLayout(seatIndex, capacity, shape, guest){
+      const size=estimateChipSize(guest);
+      const rings=ringDistribution(capacity);
+      let ring=0;
+      let offset=seatIndex;
+      while(ring < rings.length && offset >= rings[ring]){ offset -= rings[ring]; ring++; }
+      const countInRing=Math.max(1, rings[ring] || 1);
+      const geom=tableGeometry(shape);
+      const radiusX=geom.radiusX + 26 + ring*48;
+      const radiusY=geom.radiusY + 26 + ring*48;
+      const baseStep=(Math.PI * 2) / countInRing;
+      const ringOffset=(ring % 2) ? baseStep / 2 : 0;
+      const angle=(-Math.PI / 2) + offset * baseStep + ringOffset;
+      const cx=CLUSTER_PADDING + geom.width / 2;
+      const cy=CLUSTER_PADDING + geom.height / 2;
+      return {
+        left: Math.round(cx + Math.cos(angle)*radiusX - size.width/2),
+        top: Math.round(cy + Math.sin(angle)*radiusY - size.height/2),
+        width: size.width,
+        height: size.height
+      };
+    }
+    function clusterBounds(shape, capacity){
+      const total=Math.max(1, capacity||1);
+      const geom=tableGeometry(shape);
+      let minLeft=CLUSTER_PADDING;
+      let minTop=CLUSTER_PADDING;
+      let maxRight=CLUSTER_PADDING + geom.width;
+      let maxBottom=CLUSTER_PADDING + geom.height;
+      for(let i=0;i<total;i++){
+        const seat=seatLayout(i,total,shape,{name:'Placeholder long', regime:'sans gluten'});
+        minLeft=Math.min(minLeft, seat.left);
+        minTop=Math.min(minTop, seat.top);
+        maxRight=Math.max(maxRight, seat.left + seat.width);
+        maxBottom=Math.max(maxBottom, seat.top + seat.height);
+      }
+      const pad=26;
+      return {
+        minLeft,
+        minTop,
+        width: Math.max(geom.width, maxRight - minLeft + pad*2),
+        height: Math.max(geom.height, maxBottom - minTop + pad*2),
+        offsetX: pad - minLeft,
+        offsetY: pad - minTop
+      };
+    }
     function defaultTablePos(i, bounds, cell){ const usableWidth=Math.max(520, canvas.clientWidth || 1200); const cols=Math.max(1, Math.floor((usableWidth - cell.gapX) / (cell.width + cell.gapX))); const col=i % cols; const row=Math.floor(i / cols); return { x: 24 + col*(cell.width + cell.gapX) + Math.round((cell.width - bounds.width)/2), y: 24 + row*(cell.height + cell.gapY) + Math.round((cell.height - bounds.height)/2) }; }
     function clampTablePos(pos, bounds){ const layoutHeight=Math.max(canvas.clientHeight || 0, parseInt(canvas.style.minHeight || '0', 10) || 0); const maxX=Math.max(0, canvas.clientWidth - bounds.width - 8); const maxY=Math.max(0, layoutHeight - bounds.height - 8); return { x: Math.max(8, Math.min(pos.x, maxX)), y: Math.max(8, Math.min(pos.y, maxY)) }; }
     function layoutCellSpec(entries){ const maxWidth=Math.max(...entries.map(e=>e.bounds.width), TABLE_SIZE); const maxHeight=Math.max(...entries.map(e=>e.bounds.height), TABLE_SIZE); return { width:maxWidth, height:maxHeight, gapX:48, gapY:48 }; }
@@ -370,18 +429,24 @@
 
     function render(){
       canvas.innerHTML=''; adaptLayoutToViewport(); updateStats(); renderSidebar();
-      const baseEntries=(plan.tables||[]).map((t,i)=>{ const capacity=Math.max(1, Number(t.capacity||1)); const bounds=clusterBounds(capacity); return { t, i, capacity, bounds, pos: plan.layout.tables[t.id] || null }; });
+      const baseEntries=(plan.tables||[]).map((t,i)=>{ t.shape=normalizeTableShape(t.shape); const capacity=seatCountForTable(t); const bounds=clusterBounds(t.shape, capacity); return { t, i, capacity, bounds, pos: plan.layout.tables[t.id] || null }; });
       const cell=baseEntries.length ? layoutCellSpec(baseEntries) : { width:TABLE_SIZE, height:TABLE_SIZE, gapX:48, gapY:48 };
       const entries=baseEntries.map(({t,i,capacity,bounds,pos})=>({ t, i, capacity, bounds, pos: clampTablePos(pos || defaultTablePos(i,bounds,cell), bounds) }));
       const resolvedLayout=resolveTableOverlaps(entries); const resolved=resolvedLayout.entries; const contentHeight=Math.max(canvas.clientHeight || 1, 48 + resolvedLayout.rows * (resolvedLayout.cell.height + resolvedLayout.cell.gapY)); canvas.style.minHeight=contentHeight + 'px'; plan.layout.viewport={width:canvas.clientWidth||1,height:canvas.clientHeight||1};
       resolved.forEach(({t, capacity, bounds, pos})=>{
         plan.layout.tables[t.id]=clampTablePos(pos, bounds);
         const cluster=document.createElement('div'); cluster.className='table-cluster'; cluster.style.left=pos.x+'px'; cluster.style.top=pos.y+'px'; cluster.style.width=bounds.width+'px'; cluster.style.height=bounds.height+'px';
-        const seated=(t.guests||[]).filter(Boolean).length; const ratio=Math.min(100, Math.round(((seated)/Math.max(1,capacity))*100)); const state = ratio >= 100 ? 'full' : ratio >= 75 ? 'busy' : 'open';
-        const label = ratio >= 100 ? 'Pleine' : ratio >= 75 ? 'Bien remplie' : ratio >= 50 ? 'En cours' : 'Disponible';
-        const table=document.createElement('div'); table.className='round-table'; table.style.left=(CLUSTER_PADDING + bounds.offsetX)+'px'; table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px'; table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${seated}/${capacity}</div><div class="table-fill" data-state="${state}"><span class="dot"></span><span>${label}</span></div></div>`; drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); autoSave(); }); cluster.appendChild(table);
+        const geom=tableGeometry(t.shape);
+        const seated=(t.guests||[]).filter(Boolean).length;
+        const declaredCapacity=Math.max(1, Number(t.capacity||1));
+        const ratio=Math.min(100, Math.round(((seated)/Math.max(1,declaredCapacity))*100));
+        const state = seated > declaredCapacity ? 'full' : ratio >= 100 ? 'full' : ratio >= 75 ? 'busy' : 'open';
+        const label = seated > declaredCapacity ? 'Au-delà' : ratio >= 100 ? 'Pleine' : ratio >= 75 ? 'Bien remplie' : ratio >= 50 ? 'En cours' : 'Disponible';
+        const table=document.createElement('div'); table.className=`table-node shape-${normalizeTableShape(t.shape)}`; table.style.left=(CLUSTER_PADDING + bounds.offsetX)+'px'; table.style.top=(CLUSTER_PADDING + bounds.offsetY)+'px'; table.innerHTML=`<div class="inner"><input value="${escapeHtml(t.name||'Table')}" onchange="renameTable('${t.id}', this.value)"><div class="meta">${seated}/${declaredCapacity}</div><div class="table-fill" data-state="${state}"><span class="dot"></span><span>${label}</span></div></div>`; drag(table, cluster, bounds, (nx,ny)=>{ plan.layout.tables[t.id]=clampTablePos({x:nx,y:ny}, bounds); render(); autoSave(); }); cluster.appendChild(table);
+        table.style.width=geom.width+'px';
+        table.style.height=geom.height+'px';
         for(let seatIndex=0; seatIndex<capacity; seatIndex++){
-          const guest=(t.guests||[])[seatIndex] || null; const seat=seatLayout(seatIndex, capacity, guest||{name:'',regime:''}); const slot=document.createElement('div'); slot.className='seat-slot'; slot.dataset.tableId=t.id; slot.dataset.seatIndex=String(seatIndex); slot.style.left=(seat.left + bounds.offsetX)+'px'; slot.style.top=(seat.top + bounds.offsetY)+'px'; slot.style.width=seat.width+'px'; slot.style.height=seat.height+'px'; cluster.appendChild(slot); if(!guest) continue;
+          const guest=(t.guests||[])[seatIndex] || null; const seat=seatLayout(seatIndex, capacity, t.shape, guest||{name:'',regime:''}); const slot=document.createElement('div'); slot.className='seat-slot'; slot.dataset.tableId=t.id; slot.dataset.seatIndex=String(seatIndex); slot.style.left=(seat.left + bounds.offsetX)+'px'; slot.style.top=(seat.top + bounds.offsetY)+'px'; slot.style.width=seat.width+'px'; slot.style.height=seat.height+'px'; cluster.appendChild(slot); if(!guest) continue;
           const chip=document.createElement('div'); chip.className=`guest-chip ${normType(guest.type)}`; chip.style.left=(seat.left + bounds.offsetX)+'px'; chip.style.top=(seat.top + bounds.offsetY)+'px'; chip.style.width=seat.width+'px'; const regime=(guest.regime||'').trim(); const type=normType(guest.type); const typePill=type==='adulte' ? '' : `<span class="pill type">${typeLabel(type)}</span>`; chip.innerHTML=`<span class="name">${escapeHtml(guest.name||'')}</span><div class="meta">${typePill}${regime?`<span class="pill regime ${regimeClass(regime)}">${escapeHtml(regime)}</span>`:''}</div>`; setupDragFromTable(chip, guest, t.id, seatIndex); cluster.appendChild(chip);
         }
         canvas.appendChild(cluster);

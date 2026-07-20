@@ -10,6 +10,15 @@
     .tables { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px; margin-top:22px; }
     .day-card { border-radius:var(--radius-lg); padding:18px; }
     .day-card h3 { margin-bottom: 8px; }
+    .table-meta { display:flex; flex-wrap:wrap; gap:7px; align-items:center; color:var(--text-muted); font-size:13px; }
+    .table-shape, .capacity-alert { border-radius:999px; padding:2px 8px; font-size:11px; font-weight:700; }
+    .table-shape { background:var(--accent-ghost); color:var(--accent-strong); }
+    .capacity-alert { background:var(--warning-bg); color:var(--warning-text); }
+    .catering-summary { margin-top:18px; }
+    .catering-summary h2 { font-size:1.55rem; margin-bottom:5px; }
+    .dietary-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:8px; margin-top:12px; }
+    .dietary-item { padding:10px 12px; border-left:3px solid var(--accent); background:var(--surface-alt); border-radius:8px; font-size:13px; }
+    .dietary-item strong { display:block; }
     ul { margin:14px 0 0; padding:0; display:grid; gap:10px; list-style:none; }
     li {
       padding:12px 14px;
@@ -30,6 +39,32 @@
       padding-top:6px;
       border-top:1px dashed var(--line-soft);
     }
+    .print-date { margin-top:10px; font-size:12px; }
+    @media print {
+      @page { size:A4 portrait; margin:10mm; }
+      html { color-scheme:light; }
+      body { color:#111; background:#fff; font-size:11px; line-height:1.35; }
+      body::before, body::after { display:none; }
+      .crumbs, .toolbar { display:none !important; }
+      .wrap { padding:0; }
+      .hero { padding:0 0 5mm; border:0; background:none; box-shadow:none; }
+      .hero::before { display:none; }
+      .hero h1 { font-size:25pt; }
+      .hero p { margin-bottom:4mm; }
+      .card, .day-card { color:#111; background:#fff; border:1px solid #bbb; box-shadow:none; }
+      .catering-summary, .day-card { break-inside:avoid; page-break-inside:avoid; }
+      .tables { display:block; margin-top:5mm; }
+      .day-card { margin:0 0 5mm; padding:4mm; }
+      .day-card h3 { font-size:17pt; }
+      .table-meta { font-size:10pt; }
+      .table-shape, .capacity-alert { border:1px solid #999; color:#111; background:#fff; }
+      ul { gap:0; margin-top:3mm; }
+      li { padding:2.5mm 3mm; border-radius:0; background:#fff; border-color:#ddd; }
+      .regime { color:#111; font-weight:700; }
+      .notes { color:#111; }
+      .dietary-list { grid-template-columns:1fr 1fr; }
+      .dietary-item { background:#fff; border:1px solid #ddd; border-left:3px solid #555; }
+    }
   </style>
 </head>
 <body>
@@ -39,7 +74,7 @@
     <div class="crumbs"><a href="admin.html">Admin</a> · <a href="visual.html">Plan visuel</a> · <a href="postcards.html">Cartes</a> · <a href="day-of.html">Jour J</a></div>
     <section class="hero">
       <h1>Jour J</h1>
-      <p>Vue opérationnelle pour le staff : tables, invités, régimes et notes utiles en lecture rapide.</p>
+      <p>Fiche opérationnelle pour le traiteur : tables, invités, régimes et notes utiles.</p>
       <div class="top">
         <div class="muted" id="meta"></div>
         <div class="toolbar" style="padding:0;background:none;border:0;box-shadow:none;position:static">
@@ -47,25 +82,34 @@
           <button class="ghost" onclick="window.print()">Imprimer</button>
         </div>
       </div>
+      <div class="muted print-date" id="printDate"></div>
     </section>
+    <section id="cateringSummary" class="card catering-summary" hidden></section>
     <div id="tables" class="tables"></div>
   </div>
 
   <script>
     function typeOf(g){ const t=String(g?.type||'').toLowerCase(); if(['bebe','bébé','baby','infant','toddlers','toddler'].includes(t)) return 'bebe'; if(['enfant','child','kids','kid'].includes(t)) return 'enfant'; return 'adulte'; }
     function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':'Adulte'); }
+    function tableShapeLabel(value){ const shape=String(value||'').trim().toLowerCase(); if(['square','carree','carrée','carre'].includes(shape)) return 'Carrée'; if(['rectangle','rectangulaire','rectangular'].includes(shape)) return 'Rectangulaire'; return 'Ronde'; }
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     let lastPlanHash = '';
-    function hashPlan(p){ return JSON.stringify((p.tables||[]).map(t=>({id:t.id,name:t.name,capacity:t.capacity,guests:(t.guests||[]).map(g=>g?.name).sort()})).sort((a,b)=>a.id.localeCompare(b.id))); }
+    function hashPlan(p){ return JSON.stringify((p.tables||[]).map(t=>({id:t.id,name:t.name,shape:t.shape,capacity:t.capacity,guests:(t.guests||[]).map(g=>({id:g?.id,name:g?.name,type:g?.type,regime:g?.regime,adminNotes:g?.adminNotes})).sort((a,b)=>String(a.id).localeCompare(String(b.id)))})).sort((a,b)=>a.id.localeCompare(b.id))); }
     async function load(){
       const r=await fetch('/api/plan'); const p=await r.json(); const h = hashPlan(p); if(h === lastPlanHash) return; lastPlanHash = h;
       const tables=p.tables||[]; const allGuests=tables.flatMap(t=>t.guests||[]).filter(Boolean); const total=allGuests.length; const adults=allGuests.filter(g=>typeOf(g)==='adulte').length; const kids=allGuests.filter(g=>typeOf(g)==='enfant').length; const babies=allGuests.filter(g=>typeOf(g)==='bebe').length;
       document.getElementById('meta').textContent=`${tables.length} table(s) · ${total} invité(s) · Adultes: ${adults} · Enfants: ${kids} · Bébés: ${babies}`;
+      document.getElementById('printDate').textContent=`Édité le ${new Date().toLocaleString('fr-FR', { dateStyle:'long', timeStyle:'short' })}`;
+      const dietaryGuests=tables.flatMap(t=>(t.guests||[]).filter(g=>String(g?.regime||'').trim()).map(g=>({table:t.name||'Table', name:g.name||'Invité', regime:String(g.regime).trim()})));
+      const summary=document.getElementById('cateringSummary');
+      summary.hidden=!dietaryGuests.length;
+      summary.innerHTML=dietaryGuests.length ? `<h2>Régimes à signaler en cuisine</h2><p>${dietaryGuests.length} invité(s) avec une indication alimentaire.</p><div class="dietary-list">${dietaryGuests.map(g=>`<div class="dietary-item"><strong>${escapeHtml(g.table)} · ${escapeHtml(g.name)}</strong>${escapeHtml(g.regime)}</div>`).join('')}</div>` : '';
       const c=document.getElementById('tables'); c.innerHTML='';
       tables.forEach(t=>{
         const tg=(t.guests||[]).filter(Boolean); const ta=tg.filter(g=>typeOf(g)==='adulte').length; const te=tg.filter(g=>typeOf(g)==='enfant').length; const tb=tg.filter(g=>typeOf(g)==='bebe').length;
+        const capacity=Math.max(1, Number(t.capacity)||1); const isOverCapacity=tg.length>capacity;
         const d=document.createElement('div'); d.className='card day-card';
-        d.innerHTML=`<h3>${escapeHtml(t.name)}</h3><div class='muted'>${tg.length}/${t.capacity||0} · Adultes: ${ta} · Enfants: ${te} · Bébés: ${tb}</div>`;
+        d.innerHTML=`<h3>${escapeHtml(t.name)}</h3><div class="table-meta"><span class="table-shape">Table ${tableShapeLabel(t.shape).toLowerCase()}</span><span>${tg.length}/${capacity} placé(s) · Adultes: ${ta} · Enfants: ${te} · Bébés: ${tb}</span>${isOverCapacity?'<span class="capacity-alert">Au-delà de la capacité déclarée</span>':''}</div>`;
         const ul=document.createElement('ul');
         tg.forEach(g=>{ const li=document.createElement('li'); const typ=typeOf(g); const regime = String(g.regime||'').trim(); const notes = String(g.adminNotes||'').trim(); li.innerHTML=`<span>${escapeHtml(g.name)}</span><span class="badge ${typ}">${typeLabel(typ)}</span>${regime ? `<span class="regime">· ${escapeHtml(regime)}</span>` : ''}${notes ? `<div class="notes">${escapeHtml(notes)}</div>` : ''}`; ul.appendChild(li); });
         if(!tg.length) ul.innerHTML = '<li class="muted">Aucun invité placé à cette table.</li>';

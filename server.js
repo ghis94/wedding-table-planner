@@ -78,6 +78,13 @@ function cleanText(value, maxLen = 500) {
   return String(value ?? '').trim().slice(0, maxLen);
 }
 
+function normalizeTableShape(value) {
+  const shape = String(value || '').trim().toLowerCase();
+  if (['carree', 'carrée', 'carre', 'square'].includes(shape)) return 'square';
+  if (['rectangulaire', 'rectangle', 'rectangular'].includes(shape)) return 'rectangle';
+  return 'round';
+}
+
 function sanitizeRsvp(input = {}, { keepCreatedAt = true } = {}) {
   return {
     id: cleanText(input.id || crypto.randomUUID(), 80),
@@ -119,10 +126,12 @@ function sanitizeGuest(input = {}, { keepRsvpFields = false } = {}) {
 
 function sanitizeTable(input = {}) {
   const guests = Array.isArray(input.guests) ? input.guests.map(sanitizeGuest) : [];
+  const fallbackCapacity = Math.max(10, guests.filter(Boolean).length || 0);
   return {
     id: cleanText(input.id || crypto.randomUUID(), 80),
     name: cleanText(input.name || 'Table', 120) || 'Table',
-    capacity: clampInt(input.capacity, { min: 1, max: 50, fallback: 10 }),
+    shape: normalizeTableShape(input.shape),
+    capacity: clampInt(input.capacity, { min: 1, max: 1000, fallback: fallbackCapacity }),
     guests,
   };
 }
@@ -1237,28 +1246,31 @@ app.get('/api/export/caterer.csv', requireAdmin, (_req, res) => {
     };
 
     const lines = [];
-    lines.push(['table', 'invité', 'type', 'allergies/régime'].map(escapeCsv).join(','));
+    lines.push(['table', 'forme', 'capacité déclarée', 'invité', 'type', 'allergies/régime', 'note staff'].map(escapeCsv).join(','));
 
     for (const t of tables) {
       for (const g of (t.guests || [])) {
         const r = findRsvp(g.name);
         lines.push([
           t.name || '',
+          normalizeTableShape(t.shape),
+          t.capacity || '',
           g.name || '',
-          g.type || 'adulte',
-          r?.regime || ''
+          normalizeGuestType(g.type),
+          g.regime || r?.regime || '',
+          g.adminNotes || r?.adminNotes || ''
         ].map(escapeCsv).join(','));
       }
     }
 
     lines.push('');
-    lines.push(['table', 'total', 'adultes', 'enfants', 'bébés'].map(escapeCsv).join(','));
+    lines.push(['table', 'forme', 'capacité déclarée', 'total', 'adultes', 'enfants', 'bébés'].map(escapeCsv).join(','));
     for (const t of tables) {
       const gs = t.guests || [];
-      const ad = gs.filter(g => String(g.type||'adulte') === 'adulte').length;
-      const en = gs.filter(g => String(g.type||'') === 'enfant').length;
-      const bb = gs.filter(g => String(g.type||'') === 'bebe').length;
-      lines.push([t.name || '', gs.length, ad, en, bb].map(escapeCsv).join(','));
+      const ad = gs.filter(g => normalizeGuestType(g.type) === 'adulte').length;
+      const en = gs.filter(g => normalizeGuestType(g.type) === 'enfant').length;
+      const bb = gs.filter(g => normalizeGuestType(g.type) === 'bebe').length;
+      lines.push([t.name || '', normalizeTableShape(t.shape), t.capacity || '', gs.length, ad, en, bb].map(escapeCsv).join(','));
     }
 
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
