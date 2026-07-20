@@ -19,19 +19,29 @@ function sideOfRectangle(seat) {
   const centerX = seat.left + seat.width / 2;
   const centerY = seat.top + seat.height / 2;
   if (centerY < 150) return 'top';
-  if (centerX > 410) return 'right';
-  if (centerY > 300) return 'bottom';
+  if (centerX > 678) return 'right';
+  if (centerY > 350) return 'bottom';
   return 'left';
 }
 
-test('rectangular tables distribute seats around all four sides', () => {
+test('15-seat rectangular tables grow and distribute seats on one perimeter', () => {
   const seatLayout = loadSeatLayout();
   const guest = { name: 'Place longue', regime: 'sans gluten' };
-  const sides = Array.from({ length: 10 }, (_, index) => sideOfRectangle(seatLayout(index, 10, 'rectangle', guest)));
+  const seats = Array.from({ length: 15 }, (_, index) => seatLayout(index, 15, 'rectangle', guest));
+  const sides = seats.map(sideOfRectangle);
   const count = side => sides.filter(value => value === side).length;
 
   assert.deepEqual(
     { top: count('top'), right: count('right'), bottom: count('bottom'), left: count('left') },
-    { top: 2, right: 3, bottom: 2, left: 3 },
+    { top: 4, right: 4, bottom: 4, left: 3 },
   );
+
+  for (const side of ['top','right','bottom','left']) {
+    const sideSeats=seats.filter(seat=>sideOfRectangle(seat)===side).sort((a,b)=>side==='top'||side==='bottom' ? a.left-b.left : a.top-b.top);
+    for(let index=1; index<sideSeats.length; index++){
+      const previous=sideSeats[index-1]; const current=sideSeats[index];
+      if(side==='top'||side==='bottom') assert.ok(previous.left+previous.width < current.left, `${side} seats should not overlap`);
+      else assert.ok(previous.top+previous.height < current.top, `${side} seats should not overlap`);
+    }
+  }
 });

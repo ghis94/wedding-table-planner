@@ -316,7 +316,6 @@
       rectangle:{ width:260, height:150, radiusX:130, radiusY:75 },
     };
     const TABLE_SIZE=180; const CLUSTER_PADDING=150;
-    const PERIMETER_RING_GAP=52;
     const PERIMETER_SEAT_GAP=14;
     const SEAT_REFERENCE_SIZE={ width:118, height:36 };
 
@@ -325,7 +324,28 @@
     function typeLabel(t){ return t==='enfant'?'Enfant':(t==='bebe'?'Bébé':''); }
     function escapeHtml(v){ return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
     function regimeClass(regime){ const r=String(regime||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); if(!r) return ''; if(r.includes('vegan')) return 'regime-vegan'; if(r.includes('vege') || r.includes('vegetar')) return 'regime-vege'; if(r.includes('sans porc')) return 'regime-sans-porc'; if(r.includes('halal')) return 'regime-halal'; if(r.includes('kasher')||r.includes('casher')) return 'regime-kasher'; if(r.includes('sans gluten')||r.includes('gluten')) return 'regime-sans-gluten'; if(r.includes('sans lactose')||r.includes('lactose')) return 'regime-sans-lactose'; return 'regime-default'; }
-    function tableGeometry(shape){ return TABLE_DIMENSIONS[normalizeTableShape(shape)] || TABLE_DIMENSIONS.round; }
+    function perimeterTablePlan(shape, capacity){
+      const total=Math.max(1, capacity|0);
+      let counts;
+      if(total===1) counts=[1,0,0,0];
+      else if(total===2) counts=[1,0,1,0];
+      else if(total===3) counts=[1,1,1,0];
+      else {
+        const horizontal=Math.ceil(total/2);
+        const vertical=total-horizontal;
+        counts=[Math.ceil(horizontal/2),Math.ceil(vertical/2),Math.floor(horizontal/2),Math.floor(vertical/2)];
+      }
+      const base=TABLE_DIMENSIONS[normalizeTableShape(shape)] || TABLE_DIMENSIONS.square;
+      const horizontalSeats=Math.max(counts[0],counts[2],1);
+      const verticalSeats=Math.max(counts[1],counts[3],1);
+      const requiredWidth=horizontalSeats*(SEAT_REFERENCE_SIZE.width+PERIMETER_SEAT_GAP);
+      const requiredHeight=verticalSeats*(SEAT_REFERENCE_SIZE.height+PERIMETER_SEAT_GAP);
+      let width=Math.max(base.width,requiredWidth);
+      let height=Math.max(base.height,requiredHeight);
+      if(normalizeTableShape(shape)==='square') width=height=Math.max(width,height);
+      return { width, height, radiusX:width/2, radiusY:height/2, counts };
+    }
+    function tableGeometry(shape, capacity=1){ const normalized=normalizeTableShape(shape); return normalized==='round' ? TABLE_DIMENSIONS.round : perimeterTablePlan(normalized,capacity); }
     function seatCountForTable(table){ return Math.max(1, Number(table.capacity||1), (table.guests||[]).length || 0); }
     function renderPlanSelect(){ const select=document.getElementById('planSelect'); if(!select) return; select.innerHTML=(planVariants||[]).map(p=>`<option value="${escapeHtml(p.id)}" ${p.id===activePlanId?'selected':''}>${escapeHtml(p.name)}${p.active?' · actif':''}</option>`).join(''); }
     async function refreshPlans(){ const r=await fetch('/api/plans'); if(!r.ok) return; const data=await r.json(); planVariants=data.plans||[]; activePlanId=data.activePlanId || planVariants.find(p=>p.active)?.id || null; renderPlanSelect(); }
@@ -378,41 +398,19 @@
     function updateStats(){ const tables=plan.tables||[]; const placedGuests=tables.flatMap(t=>t.guests||[]).filter(Boolean); const unplaced=getUnplacedGuests(); const alerts=tables.filter(t=>(t.guests||[]).filter(Boolean).length>(t.capacity||0)).length; document.getElementById('statTables').textContent=tables.length; document.getElementById('statGuests').textContent=placedGuests.length; document.getElementById('statCapacity').textContent=tables.reduce((s,t)=>s+Number(t.capacity||0),0); document.getElementById('statAlerts').textContent=alerts + (unplaced.length>0?1:0); }
     function estimateChipSize(guest){ const name=String(guest?.name||''); const regime=String(guest?.regime||'').trim(); const width=Math.min(118, Math.max(74, Math.round(name.length*5.4) + (regime ? 18 : 8))); const height=regime ? 36 : 24; return { width, height }; }
     function ringDistribution(capacity){ const total=Math.max(1, capacity|0); if(total <= 9) return [total]; const rings=[]; let left=total; const capacities=[10, 14, 18]; for(let i=0;i<capacities.length && left>0;i++){ const take=Math.min(left, capacities[i]); rings.push(take); left-=take; } while(left>0){ const take=Math.min(left, 20); rings.push(take); left-=take; } return rings; }
-    function perimeterRingMetrics(shape, ring){
-      const geom=tableGeometry(shape);
-      const expansion=ring*PERIMETER_RING_GAP;
-      const horizontalSpan=geom.width + expansion*2;
-      const verticalSpan=geom.height + expansion*2;
-      const horizontalCapacity=Math.max(1, Math.floor((horizontalSpan + PERIMETER_SEAT_GAP) / (SEAT_REFERENCE_SIZE.width + PERIMETER_SEAT_GAP)));
-      const verticalCapacity=Math.max(1, Math.floor((verticalSpan + PERIMETER_SEAT_GAP) / (SEAT_REFERENCE_SIZE.height + PERIMETER_SEAT_GAP)));
-      return { geom, expansion, horizontalSpan, verticalSpan, horizontalCapacity, verticalCapacity };
+    function perimeterRingMetrics(shape, capacity){
+      const geom=tableGeometry(shape,capacity);
+      return { geom, expansion:0, horizontalSpan:geom.width, verticalSpan:geom.height, counts:geom.counts };
     }
     function seatRingDistribution(capacity, shape){
       if(normalizeTableShape(shape)==='round') return ringDistribution(capacity);
-      const rings=[]; let left=Math.max(1, capacity|0); let ring=0;
-      while(left>0){ const metrics=perimeterRingMetrics(shape, ring); const take=Math.min(left, metrics.horizontalCapacity*2 + metrics.verticalCapacity*2); rings.push(take); left-=take; ring++; }
-      return rings;
+      return [Math.max(1,capacity|0)];
     }
     function perimeterSeatCounts(count, metrics){
-      if(count===1) return [1,0,0,0];
-      if(count===2) return [1,0,1,0];
-      if(count===3) return [1,1,1,0];
-      const counts=[1,1,1,1];
-      const capacities=[metrics.horizontalCapacity,metrics.verticalCapacity,metrics.horizontalCapacity,metrics.verticalCapacity];
-      const spans=[metrics.horizontalSpan,metrics.verticalSpan,metrics.horizontalSpan,metrics.verticalSpan];
-      for(let assigned=4; assigned<count; assigned++){
-        let bestIndex=-1;
-        for(let i=0;i<4;i++){
-          if(counts[i]>=capacities[i]) continue;
-          if(bestIndex===-1 || counts[i]/spans[i] < counts[bestIndex]/spans[bestIndex]) bestIndex=i;
-        }
-        if(bestIndex===-1) break;
-        counts[bestIndex]++;
-      }
-      return counts;
+      return metrics.counts || perimeterTablePlan('rectangle',count).counts;
     }
-    function perimeterSeatLayout(offset, count, shape, ring, size){
-      const metrics=perimeterRingMetrics(shape, ring);
+    function perimeterSeatLayout(offset, count, shape, size){
+      const metrics=perimeterRingMetrics(shape,count);
       const counts=perimeterSeatCounts(count, metrics);
       const cx=CLUSTER_PADDING + metrics.geom.width/2;
       const cy=CLUSTER_PADDING + metrics.geom.height/2;
@@ -435,8 +433,8 @@
       let offset=seatIndex;
       while(ring < rings.length && offset >= rings[ring]){ offset -= rings[ring]; ring++; }
       const countInRing=Math.max(1, rings[ring] || 1);
-      if(normalizedShape!=='round') return perimeterSeatLayout(offset, countInRing, normalizedShape, ring, size);
-      const geom=tableGeometry(shape);
+      if(normalizedShape!=='round') return perimeterSeatLayout(offset, countInRing, normalizedShape, size);
+      const geom=tableGeometry(shape,capacity);
       const radiusX=geom.radiusX + 26 + ring*48;
       const radiusY=geom.radiusY + 26 + ring*48;
       const baseStep=(Math.PI * 2) / countInRing;
@@ -453,7 +451,7 @@
     }
     function clusterBounds(shape, capacity){
       const total=Math.max(1, capacity||1);
-      const geom=tableGeometry(shape);
+      const geom=tableGeometry(shape,total);
       let minLeft=CLUSTER_PADDING;
       let minTop=CLUSTER_PADDING;
       let maxRight=CLUSTER_PADDING + geom.width;
@@ -490,7 +488,7 @@
       resolved.forEach(({t, capacity, bounds, pos})=>{
         plan.layout.tables[t.id]=clampTablePos(pos, bounds);
         const cluster=document.createElement('div'); cluster.className='table-cluster'; cluster.style.left=pos.x+'px'; cluster.style.top=pos.y+'px'; cluster.style.width=bounds.width+'px'; cluster.style.height=bounds.height+'px';
-        const geom=tableGeometry(t.shape);
+        const geom=tableGeometry(t.shape,capacity);
         const seated=(t.guests||[]).filter(Boolean).length;
         const declaredCapacity=Math.max(1, Number(t.capacity||1));
         const ratio=Math.min(100, Math.round(((seated)/Math.max(1,declaredCapacity))*100));
