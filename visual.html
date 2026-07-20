@@ -316,6 +316,9 @@
       rectangle:{ width:260, height:150, radiusX:130, radiusY:75 },
     };
     const TABLE_SIZE=180; const CLUSTER_PADDING=150;
+    const PERIMETER_RING_GAP=52;
+    const PERIMETER_SEAT_GAP=14;
+    const SEAT_REFERENCE_SIZE={ width:118, height:36 };
 
     function normType(t){ const v=String(t||'adulte'); if(v==='enfant') return 'enfant'; if(v==='bebe') return 'bebe'; return 'adulte'; }
     function normalizeTableShape(value){ const shape=String(value||'').trim().toLowerCase(); if(['square','carree','carrée','carre'].includes(shape)) return 'square'; if(['rectangle','rectangulaire','rectangular'].includes(shape)) return 'rectangle'; return 'round'; }
@@ -375,13 +378,64 @@
     function updateStats(){ const tables=plan.tables||[]; const placedGuests=tables.flatMap(t=>t.guests||[]).filter(Boolean); const unplaced=getUnplacedGuests(); const alerts=tables.filter(t=>(t.guests||[]).filter(Boolean).length>(t.capacity||0)).length; document.getElementById('statTables').textContent=tables.length; document.getElementById('statGuests').textContent=placedGuests.length; document.getElementById('statCapacity').textContent=tables.reduce((s,t)=>s+Number(t.capacity||0),0); document.getElementById('statAlerts').textContent=alerts + (unplaced.length>0?1:0); }
     function estimateChipSize(guest){ const name=String(guest?.name||''); const regime=String(guest?.regime||'').trim(); const width=Math.min(118, Math.max(74, Math.round(name.length*5.4) + (regime ? 18 : 8))); const height=regime ? 36 : 24; return { width, height }; }
     function ringDistribution(capacity){ const total=Math.max(1, capacity|0); if(total <= 9) return [total]; const rings=[]; let left=total; const capacities=[10, 14, 18]; for(let i=0;i<capacities.length && left>0;i++){ const take=Math.min(left, capacities[i]); rings.push(take); left-=take; } while(left>0){ const take=Math.min(left, 20); rings.push(take); left-=take; } return rings; }
+    function perimeterRingMetrics(shape, ring){
+      const geom=tableGeometry(shape);
+      const expansion=ring*PERIMETER_RING_GAP;
+      const horizontalSpan=geom.width + expansion*2;
+      const verticalSpan=geom.height + expansion*2;
+      const horizontalCapacity=Math.max(1, Math.floor((horizontalSpan + PERIMETER_SEAT_GAP) / (SEAT_REFERENCE_SIZE.width + PERIMETER_SEAT_GAP)));
+      const verticalCapacity=Math.max(1, Math.floor((verticalSpan + PERIMETER_SEAT_GAP) / (SEAT_REFERENCE_SIZE.height + PERIMETER_SEAT_GAP)));
+      return { geom, expansion, horizontalSpan, verticalSpan, horizontalCapacity, verticalCapacity };
+    }
+    function seatRingDistribution(capacity, shape){
+      if(normalizeTableShape(shape)==='round') return ringDistribution(capacity);
+      const rings=[]; let left=Math.max(1, capacity|0); let ring=0;
+      while(left>0){ const metrics=perimeterRingMetrics(shape, ring); const take=Math.min(left, metrics.horizontalCapacity*2 + metrics.verticalCapacity*2); rings.push(take); left-=take; ring++; }
+      return rings;
+    }
+    function perimeterSeatCounts(count, metrics){
+      if(count===1) return [1,0,0,0];
+      if(count===2) return [1,0,1,0];
+      if(count===3) return [1,1,1,0];
+      const counts=[1,1,1,1];
+      const capacities=[metrics.horizontalCapacity,metrics.verticalCapacity,metrics.horizontalCapacity,metrics.verticalCapacity];
+      const spans=[metrics.horizontalSpan,metrics.verticalSpan,metrics.horizontalSpan,metrics.verticalSpan];
+      for(let assigned=4; assigned<count; assigned++){
+        let bestIndex=-1;
+        for(let i=0;i<4;i++){
+          if(counts[i]>=capacities[i]) continue;
+          if(bestIndex===-1 || counts[i]/spans[i] < counts[bestIndex]/spans[bestIndex]) bestIndex=i;
+        }
+        if(bestIndex===-1) break;
+        counts[bestIndex]++;
+      }
+      return counts;
+    }
+    function perimeterSeatLayout(offset, count, shape, ring, size){
+      const metrics=perimeterRingMetrics(shape, ring);
+      const counts=perimeterSeatCounts(count, metrics);
+      const cx=CLUSTER_PADDING + metrics.geom.width/2;
+      const cy=CLUSTER_PADDING + metrics.geom.height/2;
+      const horizontalStart=CLUSTER_PADDING-metrics.expansion;
+      const verticalStart=CLUSTER_PADDING-metrics.expansion;
+      const along=(start, span, index, total)=>start + span*(index+.5)/Math.max(1,total);
+      let side=0; let index=offset;
+      while(side<4 && index>=counts[side]){ index-=counts[side]; side++; }
+      if(side===0) return { left:Math.round(along(horizontalStart,metrics.horizontalSpan,index,counts[0])-size.width/2), top:Math.round(CLUSTER_PADDING-PERIMETER_SEAT_GAP-metrics.expansion-size.height), width:size.width, height:size.height };
+      if(side===1) return { left:Math.round(CLUSTER_PADDING+metrics.geom.width+PERIMETER_SEAT_GAP+metrics.expansion), top:Math.round(along(verticalStart,metrics.verticalSpan,index,counts[1])-size.height/2), width:size.width, height:size.height };
+      if(side===2) return { left:Math.round(along(horizontalStart,metrics.horizontalSpan,index,counts[2])-size.width/2), top:Math.round(CLUSTER_PADDING+metrics.geom.height+PERIMETER_SEAT_GAP+metrics.expansion), width:size.width, height:size.height };
+      if(side===3) return { left:Math.round(CLUSTER_PADDING-PERIMETER_SEAT_GAP-metrics.expansion-size.width), top:Math.round(along(verticalStart,metrics.verticalSpan,index,counts[3])-size.height/2), width:size.width, height:size.height };
+      return { left:Math.round(cx-size.width/2), top:Math.round(cy-size.height/2), width:size.width, height:size.height };
+    }
     function seatLayout(seatIndex, capacity, shape, guest){
       const size=estimateChipSize(guest);
-      const rings=ringDistribution(capacity);
+      const normalizedShape=normalizeTableShape(shape);
+      const rings=seatRingDistribution(capacity, normalizedShape);
       let ring=0;
       let offset=seatIndex;
       while(ring < rings.length && offset >= rings[ring]){ offset -= rings[ring]; ring++; }
       const countInRing=Math.max(1, rings[ring] || 1);
+      if(normalizedShape!=='round') return perimeterSeatLayout(offset, countInRing, normalizedShape, ring, size);
       const geom=tableGeometry(shape);
       const radiusX=geom.radiusX + 26 + ring*48;
       const radiusY=geom.radiusY + 26 + ring*48;
